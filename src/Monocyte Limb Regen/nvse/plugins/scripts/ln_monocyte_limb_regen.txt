@@ -1,0 +1,27 @@
+; Monocyte Limb Regen (Dan, 2026-11-11): the Monocyte Breeder implant from the New Vegas Medical
+; Clinic should "eventually heal limb injuries at the same pace as the regular healing".
+;
+; Vanilla: ImplantRegenScript restores Health by ScriptEffectElapsedSeconds / 10 every frame, so
+; 0.1 a second (1 HP every 10 s). This restores each limb's condition at the same 0.1 a second
+; while you have the implant (ImplantRegenPerk, FalloutNV.esm 0x14CCE1). Limbs run 0-100, so a
+; fully crippled limb is whole again in about 17 minutes of play.
+;
+; Run by JIP LN NVSE's script runner (ln_: new game and every load). xNVSE clears all repeating
+; calls on every load and new game, so registering here never stacks. Ticks once a second, only
+; in game mode and not while paused (flags 4 + 16), like the implant's own effect script.
+; Needs xNVSE 6.2.8+ (CallWhilePerSeconds) and JIP LN 56.95+.
+
+CallWhilePerSeconds 1 (begin function {}
+ref rP
+let rP := BuildRef 0 1363169
+if player.HasPerk rP
+player.RestoreAV PerceptionCondition 0.1
+player.RestoreAV EnduranceCondition 0.1
+player.RestoreAV LeftAttackCondition 0.1
+player.RestoreAV RightAttackCondition 0.1
+player.RestoreAV LeftMobilityCondition 0.1
+player.RestoreAV RightMobilityCondition 0.1
+endif
+end) (begin function {}
+SetFunctionValue 1
+end) 20
