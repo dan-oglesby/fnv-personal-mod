@@ -1,0 +1,26 @@
+; Wasteland Bank (Dan, 2026-11-11): a rewrite of "Bank Card" (BankCard.esp, Nexus 39741, 2011)
+; without its bugs and without a plugin. Deposit and withdraw caps with daily interest, take a
+; loan with weekly interest, convert NCR, Legion and pre-war money (and caravan money) to caps,
+; and optional auto-deposit and auto-convert.
+;
+; Press K (DIK 37) out of menus to open the bank. To change the key, edit the number on the
+; SetOnKeyDownEventHandler line below (DirectInput key codes: geckwiki.com, "DirectX Scancodes").
+; From the console: call (CompileScript "WastelandBank/Open.txt")
+;
+; Run by JIP LN NVSE's script runner (ln_: new game and every load). The menus and bookkeeping are
+; user-defined functions in Data\nvse\user_defined_functions\WastelandBank\, compiled by xNVSE
+; at startup. Balances are JIP auxiliary variables on the player ("_wb..."), kept in JIP's
+; co-save, so nothing is added to the game's own save data. Needs xNVSE 6.2.8+, JIP LN 56.95+.
+;
+; Re-registering here on every load is safe: xNVSE clears repeating calls on load and new game,
+; and JIP keeps key handlers in a set, so neither stacks.
+
+let ref rInit := CompileScript "WastelandBank/Init.txt"
+call rInit
+let ref rKey := CompileScript "WastelandBank/OnKey.txt"
+SetOnKeyDownEventHandler rKey 1 37
+; bookkeeping every 10 s of play (interest, loan, auto-deposit, auto-convert): flags 4 + 16 =
+; not in menus, not while paused
+let ref rTick := CompileScript "WastelandBank/Tick.txt"
+let ref rTrue := CompileScript "WastelandBank/Always.txt"
+CallWhilePerSeconds 10 rTick rTrue 20

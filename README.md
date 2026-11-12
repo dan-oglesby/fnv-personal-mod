@@ -8,6 +8,7 @@ Each folder in `src/` mirrors the game's `Data` folder. `python build.py` zips e
 
 | Mod | What it does | Needs | Status |
 |---|---|---|---|
+| Wasteland Bank | A rewrite of Bank Card (BankCard.esp, Nexus 39741, 2011) without its bugs or a plugin. Press **K** to open: deposit and withdraw caps with daily interest, take one loan at a time with weekly interest, convert NCR, Legion and pre-war money to caps, and optional auto-deposit (keeps a set amount on hand) and auto-convert. | xNVSE 6.2.8+, JIP LN 56.95+ | Built 2026-11-11, untested in play. Don't run it alongside BankCard.esp |
 | Monocyte Limb Regen | With the Monocyte Breeder implant (New Vegas Medical Clinic), crippled limbs heal on their own at the implant's own health rate, 0.1 a second, so a fully crippled limb heals in about 17 minutes of play. | xNVSE 6.2.8+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 | Survival Start Kit | Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) at the start of a new game, or on the next load of an existing save, once, the same way the DLC does. No plugin. | Lonesome Road, xNVSE 6.1+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 
@@ -40,3 +41,27 @@ those same events (`ClearDelayedCalls` in its load and new-game hooks), so it ne
 
 Check it worked: with the implant, cripple a limb (`player.DamageAV LeftMobilityCondition 100`
 in the console) and watch it come back in the Pip-Boy's status page.
+
+## How Wasteland Bank works
+
+The 2011 Bank Card's bugs and their fixes:
+- **Loan interest every few seconds instead of weekly.** It stored the day as a whole number and
+  compared it with the fractional day. Here every day count is whole (`Floor GameDaysPassed`), and
+  interest is 0.5% per 7 whole game days.
+- **Auto-convert and auto-consolidate never ran.** Its seconds timer was a whole number and stayed
+  at 0. Here they run on a 10-second tick.
+- **Cash figure up to a few seconds old.** Depositing just after spending could credit caps you no
+  longer had. Here every button counts your caps at the moment you click it.
+- **Auto-deposit took every cap you carried.** Here it keeps a chosen amount on hand
+  (100/200/500/1000, default 200).
+
+Currency converts at each item's own value in the game, read with `GetValue`, so a mod that
+reprices money is followed. Caravan money (the `CMNY` twins) converts at its matching item's value.
+Deposit interest stays as in the original: 0.5% a game day plus Barter/50000, compounding. The
+rates are at the top of `Tick.txt` and `Loan.txt`.
+
+Layout: `nvse/plugins/scripts/ln_wasteland_bank.txt` registers the hotkey (K, DirectInput 37)
+and a 10-second bookkeeping tick on every load. Each menu and its buttons is a user-defined
+function in `nvse/user_defined_functions/WastelandBank/`, compiled by xNVSE at startup and called
+with `CompileScript`. Balances are JIP auxiliary variables on the player (`_wb...`), saved in
+JIP's co-save. Console: `call (CompileScript "WastelandBank/Open.txt")`.

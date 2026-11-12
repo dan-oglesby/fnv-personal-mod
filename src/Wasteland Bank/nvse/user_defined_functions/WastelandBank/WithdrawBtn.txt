@@ -1,0 +1,38 @@
+; Wasteland Bank: withdraw buttons (0 100, 1 500, 2 1000, 3 all, 4 back). Never more than the
+; whole caps in the balance; interest fractions stay in the bank.
+int iBtn
+int iAmt
+int iWhole
+float fBal
+ref rCaps
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 4
+		let rNext := CompileScript "WastelandBank/Open.txt"
+		call rNext
+		return
+	endif
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let iWhole := Floor fBal
+	let iAmt := iWhole
+	if iBtn == 0
+		let iAmt := 100
+	elseif iBtn == 1
+		let iAmt := 500
+	elseif iBtn == 2
+		let iAmt := 1000
+	endif
+	if iAmt > iWhole
+		let iAmt := iWhole
+	endif
+	if iAmt > 0
+		let rCaps := BuildRef 0 15	; Caps001
+		let fBal -= iAmt
+		player.AuxVarSetFlt "_wbBal" fBal
+		player.AddItem rCaps iAmt 1
+		print "Wasteland Bank: withdrew " + $iAmt + " caps"
+	endif
+	let rNext := CompileScript "WastelandBank/Withdraw.txt"
+	call rNext
+end

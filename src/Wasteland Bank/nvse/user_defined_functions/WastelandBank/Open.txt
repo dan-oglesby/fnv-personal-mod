@@ -1,0 +1,17 @@
+; Wasteland Bank: the main menu. Every figure is read live when the menu opens.
+float fBal
+float fEarned
+float fLoan
+int iCarry
+ref rCaps
+ref rCb
+
+begin Function {}
+	let rCaps := BuildRef 0 15	; Caps001
+	let iCarry := player.GetItemCount rCaps
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let fEarned := player.AuxVarGetFlt "_wbEarned"
+	let fLoan := player.AuxVarGetFlt "_wbLoan"
+	let rCb := CompileScript "WastelandBank/MainBtn.txt"
+	MessageBoxExAlt rCb "^Wasteland Bank^Balance: %.0f caps (interest earned: %.0f)%rLoan owed: %.0f caps%rCarrying: %.0f caps|Deposit|Withdraw|Loans|Convert currency to caps|Settings|Close" fBal fEarned fLoan iCarry
+end

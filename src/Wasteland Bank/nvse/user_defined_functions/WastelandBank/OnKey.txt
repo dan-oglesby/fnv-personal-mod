@@ -1,0 +1,10 @@
+; Wasteland Bank: the hotkey. Opens the bank only out of menus and while alive.
+int iKey
+ref rOpen
+
+begin Function {iKey}
+	if eval (MenuMode == 0) && (player.GetDead == 0)
+		let rOpen := CompileScript "WastelandBank/Open.txt"
+		call rOpen
+	endif
+end

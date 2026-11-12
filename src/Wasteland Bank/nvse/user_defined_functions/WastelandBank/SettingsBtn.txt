@@ -1,0 +1,45 @@
+; Wasteland Bank: settings buttons (0 toggle auto-deposit, 1 cycle the caps kept on hand
+; 100 > 200 > 500 > 1000 > 100, 2 toggle auto-convert, 3 back).
+int iBtn
+float fKeep
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 3
+		let rNext := CompileScript "WastelandBank/Open.txt"
+		call rNext
+		return
+	endif
+	if iBtn == 0
+		if eval (player.AuxVarGetFlt "_wbAutoDep") == 1
+			player.AuxVarSetFlt "_wbAutoDep" 0
+			print "Wasteland Bank: setting - auto-deposit off"
+		else
+			player.AuxVarSetFlt "_wbAutoDep" 1
+			print "Wasteland Bank: setting - auto-deposit on"
+		endif
+	elseif iBtn == 1
+		let fKeep := player.AuxVarGetFlt "_wbKeep"
+		if fKeep < 200
+			let fKeep := 200
+		elseif fKeep < 500
+			let fKeep := 500
+		elseif fKeep < 1000
+			let fKeep := 1000
+		else
+			let fKeep := 100
+		endif
+		player.AuxVarSetFlt "_wbKeep" fKeep
+		print "Wasteland Bank: setting - keep " + $fKeep + " caps on hand"
+	elseif iBtn == 2
+		if eval (player.AuxVarGetFlt "_wbAutoConv") == 1
+			player.AuxVarSetFlt "_wbAutoConv" 0
+			print "Wasteland Bank: setting - auto-convert off"
+		else
+			player.AuxVarSetFlt "_wbAutoConv" 1
+			print "Wasteland Bank: setting - auto-convert on"
+		endif
+	endif
+	let rNext := CompileScript "WastelandBank/Settings.txt"
+	call rNext
+end

@@ -1,0 +1,81 @@
+; Wasteland Bank: bookkeeping, every 10 s of play (registered by ln_wasteland_bank.txt).
+;
+; Deposit interest, once per whole game day that has passed since the last booking: the balance
+; grows by 0.5% plus Barter/50000 (0.7% at Barter 100), compounding, as in the 2011 mod. The 2011
+; mod stored the day counters as whole numbers and compared them with the fractional day, which
+; made its loan interest fire every few seconds; here everything counts whole days (Floor).
+; Loan interest: 0.5% for every 7 whole game days owed.
+; Auto-deposit (if on): once per game day, deposits the caps you carry above the amount kept.
+; Auto-convert (if on): every tick, quietly turns other currency into caps.
+int iToday
+int iLast
+int iDays
+int iLoanDays
+int iCarry
+int iAmt
+float fBal
+float fGrown
+float fRate
+float fLoan
+float fKeep
+ref rCaps
+ref rConv
+
+begin Function {}
+	let iToday := Floor GameDaysPassed
+	let iLast := player.AuxVarGetFlt "_wbDay"
+	if iToday > iLast
+		let iDays := iToday - iLast
+		player.AuxVarSetFlt "_wbDay" iToday
+
+		; deposit interest, compounding per day
+		let fBal := player.AuxVarGetFlt "_wbBal"
+		if fBal > 0
+			let fRate := 0.005 + ((player.GetAV Barter) / 50000)
+			let fGrown := fBal
+			let iAmt := iDays
+			while iAmt > 0
+				let fGrown *= (1 + fRate)
+				let iAmt -= 1
+			loop
+			player.AuxVarSetFlt "_wbBal" fGrown
+			let fRate := player.AuxVarGetFlt "_wbEarned"	; reused: interest earned so far
+			let fRate += fGrown - fBal
+			player.AuxVarSetFlt "_wbEarned" fRate
+			print "Wasteland Bank: " + $iDays + " day(s) of interest, balance now " + $fGrown
+		endif
+
+		; loan interest, per whole week
+		let fLoan := player.AuxVarGetFlt "_wbLoan"
+		if fLoan > 0
+			let iLoanDays := player.AuxVarGetFlt "_wbLoanDays"
+			let iLoanDays += iDays
+			while iLoanDays >= 7
+				let fLoan *= 1.005
+				let iLoanDays -= 7
+			loop
+			player.AuxVarSetFlt "_wbLoan" fLoan
+			player.AuxVarSetFlt "_wbLoanDays" iLoanDays
+		endif
+
+		; auto-deposit, once per game day
+		if eval (player.AuxVarGetFlt "_wbAutoDep") == 1
+			let rCaps := BuildRef 0 15	; Caps001
+			let iCarry := player.GetItemCount rCaps
+			let fKeep := player.AuxVarGetFlt "_wbKeep"
+			let iAmt := iCarry - fKeep
+			if iAmt > 0
+				player.RemoveItem rCaps iAmt 1
+				let fBal := player.AuxVarGetFlt "_wbBal"
+				let fBal += iAmt
+				player.AuxVarSetFlt "_wbBal" fBal
+				print "Wasteland Bank: auto-deposited " + $iAmt + " caps"
+			endif
+		endif
+	endif
+
+	if eval (player.AuxVarGetFlt "_wbAutoConv") == 1
+		let rConv := CompileScript "WastelandBank/ConvertNow.txt"
+		call rConv 1
+	endif
+end

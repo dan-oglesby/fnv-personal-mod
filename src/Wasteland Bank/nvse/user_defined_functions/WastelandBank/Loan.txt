@@ -1,0 +1,18 @@
+; Wasteland Bank: loans. One loan at a time; 0.5% interest once per 7 whole game days (the 2011
+; mod charged it every few seconds by mistake).
+float fLoan
+int iCarry
+ref rCaps
+ref rCb
+
+begin Function {}
+	let fLoan := player.AuxVarGetFlt "_wbLoan"
+	let rCb := CompileScript "WastelandBank/LoanBtn.txt"
+	if fLoan <= 0
+		MessageBoxExAlt rCb "^Loans^You owe nothing.%rA loan costs 0.5%% interest a week (7 game days).|Borrow 100|Borrow 500|Borrow 1000|Borrow 5000|Back"
+	else
+		let rCaps := BuildRef 0 15	; Caps001
+		let iCarry := player.GetItemCount rCaps
+		MessageBoxExAlt rCb "^Loans^You owe %.0f caps (0.5%% interest a week).%rYou carry %.0f caps.|Repay 100|Repay 500|Repay 1000|Repay all you can|Back" fLoan iCarry
+	endif
+end

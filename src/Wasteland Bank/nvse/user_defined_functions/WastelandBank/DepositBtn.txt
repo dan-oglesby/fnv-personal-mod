@@ -1,0 +1,39 @@
+; Wasteland Bank: deposit buttons (0 100, 1 500, 2 1000, 3 all, 4 back).
+; Counts the caps you carry at the moment you click (the 2011 mod used a figure up to a few
+; seconds old, and could credit caps you had just spent).
+int iBtn
+int iCarry
+int iAmt
+float fBal
+ref rCaps
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 4
+		let rNext := CompileScript "WastelandBank/Open.txt"
+		call rNext
+		return
+	endif
+	let rCaps := BuildRef 0 15	; Caps001
+	let iCarry := player.GetItemCount rCaps
+	let iAmt := iCarry
+	if iBtn == 0
+		let iAmt := 100
+	elseif iBtn == 1
+		let iAmt := 500
+	elseif iBtn == 2
+		let iAmt := 1000
+	endif
+	if iAmt > iCarry
+		let iAmt := iCarry
+	endif
+	if iAmt > 0
+		player.RemoveItem rCaps iAmt 1
+		let fBal := player.AuxVarGetFlt "_wbBal"
+		let fBal += iAmt
+		player.AuxVarSetFlt "_wbBal" fBal
+		print "Wasteland Bank: deposited " + $iAmt + " caps"
+	endif
+	let rNext := CompileScript "WastelandBank/Deposit.txt"
+	call rNext
+end

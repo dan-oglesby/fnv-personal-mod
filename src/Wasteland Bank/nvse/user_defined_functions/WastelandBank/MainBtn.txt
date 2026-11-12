@@ -1,0 +1,24 @@
+; Wasteland Bank: main menu buttons (0 Deposit, 1 Withdraw, 2 Loans, 3 Convert, 4 Settings, 5 Close).
+int iBtn
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 0
+		let rNext := CompileScript "WastelandBank/Deposit.txt"
+		call rNext
+	elseif iBtn == 1
+		let rNext := CompileScript "WastelandBank/Withdraw.txt"
+		call rNext
+	elseif iBtn == 2
+		let rNext := CompileScript "WastelandBank/Loan.txt"
+		call rNext
+	elseif iBtn == 3
+		let rNext := CompileScript "WastelandBank/ConvertNow.txt"
+		call rNext 0
+		let rNext := CompileScript "WastelandBank/Open.txt"
+		call rNext
+	elseif iBtn == 4
+		let rNext := CompileScript "WastelandBank/Settings.txt"
+		call rNext
+	endif
+end

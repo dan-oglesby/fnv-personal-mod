@@ -1,0 +1,52 @@
+; Wasteland Bank: convert NCR dollars, Legion coins and pre-war money in your inventory into caps,
+; at each item's own value in the game (so a mod that changes those values is followed). Caravan
+; money (the CMNY versions of the same notes and coins) converts at its matching item's value.
+; Argument: 1 = quiet (auto-convert), 0 = show a note.
+int iQuiet
+array_var aItems
+array_var aCaravan
+int i
+int iCount
+int iValue
+int iTotal
+ref rItem
+ref rCaravan
+ref rCaps
+
+begin Function {iQuiet}
+	; FalloutNV.esm form IDs (decimal): Aureus, Denarius, Denarius (mangled), $100, $20, $5 NCR,
+	; pre-war money; then the caravan-money twin of each (0 = none)
+	let aItems := Ar_List 1287385, 1276829, 1520182, 1287384, 1287383, 1287382, 213095
+	let aCaravan := Ar_List 1534663, 1534660, 1534661, 1534665, 1534664, 1534662, 0
+	let iTotal := 0
+	let i := 0
+	while i < Ar_Size aItems
+		let rItem := BuildRef 0 aItems[i]
+		let iValue := GetValue rItem
+		let iCount := player.GetItemCount rItem
+		if iCount > 0
+			player.RemoveItem rItem iCount 1
+			let iTotal += iCount * iValue
+		endif
+		if aCaravan[i] > 0
+			let rCaravan := BuildRef 0 aCaravan[i]
+			let iCount := player.GetItemCount rCaravan
+			if iCount > 0
+				player.RemoveItem rCaravan iCount 1
+				let iTotal += iCount * iValue
+			endif
+		endif
+		let i += 1
+	loop
+	if iTotal > 0
+		let rCaps := BuildRef 0 15	; Caps001
+		player.AddItem rCaps iTotal 1
+		print "Wasteland Bank: converted currency into " + $iTotal + " caps"
+		if iQuiet == 0
+			MessageEx "Converted your currency into %.0f caps." iTotal
+		endif
+	elseif iQuiet == 0
+		MessageEx "No NCR, Legion or pre-war money to convert."
+	endif
+	SetFunctionValue iTotal
+end

@@ -1,0 +1,62 @@
+; Wasteland Bank: loan buttons. With no loan: 0-3 borrow 100/500/1000/5000. With a loan: 0-3 repay
+; 100/500/1000/all you can. 4 back. Repayments use the caps you carry at the moment you click.
+int iBtn
+int iAmt
+int iCarry
+int iOwed
+float fLoan
+ref rCaps
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 4
+		let rNext := CompileScript "WastelandBank/Open.txt"
+		call rNext
+		return
+	endif
+	let rCaps := BuildRef 0 15	; Caps001
+	let fLoan := player.AuxVarGetFlt "_wbLoan"
+	if fLoan <= 0
+		let iAmt := 100
+		if iBtn == 1
+			let iAmt := 500
+		elseif iBtn == 2
+			let iAmt := 1000
+		elseif iBtn == 3
+			let iAmt := 5000
+		endif
+		player.AuxVarSetFlt "_wbLoan" iAmt
+		player.AuxVarSetFlt "_wbLoanDays" 0
+		player.AddItem rCaps iAmt 1
+		print "Wasteland Bank: borrowed " + $iAmt + " caps"
+	else
+		let iCarry := player.GetItemCount rCaps
+		let iOwed := Ceil fLoan
+		let iAmt := iOwed
+		if iBtn == 0
+			let iAmt := 100
+		elseif iBtn == 1
+			let iAmt := 500
+		elseif iBtn == 2
+			let iAmt := 1000
+		endif
+		if iAmt > iOwed
+			let iAmt := iOwed
+		endif
+		if iAmt > iCarry
+			let iAmt := iCarry
+		endif
+		if iAmt > 0
+			player.RemoveItem rCaps iAmt 1
+			let fLoan -= iAmt
+			if fLoan < 0.5
+				let fLoan := 0
+				player.AuxVarSetFlt "_wbLoanDays" 0
+			endif
+			player.AuxVarSetFlt "_wbLoan" fLoan
+			print "Wasteland Bank: repaid " + $iAmt + " caps"
+		endif
+	endif
+	let rNext := CompileScript "WastelandBank/Loan.txt"
+	call rNext
+end

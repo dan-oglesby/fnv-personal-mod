@@ -1,0 +1,25 @@
+; Wasteland Bank: settings menu.
+float fKeep
+string_var sDep
+string_var sConv
+string_var sDepBtn
+string_var sConvBtn
+ref rCb
+
+begin Function {}
+	let fKeep := player.AuxVarGetFlt "_wbKeep"
+	let sDep := "off"
+	let sDepBtn := "Turn auto-deposit on"
+	if eval (player.AuxVarGetFlt "_wbAutoDep") == 1
+		let sDep := "on"
+		let sDepBtn := "Turn auto-deposit off"
+	endif
+	let sConv := "off"
+	let sConvBtn := "Turn auto-convert on"
+	if eval (player.AuxVarGetFlt "_wbAutoConv") == 1
+		let sConv := "on"
+		let sConvBtn := "Turn auto-convert off"
+	endif
+	let rCb := CompileScript "WastelandBank/SettingsBtn.txt"
+	MessageBoxExAlt rCb "^Settings^Auto-deposit: %z. Once a game day, deposits your caps except %.0f.%rAuto-convert: %z. Every 10 seconds, turns NCR, Legion and pre-war money into caps.|%z|Keep %.0f caps on hand (change)|%z|Back" sDep fKeep sConv sDepBtn fKeep sConvBtn
+end

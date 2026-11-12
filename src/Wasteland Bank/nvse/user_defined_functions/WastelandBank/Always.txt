@@ -1,0 +1,4 @@
+; Wasteland Bank: condition for the bookkeeping tick (always run; xNVSE clears it on load).
+begin Function {}
+	SetFunctionValue 1
+end
