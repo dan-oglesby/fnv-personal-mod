@@ -1,0 +1,40 @@
+; Auto Smoke: every 5 s of play (registered by ln_auto_smoke.txt; not in menus or paused).
+; When auto-smoke is on and you are not smoking, counts the time since the last smoke went out and
+; lights the next once the chosen break has passed, or, in "only when craving" mode, as soon as
+; you have nicotine withdrawal.
+int iIdle
+int iGap
+int iRes
+ref rFn
+ref rEff
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_asOn") == 0
+		return
+	endif
+	if player.GetDead
+		return
+	endif
+	let rFn := CompileScript "AutoSmoke/IsLit.txt"
+	if eval (call rFn) == 1
+		player.AuxVarSetFlt "_asIdle" 0
+		return
+	endif
+	let iIdle := player.AuxVarGetFlt "_asIdle"
+	let iIdle += 5
+	player.AuxVarSetFlt "_asIdle" iIdle
+	let iGap := player.AuxVarGetFlt "_asGap"
+	if iGap < 0
+		let rEff := BuildRef 0 1026831	; AddictRedAGTobacco 0x0FAB0F, part of Nicotine Withdrawal
+		if eval (player.HasMagicEffect rEff) == 0
+			return
+		endif
+	elseif iIdle < iGap * 60
+		return
+	endif
+	let rFn := CompileScript "AutoSmoke/LightUp.txt"
+	let iRes := call rFn
+	if iRes == 0
+		player.AuxVarSetFlt "_asIdle" 0
+	endif
+end

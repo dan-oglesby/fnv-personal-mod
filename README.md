@@ -12,6 +12,7 @@ Staged files are rewritten in place, so a mod Vortex has already deployed picks 
 |---|---|---|---|
 | Wasteland Bank | A rewrite of Bank Card (BankCard.esp, Nexus 39741, 2011) without its bugs or a plugin. Press **K** to open: deposit and withdraw caps with daily interest, take one loan at a time with weekly interest, convert NCR, Legion and pre-war money to caps, and optional auto-deposit (keeps a set amount on hand) and auto-convert. | xNVSE 6.2.8+, JIP LN 56.95+ | Built 2026-11-11, untested in play. Don't run it alongside BankCard.esp |
 | Monocyte Limb Regen | With the Monocyte Breeder implant (New Vegas Medical Clinic), crippled limbs heal on their own at the implant's own health rate, 0.1 a second, so a fully crippled limb heals in about 17 minutes of play. | xNVSE 6.2.8+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
+| Auto Smoke | An add-on for Light Up and Smoke Those Cigarettes (edisleado, Nexus 49677). Lights your next cigarette for you, as if you'd used it from the Pip-Boy: keep one lit, light up 1 to 20 minutes after the last one goes out, or only when you have nicotine withdrawal. Opens a pack or carton when you run out of loose ones. Press **L** for the settings. | Light Up and Smoke Those Cigarettes, xNVSE 6.2.8+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 | Survival Start Kit | Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) at the start of a new game, or on the next load of an existing save, once, the same way the DLC does. No plugin. | Lonesome Road, xNVSE 6.1+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 
 ## How the Survival Start Kit works
@@ -67,3 +68,25 @@ and a 10-second bookkeeping tick on every load. Each menu and its buttons is a u
 function in `nvse/user_defined_functions/WastelandBank/`, compiled by xNVSE at startup and called
 with `CompileScript`. Balances are JIP auxiliary variables on the player (`_wb...`), saved in
 JIP's co-save. Console: `call (CompileScript "WastelandBank/Open.txt")`.
+
+## How Auto Smoke works
+
+Light Up and Smoke Those Cigarettes makes smokes aid items: using one from the Pip-Boy runs its
+script, which wears a lit cigarette (cigarillo, cigar) in the mouth slot, applies the tobacco
+effects and addiction chance, and turns it into a butt about 2 minutes later. Auto Smoke uses the
+item the same way (`EquipItem` on the aid item), so all of that still applies; it only decides when.
+
+Every 5 seconds of play (not in menus or while paused) it checks whether you are smoking, by
+looking for a worn lit smoke the same way the mod does. If not, it counts the time since the last
+one went out and, after the chosen break, lights the next: ordinary cigarettes first, then
+cigarillos, then cigars. Lucky cigarettes are left for you. With no loose smokes it opens a
+pack, or else a carton, and lights one from it on the next check. It never lights up while
+something else is worn in the mouth slot (lighting up would take it off).
+
+The "only when craving" setting lights up when you have Nicotine Withdrawal (its Agility effect,
+`AddictRedAGTobacco`, FalloutNV.esm `0x0FAB0F`). Default: on, 5 minutes between smokes, open
+packs on. Settings are per character, in JIP aux variables (`_as...`). It does nothing if the
+smoking mod isn't loaded.
+
+Check it worked: with some cigarettes, press L, set "keep one lit", close, and wait a few
+seconds. You should hear the lighter.

@@ -1,0 +1,4 @@
+; Auto Smoke: condition for the 5-second check (always run; xNVSE clears it on load).
+begin Function {}
+	SetFunctionValue 1
+end

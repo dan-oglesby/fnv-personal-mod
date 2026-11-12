@@ -1,0 +1,15 @@
+; Auto Smoke: first-run defaults, once per character (aux variables on the player).
+;   _asOn     1 = auto-smoke on
+;   _asGap    minutes of play between one smoke going out and lighting the next
+;             (0 = keep one lit; -1 = only when you have nicotine withdrawal)
+;   _asPacks  1 = open a pack (or a carton) when you have no loose smokes
+;   _asIdle   seconds of play since the last smoke went out
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_asInit") == 0
+		player.AuxVarSetFlt "_asOn" 1
+		player.AuxVarSetFlt "_asGap" 5
+		player.AuxVarSetFlt "_asPacks" 1
+		player.AuxVarSetFlt "_asInit" 1
+	endif
+end

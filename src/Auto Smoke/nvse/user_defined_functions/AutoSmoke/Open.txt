@@ -1,0 +1,60 @@
+; Auto Smoke: the settings menu. Counts are read live when it opens.
+int iMod
+int iCigs
+int iRillos
+int iCigars
+int iPacks
+int iCartons
+int iGap
+string_var sOn
+string_var sOnBtn
+string_var sWhen
+string_var sPacks
+string_var sPacksBtn
+ref rForm
+ref rCb
+
+begin Function {}
+	let iMod := GetModIndex "LightUpAndSmokeThoseCigarettes_edisleado.esp"
+	let rForm := BuildRef iMod 39432	; AidCigarette
+	let iCigs := player.GetItemCount rForm
+	let rForm := BuildRef iMod 56462	; AidCigarillo
+	let iRillos := player.GetItemCount rForm
+	let rForm := BuildRef iMod 56448	; AidCigar
+	let iCigars := player.GetItemCount rForm
+	let rForm := BuildRef iMod 37960	; AidCigarettePack
+	let iPacks := player.GetItemCount rForm
+	let rForm := BuildRef iMod 37226	; AidCigaretteCarton
+	let iCartons := player.GetItemCount rForm
+
+	let sOn := "off"
+	let sOnBtn := "Turn auto-smoke on"
+	if eval (player.AuxVarGetFlt "_asOn") == 1
+		let sOn := "on"
+		let sOnBtn := "Turn auto-smoke off"
+	endif
+	let iGap := player.AuxVarGetFlt "_asGap"
+	if iGap < 0
+		let sWhen := "only when you have nicotine withdrawal"
+	elseif iGap == 0
+		let sWhen := "keep one lit (the next as soon as the last goes out)"
+	elseif iGap == 1
+		let sWhen := "1 minute after the last one goes out"
+	elseif iGap == 3
+		let sWhen := "3 minutes after the last one goes out"
+	elseif iGap == 5
+		let sWhen := "5 minutes after the last one goes out"
+	elseif iGap == 10
+		let sWhen := "10 minutes after the last one goes out"
+	else
+		let sWhen := "20 minutes after the last one goes out"
+	endif
+	let sPacks := "off"
+	let sPacksBtn := "Open packs: turn on"
+	if eval (player.AuxVarGetFlt "_asPacks") == 1
+		let sPacks := "on"
+		let sPacksBtn := "Open packs: turn off"
+	endif
+	let rCb := CompileScript "AutoSmoke/OpenBtn.txt"
+	MessageBoxExAlt rCb "^Auto Smoke^Auto-smoke: %z.%rLights up: %z.%rOpens a pack or carton when out of loose smokes: %z.%rCarrying: %.0f cigarettes, %.0f cigarillos, %.0f cigars, %.0f packs, %.0f cartons.|%z|Change when to light up|%z|Smoke one now|Close" sOn sWhen sPacks iCigs iRillos iCigars iPacks iCartons sOnBtn sPacksBtn
+end
