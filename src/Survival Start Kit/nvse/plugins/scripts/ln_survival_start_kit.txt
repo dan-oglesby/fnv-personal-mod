@@ -1,0 +1,20 @@
+; Survival Start Kit (Dan, 2026-11-11): "grants the bed roll immediately for my survival mode runs".
+; Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) from the start.
+;
+; Run by JIP LN NVSE's script runner: ln_ files run on a new game and on every save load, compiled
+; by xNVSE in the console environment, so editor IDs don't resolve and forms are built from
+; LonesomeRoad.esm's load-order index instead. Needs xNVSE 6.1+ and JIP LN 56.95+.
+;
+; Given once, exactly as the DLC gives it: the kit's own OnAdd script shows its intro message and
+; sets NVDLC04GenericPerkQUEST.bFirstPickedUp, which this checks. So a character who already has
+; it, earned it, or dropped it later is never given another. No plugin, nothing saved by this mod.
+
+if eval IsModLoaded "LonesomeRoad.esm"
+	let int iLR := GetModIndex "LonesomeRoad.esm"
+	let ref rQuest := BuildRef iLR 42499	; 0x00A603 NVDLC04GenericPerkQUEST
+	let ref rKit := BuildRef iLR 52561	; 0x00CD51 NVDLC04RoughinItBedrollKit
+	if eval (GetVariable "bFirstPickedUp" rQuest) == 0 && (player.GetItemCount rKit) == 0
+		player.AddItem rKit 1
+		print "Survival Start Kit: gave the Roughin' It! Bedroll Kit"
+	endif
+endif
