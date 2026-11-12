@@ -1,0 +1,19 @@
+; Wasteland Bank: the card was equipped. Takes it off again and opens the bank. Checking that it
+; is still worn means a double equip opens the bank only once.
+int iMod
+ref rCard
+ref rOpen
+
+begin Function {}
+	let iMod := GetModIndex "WastelandBank.esp"
+	let rCard := BuildRef iMod 2048	; WBBankCard
+	if eval (player.GetEquipped rCard) == 0
+		return
+	endif
+	player.UnequipItem rCard 0 1
+	if player.GetDead
+		return
+	endif
+	let rOpen := CompileScript "WastelandBank/Open.txt"
+	call rOpen
+end

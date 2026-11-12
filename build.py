@@ -19,6 +19,8 @@ import sys
 import zipfile
 from pathlib import Path
 
+import make_plugins
+
 ROOT = Path(__file__).resolve().parent
 STAGING = Path(os.environ.get("APPDATA", "")) / "Vortex" / "falloutnv" / "mods"
 
@@ -64,6 +66,7 @@ def stage(mod: Path) -> str:
 
 
 def main(argv):
+    make_plugins.main()             # the small item plugins some mods use as their menu item
     (ROOT / "dist").mkdir(exist_ok=True)
     do_stage = "--no-stage" not in argv
     if do_stage and not (STAGING / "__vortex_staging_folder").exists():

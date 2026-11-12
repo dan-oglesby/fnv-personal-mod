@@ -1,22 +1,37 @@
 ; Auto Smoke (Dan, 2026-11-11): an add-on for "Light Up and Smoke Those Cigarettes" (edisleado,
 ; Nexus 49677). Lights your next smoke for you, the same as using it from the Pip-Boy, so the
-; mod's own lighting, effects, addiction and butts all apply. Settings menu: press L (DIK 38) out
-; of menus. To change the key, edit the number on the SetOnKeyDownEventHandler line below
-; (DirectInput key codes: geckwiki.com, "DirectX Scancodes").
-; From the console: call (CompileScript "AutoSmoke/Open.txt")
+; mod's own lighting, effects, addiction and butts all apply.
+;
+; Settings: equip the Cigarette Case (Auto Smoke) from the Pip-Boy's Apparel tab; the menu opens
+; when you close the Pip-Boy, the same way as the Wasteland Bank Card. The case is given on the
+; first load and again if it is ever lost. It lives in AutoSmoke.esp (one item, no scripts; made
+; by make_plugins.py). From the console: call (CompileScript "AutoSmoke/Open.txt")
 ;
 ; Run by JIP LN NVSE's script runner (ln_: new game and every load). Does nothing unless
 ; LightUpAndSmokeThoseCigarettes_edisleado.esp is loaded. Settings are JIP auxiliary variables on
 ; the player ("_as..."), kept in JIP's co-save. Needs xNVSE 6.2.8+, JIP LN 56.95+.
 ;
 ; Re-registering here on every load is safe: xNVSE clears repeating calls on load and new game,
-; and JIP keeps key handlers in a set, so neither stacks.
+; and the equip handler is removed before it is added again.
 
 if eval IsModLoaded "LightUpAndSmokeThoseCigarettes_edisleado.esp"
 	let ref rInit := CompileScript "AutoSmoke/Init.txt"
 	call rInit
-	let ref rKey := CompileScript "AutoSmoke/OnKey.txt"
-	SetOnKeyDownEventHandler rKey 1 38
+	if eval IsModLoaded "AutoSmoke.esp"
+		let int iAS := GetModIndex "AutoSmoke.esp"
+		let ref rCase := BuildRef iAS 2048	; ASCigaretteCase 0x000800
+		if eval (player.GetItemCount rCase) == 0
+			player.AddItem rCase 1
+		endif
+		let ref rOnEquip := CompileScript "AutoSmoke/OnEquip.txt"
+		RemoveEventHandler "OnActorEquip" rOnEquip
+		SetEventHandler "OnActorEquip" rOnEquip
+	else
+		print "Auto Smoke: AutoSmoke.esp is not enabled, so there is no cigarette case to open the settings with"
+	endif
+	; Optional hotkey as well (L = DirectInput 38): remove the ; from the next two lines.
+	;let ref rKey := CompileScript "AutoSmoke/OnKey.txt"
+	;SetOnKeyDownEventHandler rKey 1 38
 	; check every 5 s of play: flags 4 + 16 = not in menus, not while paused
 	let ref rTick := CompileScript "AutoSmoke/Tick.txt"
 	let ref rTrue := CompileScript "AutoSmoke/Always.txt"

@@ -8,11 +8,21 @@ Each folder in `src/` mirrors the game's `Data` folder. `python build.py` zips e
 so it shows up in Vortex's Mods list ready to enable and deploy (`--no-stage` for zips only).
 Staged files are rewritten in place, so a mod Vortex has already deployed picks up a rebuild.
 
+## Menu items instead of hotkeys
+
+Wasteland Bank and Auto Smoke open their menus from an item, the way the original Bank Card did:
+an apparel item with no body slot and no weight. Equip it from the Pip-Boy's Apparel tab; it takes
+itself off again and the menu opens when you close the Pip-Boy. Each item is in a tiny plugin of
+its own (`WastelandBank.esp`, `AutoSmoke.esp`; only master FalloutNV.esm) written by
+`make_plugins.py`, which `build.py` runs. The plugins carry no scripts. The mods' xNVSE scripts
+watch for the item being equipped (`OnActorEquip`), and give it to you on load if you don't have
+it. The old hotkeys (K and L) are still in the `ln_` files, commented out.
+
 | Mod | What it does | Needs | Status |
 |---|---|---|---|
-| Wasteland Bank | A rewrite of Bank Card (BankCard.esp, Nexus 39741, 2011) without its bugs or a plugin. Press **K** to open: deposit and withdraw caps with daily interest, take one loan at a time with weekly interest, convert NCR, Legion and pre-war money to caps, and optional auto-deposit (keeps a set amount on hand) and auto-convert. | xNVSE 6.2.8+, JIP LN 56.95+ | Built 2026-11-11, untested in play. Don't run it alongside BankCard.esp |
+| Wasteland Bank | A rewrite of Bank Card (BankCard.esp, Nexus 39741, 2011) without its bugs. Equip the **Wasteland Bank Card** from the Pip-Boy's Apparel tab and the bank opens when you close the Pip-Boy, as with the original: deposit and withdraw caps with daily interest, take one loan at a time with weekly interest, convert NCR, Legion and pre-war money to caps, and optional auto-deposit (keeps a set amount on hand) and auto-convert. | xNVSE 6.2.8+, JIP LN 56.95+. Enable `WastelandBank.esp` | Built 2026-11-11, untested in play. Don't run it alongside BankCard.esp |
 | Monocyte Limb Regen | With the Monocyte Breeder implant (New Vegas Medical Clinic), crippled limbs heal on their own at the implant's own health rate, 0.1 a second, so a fully crippled limb heals in about 17 minutes of play. | xNVSE 6.2.8+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
-| Auto Smoke | An add-on for Light Up and Smoke Those Cigarettes (edisleado, Nexus 49677). Lights your next cigarette for you, as if you'd used it from the Pip-Boy: keep one lit, light up 1 to 20 minutes after the last one goes out, or only when you have nicotine withdrawal. Opens a pack or carton when you run out of loose ones. Press **L** for the settings. | Light Up and Smoke Those Cigarettes, xNVSE 6.2.8+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
+| Auto Smoke | An add-on for Light Up and Smoke Those Cigarettes (edisleado, Nexus 49677). Lights your next cigarette for you, as if you'd used it from the Pip-Boy: keep one lit, light up 1 to 20 minutes after the last one goes out, or only when you have nicotine withdrawal. Opens a pack or carton when you run out of loose ones. Settings: equip the **Cigarette Case (Auto Smoke)** from the Pip-Boy's Apparel tab. | Light Up and Smoke Those Cigarettes, xNVSE 6.2.8+, JIP LN 56.95+. Enable `AutoSmoke.esp` | Built 2026-11-11, untested in play |
 | Survival Start Kit | Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) at the start of a new game, or on the next load of an existing save, once, the same way the DLC does. No plugin. | Lonesome Road, xNVSE 6.1+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 
 ## How the Survival Start Kit works
@@ -63,8 +73,8 @@ reprices money is followed. Caravan money (the `CMNY` twins) converts at its mat
 Deposit interest stays as in the original: 0.5% a game day plus Barter/50000, compounding. The
 rates are at the top of `Tick.txt` and `Loan.txt`.
 
-Layout: `nvse/plugins/scripts/ln_wasteland_bank.txt` registers the hotkey (K, DirectInput 37)
-and a 10-second bookkeeping tick on every load. Each menu and its buttons is a user-defined
+Layout: `nvse/plugins/scripts/ln_wasteland_bank.txt` gives you the bank card if you have none,
+registers the card's equip handler (`OnEquip.txt`, which calls `UseCard.txt`) and a 10-second bookkeeping tick on every load. Each menu and its buttons is a user-defined
 function in `nvse/user_defined_functions/WastelandBank/`, compiled by xNVSE at startup and called
 with `CompileScript`. Balances are JIP auxiliary variables on the player (`_wb...`), saved in
 JIP's co-save. Console: `call (CompileScript "WastelandBank/Open.txt")`.
@@ -88,5 +98,5 @@ The "only when craving" setting lights up when you have Nicotine Withdrawal (its
 packs on. Settings are per character, in JIP aux variables (`_as...`). It does nothing if the
 smoking mod isn't loaded.
 
-Check it worked: with some cigarettes, press L, set "keep one lit", close, and wait a few
+Check it worked: with some cigarettes, equip the Cigarette Case, close the Pip-Boy, set "keep one lit", close, and wait a few
 seconds. You should hear the lighter.

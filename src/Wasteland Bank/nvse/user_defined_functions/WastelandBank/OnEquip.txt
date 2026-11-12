@@ -1,0 +1,19 @@
+; Wasteland Bank: xNVSE OnActorEquip handler. When the player equips the bank card (in the
+; Pip-Boy), opens the bank once the Pip-Boy is closed, as the original Bank Card did.
+ref rActor
+ref rItem
+int iMod
+ref rCard
+ref rUse
+ref rPlayer
+
+begin Function {rActor, rItem}
+	let iMod := GetModIndex "WastelandBank.esp"
+	let rCard := BuildRef iMod 2048	; WBBankCard
+	let rPlayer := BuildRef 0 20	; 0x14 = the player
+	if eval (rItem != rCard) || (rActor != rPlayer)
+		return
+	endif
+	let rUse := CompileScript "WastelandBank/UseCard.txt"
+	CallAfterSeconds 0.2 rUse	; runs in gameplay only, so after the Pip-Boy closes
+end
