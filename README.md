@@ -4,7 +4,7 @@ Dan's own small mods for New Vegas, built on top of the stability base (Gopher's
 collection in Vortex: xNVSE, JIP LN NVSE and friends). Quality of life, not cheats.
 
 Each folder in `src/` mirrors the game's `Data` folder. `python build.py` zips each one into
-`dist/` and stages a copy in Vortex's New Vegas staging folder (`%APPDATA%\Vortexalloutnv\mods\<Mod Name>`),
+`dist/` and stages a copy in Vortex's New Vegas staging folder (`%APPDATA%\Vortex\falloutnv\mods\<Mod Name>`),
 so it shows up in Vortex's Mods list ready to enable and deploy (`--no-stage` for zips only).
 Staged files are rewritten in place, so a mod Vortex has already deployed picks up a rebuild.
 
