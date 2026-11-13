@@ -23,6 +23,7 @@ it. The old hotkeys (K and L) are still in the `ln_` files, commented out.
 | Wasteland Bank | A rewrite of Bank Card (BankCard.esp, Nexus 39741, 2011) without its bugs. Equip the **Wasteland Bank Card** from the Pip-Boy's Apparel tab and the bank opens when you close the Pip-Boy, as with the original: deposit and withdraw caps with daily interest, take one loan at a time with weekly interest, convert NCR, Legion and pre-war money to caps, and optional auto-deposit (keeps a set amount on hand) and auto-convert. | xNVSE 6.2.8+, JIP LN 56.95+. Enable `WastelandBank.esp` | Built 2026-11-11, untested in play. Don't run it alongside BankCard.esp |
 | Monocyte Limb Regen | With the Monocyte Breeder implant (New Vegas Medical Clinic), crippled limbs heal on their own at the implant's own health rate, 0.1 a second, so a fully crippled limb heals in about 17 minutes of play. | xNVSE 6.2.8+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 | Auto Smoke | An add-on for Light Up and Smoke Those Cigarettes (edisleado, Nexus 49677). Lights your next cigarette for you, as if you'd used it from the Pip-Boy: keep one lit, light up 1 to 20 minutes after the last one goes out, or only when you have nicotine withdrawal. Opens a pack or carton when you run out of loose ones. Settings: equip the **Cigarette Case (Auto Smoke)** from the Pip-Boy's Apparel tab. | Light Up and Smoke Those Cigarettes, xNVSE 6.2.8+, JIP LN 56.95+. Enable `AutoSmoke.esp` | Built 2026-11-11, untested in play |
+| Scan Null Fix | Fixes a crash in xNVSE itself: scripts that scan the objects around you (`GetFirstRef`/`GetNextRef`, used by Auto Loot Enhanced, Increased Wasteland Spawns, Alternative Start and others) crash on an object whose base item is gone, such as an item just picked up. Skips those objects instead. | xNVSE **6.4.9** exactly (does nothing on any other version, and says so in `ScanNullFix.log`) | Built and tested offline against the real xNVSE DLL 2026-11-13 |
 | Survival Start Kit | Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) at the start of a new game, or on the next load of an existing save, once, the same way the DLC does. No plugin. | Lonesome Road, xNVSE 6.1+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 
 ## How the Survival Start Kit works
@@ -100,3 +101,27 @@ smoking mod isn't loaded.
 
 Check it worked: with some cigarettes, equip the Cigarette Case, close the Pip-Boy, set "keep one lit", close, and wait a few
 seconds. You should hear the lighter.
+
+## How Scan Null Fix works
+
+Three New Vegas crashes on 2026-11-12/13 were all at `nvse_1_4.dll`+0x36C03. Cobb Crash Logger's
+stack was `RefMatcherFormType::Accept` < `GetCellRefEntry` < `CellScan` < `GetNextRef`, with the
+base-form pointer null. In xNVSE 6.4.9 (`Commands_MiscRef.cpp`), the matchers behind every
+reference scan read `refr->baseForm->typeID` without checking `baseForm`, and a scan tests every
+reference in the cell. Auto Loot Enhanced picks items up in the middle of its scans, which can
+leave such a reference behind; its weapon scan (type 40) is the next full pass and crashes.
+
+`native/ScanNullFix/ScanNullFix.cpp` is a small xNVSE plugin. At load it replaces the base-form
+read in `RefMatcherFormType`, `RefMatcherActor` and `RefMatcherItem` (`Accept`) with a jump to a
+stub that does the same read, checks for null, and takes the function's own "no match" exit. It
+checks the DLL's timestamp, the exact original bytes and each exit before changing anything, and
+patches nothing otherwise. The result is written to `ScanNullFix.log` next to `FalloutNV.exe`.
+
+Build: `python native/build_native.py` (Visual Studio Build Tools 2022, x86, static CRT). The DLL
+is committed, so `build.py` needs no compiler. Test: `native/ScanNullFix/test_harness.cpp` maps the
+real `nvse_1_4.dll` without running it, calls the three real functions with fake objects, and
+checks that a reference with no base form crashes before the fix and is skipped after, with
+normal references matching as before. When xNVSE updates, re-check the three functions
+(`dumpbin /disasm` around `?Accept@RefMatcher...`) and update the offsets, bytes and timestamp,
+or drop the fix if xNVSE has added the check.
+
