@@ -4,7 +4,7 @@
 ; that setting is on; the next check lights one from it.
 ; Returns 0 lit one, 1 opened a pack or carton, 2 something is in your mouth slot (a gas mask or
 ; similar, which lighting up would take off), 3 nothing to smoke.
-int iMod
+int iPlugin
 ref rCig
 ref rMouth
 
@@ -14,13 +14,13 @@ begin Function {}
 		SetFunctionValue 2
 		return
 	endif
-	let iMod := GetModIndex "LightUpAndSmokeThoseCigarettes_edisleado.esp"
-	let rCig := BuildRef iMod 39432	; AidCigarette 0x009A08
+	let iPlugin := GetModIndex "LightUpAndSmokeThoseCigarettes_edisleado.esp"
+	let rCig := BuildRef iPlugin 39432	; AidCigarette 0x009A08
 	if eval (player.GetItemCount rCig) < 1
-		let rCig := BuildRef iMod 56462	; AidCigarillo 0x00DC8E
+		let rCig := BuildRef iPlugin 56462	; AidCigarillo 0x00DC8E
 	endif
 	if eval (player.GetItemCount rCig) < 1
-		let rCig := BuildRef iMod 56448	; AidCigar 0x00DC80
+		let rCig := BuildRef iPlugin 56448	; AidCigar 0x00DC80
 	endif
 	if eval (player.GetItemCount rCig) > 0
 		player.EquipItem rCig 0 1
@@ -28,9 +28,9 @@ begin Function {}
 		return
 	endif
 	if eval (player.AuxVarGetFlt "_asPacks") == 1
-		let rCig := BuildRef iMod 37960	; AidCigarettePack 0x009448
+		let rCig := BuildRef iPlugin 37960	; AidCigarettePack 0x009448
 		if eval (player.GetItemCount rCig) < 1
-			let rCig := BuildRef iMod 37226	; AidCigaretteCarton 0x00916A
+			let rCig := BuildRef iPlugin 37226	; AidCigaretteCarton 0x00916A
 		endif
 		if eval (player.GetItemCount rCig) > 0
 			player.EquipItem rCig 0 1

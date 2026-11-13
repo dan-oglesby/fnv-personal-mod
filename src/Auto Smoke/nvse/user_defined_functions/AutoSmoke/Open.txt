@@ -1,5 +1,5 @@
 ; Auto Smoke: the settings menu. Counts are read live when it opens.
-int iMod
+int iPlugin
 int iCigs
 int iRillos
 int iCigars
@@ -15,16 +15,16 @@ ref rForm
 ref rCb
 
 begin Function {}
-	let iMod := GetModIndex "LightUpAndSmokeThoseCigarettes_edisleado.esp"
-	let rForm := BuildRef iMod 39432	; AidCigarette
+	let iPlugin := GetModIndex "LightUpAndSmokeThoseCigarettes_edisleado.esp"
+	let rForm := BuildRef iPlugin 39432	; AidCigarette
 	let iCigs := player.GetItemCount rForm
-	let rForm := BuildRef iMod 56462	; AidCigarillo
+	let rForm := BuildRef iPlugin 56462	; AidCigarillo
 	let iRillos := player.GetItemCount rForm
-	let rForm := BuildRef iMod 56448	; AidCigar
+	let rForm := BuildRef iPlugin 56448	; AidCigar
 	let iCigars := player.GetItemCount rForm
-	let rForm := BuildRef iMod 37960	; AidCigarettePack
+	let rForm := BuildRef iPlugin 37960	; AidCigarettePack
 	let iPacks := player.GetItemCount rForm
-	let rForm := BuildRef iMod 37226	; AidCigaretteCarton
+	let rForm := BuildRef iPlugin 37226	; AidCigaretteCarton
 	let iCartons := player.GetItemCount rForm
 
 	let sOn := "off"

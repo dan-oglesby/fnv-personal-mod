@@ -1,12 +1,12 @@
 ; Auto Smoke: the case was equipped. Takes it off again and opens the settings. Checking that it
 ; is still worn means a double equip opens the menu only once.
-int iMod
+int iPlugin
 ref rCase
 ref rOpen
 
 begin Function {}
-	let iMod := GetModIndex "AutoSmoke.esp"
-	let rCase := BuildRef iMod 2048	; ASCigaretteCase
+	let iPlugin := GetModIndex "AutoSmoke.esp"
+	let rCase := BuildRef iPlugin 2048	; ASCigaretteCase
 	if eval (player.GetEquipped rCase) == 0
 		return
 	endif

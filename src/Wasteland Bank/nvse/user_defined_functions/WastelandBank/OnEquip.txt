@@ -2,14 +2,14 @@
 ; Pip-Boy), opens the bank once the Pip-Boy is closed, as the original Bank Card did.
 ref rActor
 ref rItem
-int iMod
+int iPlugin
 ref rCard
 ref rUse
 ref rPlayer
 
 begin Function {rActor, rItem}
-	let iMod := GetModIndex "WastelandBank.esp"
-	let rCard := BuildRef iMod 2048	; WBBankCard
+	let iPlugin := GetModIndex "WastelandBank.esp"
+	let rCard := BuildRef iPlugin 2048	; WBBankCard
 	let rPlayer := BuildRef 0 20	; 0x14 = the player
 	if eval (rItem != rCard) || (rActor != rPlayer)
 		return

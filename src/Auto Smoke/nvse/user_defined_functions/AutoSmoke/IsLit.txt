@@ -1,18 +1,18 @@
 ; Auto Smoke: 1 if you are smoking now. The smoking mod wears a lit smoke as apparel, and checks
 ; for it the same way before lighting another.
-int iMod
+int iPlugin
 int iLit
 ref rLit
 
 begin Function {}
-	let iMod := GetModIndex "LightUpAndSmokeThoseCigarettes_edisleado.esp"
-	let rLit := BuildRef iMod 56456	; ArmorCigarette 0x00DC88
+	let iPlugin := GetModIndex "LightUpAndSmokeThoseCigarettes_edisleado.esp"
+	let rLit := BuildRef iPlugin 56456	; ArmorCigarette 0x00DC88
 	let iLit := player.GetItemCount rLit
-	let rLit := BuildRef iMod 56457	; ArmorCigaretteLucky 0x00DC89
+	let rLit := BuildRef iPlugin 56457	; ArmorCigaretteLucky 0x00DC89
 	let iLit += player.GetItemCount rLit
-	let rLit := BuildRef iMod 56454	; ArmorCigar 0x00DC86
+	let rLit := BuildRef iPlugin 56454	; ArmorCigar 0x00DC86
 	let iLit += player.GetItemCount rLit
-	let rLit := BuildRef iMod 56453	; ArmorCigarillo 0x00DC85
+	let rLit := BuildRef iPlugin 56453	; ArmorCigarillo 0x00DC85
 	let iLit += player.GetItemCount rLit
 	if iLit > 0
 		SetFunctionValue 1

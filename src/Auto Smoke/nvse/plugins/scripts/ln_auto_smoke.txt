@@ -15,25 +15,75 @@
 ; and the equip handler is removed before it is added again.
 
 if eval IsModLoaded "LightUpAndSmokeThoseCigarettes_edisleado.esp"
-	let ref rInit := CompileScript "AutoSmoke/Init.txt"
-	call rInit
-	if eval IsModLoaded "AutoSmoke.esp"
-		let int iAS := GetModIndex "AutoSmoke.esp"
-		let ref rCase := BuildRef iAS 2048	; ASCigaretteCase 0x000800
-		if eval (player.GetItemCount rCase) == 0
-			player.AddItem rCase 1
-		endif
-		let ref rOnEquip := CompileScript "AutoSmoke/OnEquip.txt"
-		RemoveEventHandler "OnActorEquip" rOnEquip
-		SetEventHandler "OnActorEquip" rOnEquip
-	else
-		print "Auto Smoke: AutoSmoke.esp is not enabled, so there is no cigarette case to open the settings with"
+	; Every function must have compiled. xNVSE compiles them at startup; a failed one comes back
+	; empty, and a timer or event handler that calls an empty function can crash xNVSE (2026-11-13:
+	; two crashes in nvse_1_4.dll that way, from a variable named like a console command). So if any
+	; failed, register nothing and say so.
+	let int iBad := 0
+	let ref rChk := CompileScript "AutoSmoke/Always.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
 	endif
-	; Optional hotkey as well (L = DirectInput 38): remove the ; from the next two lines.
-	;let ref rKey := CompileScript "AutoSmoke/OnKey.txt"
-	;SetOnKeyDownEventHandler rKey 1 38
-	; check every 5 s of play: flags 4 + 16 = not in menus, not while paused
-	let ref rTick := CompileScript "AutoSmoke/Tick.txt"
-	let ref rTrue := CompileScript "AutoSmoke/Always.txt"
-	CallWhilePerSeconds 5 rTick rTrue 20
+	let rChk := CompileScript "AutoSmoke/Init.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/IsLit.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/LightUp.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/OnEquip.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/OnKey.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/Open.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/OpenBtn.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/Tick.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/UseCase.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	if iBad > 0
+		print "Auto Smoke: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
+		MessageEx "Auto Smoke is switched off: a script failed to compile"
+	else
+		let ref rInit := CompileScript "AutoSmoke/Init.txt"
+		call rInit
+		if eval IsModLoaded "AutoSmoke.esp"
+			let int iAS := GetModIndex "AutoSmoke.esp"
+			let ref rCase := BuildRef iAS 2048	; ASCigaretteCase 0x000800
+			if eval (player.GetItemCount rCase) == 0
+				player.AddItem rCase 1
+			endif
+			let ref rOnEquip := CompileScript "AutoSmoke/OnEquip.txt"
+			RemoveEventHandler "OnActorEquip" rOnEquip
+			SetEventHandler "OnActorEquip" rOnEquip
+		else
+			print "Auto Smoke: AutoSmoke.esp is not enabled, so there is no cigarette case to open the settings with"
+		endif
+		; Optional hotkey as well (L = DirectInput 38): remove the ; from the next two lines.
+		;let ref rKey := CompileScript "AutoSmoke/OnKey.txt"
+		;SetOnKeyDownEventHandler rKey 1 38
+		; check every 5 s of play: flags 4 + 16 = not in menus, not while paused
+		let ref rTick := CompileScript "AutoSmoke/Tick.txt"
+		let ref rTrue := CompileScript "AutoSmoke/Always.txt"
+		CallWhilePerSeconds 5 rTick rTrue 20
+	endif
 endif

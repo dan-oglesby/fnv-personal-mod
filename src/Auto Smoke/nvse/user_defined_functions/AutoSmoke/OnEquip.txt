@@ -2,14 +2,14 @@
 ; Pip-Boy), opens the settings once the Pip-Boy is closed.
 ref rActor
 ref rItem
-int iMod
+int iPlugin
 ref rCase
 ref rUse
 ref rPlayer
 
 begin Function {rActor, rItem}
-	let iMod := GetModIndex "AutoSmoke.esp"
-	let rCase := BuildRef iMod 2048	; ASCigaretteCase
+	let iPlugin := GetModIndex "AutoSmoke.esp"
+	let rCase := BuildRef iPlugin 2048	; ASCigaretteCase
 	let rPlayer := BuildRef 0 20	; 0x14 = the player
 	if eval (rItem != rCase) || (rActor != rPlayer)
 		return

@@ -19,6 +19,7 @@ import sys
 import zipfile
 from pathlib import Path
 
+import check_scripts
 import make_plugins
 
 ROOT = Path(__file__).resolve().parent
@@ -66,6 +67,8 @@ def stage(mod: Path) -> str:
 
 
 def main(argv):
+    if check_scripts.main():        # a script that would not compile in game stops the build
+        sys.exit("build stopped: fix the script problems above")
     make_plugins.main()             # the small item plugins some mods use as their menu item
     (ROOT / "dist").mkdir(exist_ok=True)
     do_stage = "--no-stage" not in argv

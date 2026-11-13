@@ -16,25 +16,103 @@
 ; Re-registering here on every load is safe: xNVSE clears repeating calls on load and new game,
 ; and the equip handler is removed before it is added again.
 
-let ref rInit := CompileScript "WastelandBank/Init.txt"
-call rInit
-if eval IsModLoaded "WastelandBank.esp"
-	let int iWB := GetModIndex "WastelandBank.esp"
-	let ref rCard := BuildRef iWB 2048	; WBBankCard 0x000800
-	if eval (player.GetItemCount rCard) == 0
-		player.AddItem rCard 1
-	endif
-	let ref rOnEquip := CompileScript "WastelandBank/OnEquip.txt"
-	RemoveEventHandler "OnActorEquip" rOnEquip
-	SetEventHandler "OnActorEquip" rOnEquip
-else
-	print "Wasteland Bank: WastelandBank.esp is not enabled, so there is no bank card to open the bank with"
+; Every function must have compiled. xNVSE compiles them at startup; a failed one comes back
+; empty, and a timer or event handler that calls an empty function can crash xNVSE (2026-11-13:
+; two crashes in nvse_1_4.dll that way, from a variable named like a console command). So if any
+; failed, register nothing and say so.
+let int iBad := 0
+let ref rChk := CompileScript "WastelandBank/Always.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
 endif
-; Optional hotkey as well (K = DirectInput 37): remove the ; from the next two lines.
-;let ref rKey := CompileScript "WastelandBank/OnKey.txt"
-;SetOnKeyDownEventHandler rKey 1 37
-; bookkeeping every 10 s of play (interest, loan, auto-deposit, auto-convert): flags 4 + 16 =
-; not in menus, not while paused
-let ref rTick := CompileScript "WastelandBank/Tick.txt"
-let ref rTrue := CompileScript "WastelandBank/Always.txt"
-CallWhilePerSeconds 10 rTick rTrue 20
+let rChk := CompileScript "WastelandBank/ConvertNow.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Deposit.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/DepositBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Init.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Loan.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/LoanBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/MainBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/OnEquip.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/OnKey.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Open.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Settings.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SettingsBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Tick.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/UseCard.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Withdraw.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/WithdrawBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+if iBad > 0
+	print "Wasteland Bank: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
+	MessageEx "Wasteland Bank is switched off: a script failed to compile"
+else
+	let ref rInit := CompileScript "WastelandBank/Init.txt"
+	call rInit
+	if eval IsModLoaded "WastelandBank.esp"
+		let int iWB := GetModIndex "WastelandBank.esp"
+		let ref rCard := BuildRef iWB 2048	; WBBankCard 0x000800
+		if eval (player.GetItemCount rCard) == 0
+			player.AddItem rCard 1
+		endif
+		let ref rOnEquip := CompileScript "WastelandBank/OnEquip.txt"
+		RemoveEventHandler "OnActorEquip" rOnEquip
+		SetEventHandler "OnActorEquip" rOnEquip
+	else
+		print "Wasteland Bank: WastelandBank.esp is not enabled, so there is no bank card to open the bank with"
+	endif
+	; Optional hotkey as well (K = DirectInput 37): remove the ; from the next two lines.
+	;let ref rKey := CompileScript "WastelandBank/OnKey.txt"
+	;SetOnKeyDownEventHandler rKey 1 37
+	; bookkeeping every 10 s of play (interest, loan, auto-deposit, auto-convert): flags 4 + 16 =
+	; not in menus, not while paused
+	let ref rTick := CompileScript "WastelandBank/Tick.txt"
+	let ref rTrue := CompileScript "WastelandBank/Always.txt"
+	CallWhilePerSeconds 10 rTick rTrue 20
+endif
