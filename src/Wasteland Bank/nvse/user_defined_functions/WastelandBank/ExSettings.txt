@@ -1,9 +1,11 @@
 ; Wasteland Exchange: account settings (auto-invest mode, reserve, reinvest-all-dividends).
+; The text is built in pieces: a script line can be at most 512 characters.
 int iMode
 float fReserve
 string_var sMode
 string_var sDrip
 string_var sDripBtn
+string_var sBody
 ref rCb
 
 begin Function {}
@@ -21,6 +23,12 @@ begin Function {}
 		let sDrip := "on"
 		let sDripBtn := "Reinvest all dividends: turn off"
 	endif
+	let sBody := sv_Construct "Auto-invest: %z%r" sMode
+	let sBody := sBody + (sv_Construct "Once a game day, your bank balance above the reserve is invested in 100-cap steps (up to 10,000 caps a day).%r")
+	let sBody := sBody + (sv_Construct "Each step buys the stock you hold least of, so it spreads evenly. Index uses every listed stock. My stocks only tops up stocks you already own.%r%r")
+	let sBody := sBody + (sv_Construct "Reserve kept in the bank: %.0f caps%r%r" fReserve)
+	let sBody := sBody + (sv_Construct "Reinvest all dividends: %z%r" sDrip)
+	let sBody := sBody + (sv_Construct "On: every holding's dividends buy more shares. Off: each stock's own setting applies.")
 	let rCb := CompileScript "WastelandBank/ExSettingsBtn.txt"
-	MessageBoxExAlt rCb "^Exchange Settings^Auto-invest: %z%rOnce a game day, your bank balance above the reserve is invested in 100-cap steps (up to 10,000 caps a day). Each step buys the stock you hold least of, so it spreads evenly. Index uses every listed stock. My stocks only tops up stocks you already own.%r%rReserve kept in the bank: %.0f caps%r%rReinvest all dividends: %z%rOn: every holding's dividends buy more shares. Off: each stock's own setting applies.|Auto-invest: change mode|Reserve: change amount|%z|Invest now|Back" sMode fReserve sDrip sDripBtn
+	MessageBoxExAlt rCb "^Exchange Settings^%z|Auto-invest: change mode|Reserve: change amount|%z|Invest now|Back" sBody sDripBtn
 end

@@ -71,6 +71,8 @@ def compile_traps(text):
     JIP aux string from "" or a $variable."""
     out = []
     for n, line in enumerate(text.splitlines(), 1):
+        if len(line) > 500:     # the compiler's hard limit is 512 characters a line
+            out.append("line %d: %d characters (script lines are limited to 512)" % (n, len(line)))
         code = line.strip()
         if not code or code.startswith(";"):
             continue
