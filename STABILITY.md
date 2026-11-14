@@ -57,6 +57,14 @@ updated 2026-11-14. Nexus links are `nexusmods.com/newvegas/mods/<id>`.
 - **NVTF.ini**: `iReplaceTextureCreationLocks = 1`, not 2 as Gopher's INI ships it. NVTF's own
   comment says mode 2 "can (rarely) cause crashes", and two background-loader crashes stopped
   after the change.
+- **NVTF.ini**: `iReplaceGeometryPrecacheLocks = 0` (Gopher's INI ships 1, "makes geometry loading
+  multithreaded"). Changed 2026-11-14 after a crash while the main thread finished a background model
+  load.
+- **ITR NVSE**: `Data\config\itr-nvse.ini` with only `[Tweaks] bSmallDebrisCap=0`; all other ITR
+  settings stay at defaults, including every crash fix. SmallDebrisCap (new in ITR 2.3.0) retains,
+  culls and releases shell-casing debris, and both casing crashes on 2026-11-14 involved those objects.
+- **Permanent Weapon Shells**: use **Light** (`iDebrisMaxCount` 1250, casings last 10 min), not Very
+  Heavy (10000 for a day).
 - **dxvk.conf** (game folder): defaults. NVTF's `bUseFlipModel = 0` and
   `bUseDefaultPoolForTextures = 1` work as they are with DXVK.
 - **NVIDIA "DXGI interop"** for DXVK (NVIDIA Profile Inspector): *not* set. It's optional on
