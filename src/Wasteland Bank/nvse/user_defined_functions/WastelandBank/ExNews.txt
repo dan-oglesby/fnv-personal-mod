@@ -1,20 +1,23 @@
-; Wasteland Exchange: add a headline to the news feed (the last 10 are kept) and show it, unless
-; past events are being priced in.
-string_var sText
-string_var sFull
+; Wasteland Exchange: record a news item (by number, see ExHeadline) in the feed (last 10 kept)
+; and show it, unless past events are being priced in.
+int iId
 int iN
 int iNext
 int iSlot
 int iDay
+string_var sText
+ref rHead
 
-begin Function {sText}
+begin Function {iId}
 	let iN := player.AuxVarGetFlt "_wxNewsN"
 	let iSlot := iN % 10
 	let iDay := Floor GameDaysPassed
-	let sFull := sv_Construct "Day %.0f: %z" iDay sText
-	player.AuxVarSetStr "_wxNews" $sFull iSlot
+	player.AuxVarSetFlt "_wxNewsId" iId iSlot
+	player.AuxVarSetFlt "_wxNewsDay" iDay iSlot
 	let iNext := iN + 1
 	player.AuxVarSetFlt "_wxNewsN" iNext
+	let rHead := CompileScript "WastelandBank/ExHeadline.txt"
+	let sText := call rHead iId
 	print "Mojave Market Wire: " + sText
 	if eval (player.AuxVarGetFlt "_wxQuiet") == 0
 		MessageEx "Mojave Market Wire: %z" sText

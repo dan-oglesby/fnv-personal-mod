@@ -38,7 +38,7 @@ begin Function {}
 			call rHit 8 -0.2 0.85	; RBCO
 			call rHit 14 0.1 1.15	; NCRD
 			call rHit 15 -0.1 0.9	; LEGD
-			call rNews "Battle for Hoover Dam: markets bet on the NCR"
+			call rNews 26	; Battle for Hoover Dam: markets bet on the NCR
 			let iFired += 1
 		endif
 	endif
@@ -62,7 +62,7 @@ begin Function {}
 			call rHit 13 -0.1 1.0	; NCRB
 			call rHit 14 -0.1 0.85	; NCRD
 			call rHit 15 -0.05 1.0	; LEGD
-			call rNews "Mr. House moves on Hoover Dam: RobCo soars, the Strip celebrates"
+			call rNews 27	; Mr. House moves on Hoover Dam: RobCo soars, the Strip celebrates
 			let iFired += 1
 		endif
 	endif
@@ -90,7 +90,7 @@ begin Function {}
 			call rHit 13 -0.1 1.0	; NCRB
 			call rHit 14 -0.1 0.85	; NCRD
 			call rHit 15 -0.05 1.0	; LEGD
-			call rNews "An independent Vegas makes its move on Hoover Dam: New Vegas Exchange rallies"
+			call rNews 28	; An independent Vegas makes its move on Hoover Dam: New Vegas Exchange rallies
 			let iFired += 1
 		endif
 	endif
@@ -124,7 +124,7 @@ begin Function {}
 			call rHit 8 -0.25 1.0	; RBCO
 			call rHit 14 -0.3 0.6	; NCRD
 			call rHit 15 0.25 1.4	; LEGD
-			call rNews "Legion marches on Hoover Dam: NCR bonds in default panic, markets crash"
+			call rNews 29	; Legion marches on Hoover Dam: NCR bonds in default panic, markets crash
 			let iFired += 1
 		endif
 	endif
@@ -143,7 +143,7 @@ begin Function {}
 			player.AuxVarSetFlt "_wxE" 1 30
 			call rHit 15 -0.4 0.5	; LEGD
 			call rHit 14 0.05 1.05	; NCRD
-			call rNews "Caesar is dead: the denarius collapses as the Legion's future comes into doubt"
+			call rNews 30	; Caesar is dead: the denarius collapses as the Legion's future comes into doubt
 			let iFired += 1
 		endif
 	endif
@@ -162,7 +162,7 @@ begin Function {}
 			player.AuxVarSetFlt "_wxE" 1 31
 			call rHit 15 -0.2 0.8	; LEGD
 			call rHit 14 0.03 1.0	; NCRD
-			call rNews "Legate Lanius falls: Legion coin slides"
+			call rNews 31	; Legate Lanius falls: Legion coin slides
 			let iFired += 1
 		endif
 	endif
@@ -189,7 +189,7 @@ begin Function {}
 			player.AuxVarSetFlt "_wxE" 1 32
 			call rHit 14 -0.2 0.85	; NCRD
 			call rHit 15 0.05 1.0	; LEGD
-			call rNews "General Oliver killed: the NCR dollar sinks"
+			call rNews 32	; General Oliver killed: the NCR dollar sinks
 			let iFired += 1
 		endif
 	endif
@@ -207,7 +207,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 33
 			call rHit 14 0.03 1.03	; NCRD
-			call rNews "Boomers pledge air support to the NCR: the dollar firms"
+			call rNews 33	; Boomers pledge air support to the NCR: the dollar firms
 			let iFired += 1
 		endif
 	endif
@@ -226,7 +226,7 @@ begin Function {}
 			player.AuxVarSetFlt "_wxE" 1 34
 			call rHit 14 0.02 1.02	; NCRD
 			call rHit 15 -0.02 1.0	; LEGD
-			call rNews "Camp Forlorn Hope restored: NCR confidence up"
+			call rNews 34	; Camp Forlorn Hope restored: NCR confidence up
 			let iFired += 1
 		endif
 	endif
@@ -244,7 +244,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 35
 			call rHit 15 0.05 1.05	; LEGD
-			call rNews "Caesar's agent strikes in Vegas: the denarius gains"
+			call rNews 35	; Caesar's agent strikes in Vegas: the denarius gains
 			let iFired += 1
 		endif
 	endif
@@ -262,7 +262,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 36
 			call rHit 14 -0.05 0.97	; NCRD
-			call rNews "NCR Ranger Chief Hanlon dead: dollar dips"
+			call rNews 36	; NCR Ranger Chief Hanlon dead: dollar dips
 			let iFired += 1
 		endif
 	endif

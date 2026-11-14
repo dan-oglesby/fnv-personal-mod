@@ -19,11 +19,13 @@ string_var sSign
 ref rPrice
 ref rRate
 ref rCb
+ref rName
 
 begin Function {iEx}
 	player.AuxVarSetFlt "_wxCurEx" iEx
 	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
 	let rRate := CompileScript "WastelandBank/ExRate.txt"
+	let rName := CompileScript "WastelandBank/ExName.txt"
 	let fRate := call rRate
 	let sBody := ""
 	let iN := player.AuxVarGetFlt "_wxCount"
@@ -31,8 +33,8 @@ begin Function {iEx}
 	while iT < iN
 		let fEx := player.AuxVarGetFlt "_wxEx" iT
 		if (fEx == iEx) || (fEx == 2)
-			let sTk := player.AuxVarGetStr "_wxTk" iT
-			let sNm := player.AuxVarGetStr "_wxNm" iT
+			let sTk := call rName iT 0
+			let sNm := call rName iT 1
 			let fP := call rPrice iT
 			let fPy := player.AuxVarGetFlt "_wxPy" iT
 			let fChg := 0
@@ -64,7 +66,7 @@ begin Function {iEx}
 	loop
 	let rCb := CompileScript "WastelandBank/ExBoardBtn.txt"
 	if iEx == 1
-		MessageBoxExAlt rCb "^Hub Exchange (NCR)^Prices in NCR dollars (%.2f caps each); trades settle in caps through the bank.%r%r%z|GUN  Gun Runners|CRIM  Crimson Caravan|HAPY  Happy Trails|WTRM  Water Merchants|FGO  Far Go Traders|BRMN  Brahmin Barons|NCRB  NCR War Bonds|Back" fRate sBody
+		MessageBoxExAlt rCb "^Hub Exchange (NCR)^Prices in NCR dollars (%.2f caps each). Trades settle in caps through the bank.%r%r%z|GUN  Gun Runners|CRIM  Crimson Caravan|HAPY  Happy Trails|WTRM  Water Merchants|FGO  Far Go Traders|BRMN  Brahmin Barons|NCRB  NCR War Bonds|Back" fRate sBody
 	else
 		MessageBoxExAlt rCb "^New Vegas Exchange^Prices in caps. Change since yesterday in brackets.%r%r%z|GUN  Gun Runners|VGE  Van Graff Energy|MEX  Mojave Express|TOPS  The Tops|GOMR  Gomorrah|ULUX  Ultra-Luxe|WRNG  Atomic Wrangler|RBCO  RobCo Industries|Back" sBody
 	endif

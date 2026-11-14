@@ -36,7 +36,7 @@ begin Function {}
 			call rHit 1 0.2 1.1	; CRIM
 			call rHit 0 0.05 1.05	; GUN
 			call rDelist 2 0.05	; VGE
-			call rNews "Silver Rush massacre: Van Graff Energy delisted. Crimson Caravan and Gun Runners rally"
+			call rNews 0	; Silver Rush massacre: Van Graff Energy delisted. Crimson Caravan and Gun Runners rally
 			let iFired += 1
 		endif
 	endif
@@ -54,7 +54,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 1
 			call rHit 2 0.35 1.15	; VGE
-			call rNews "Van Graffs close their Big Deal: Van Graff Energy soars"
+			call rNews 1	; Van Graffs close their Big Deal: Van Graff Energy soars
 			let iFired += 1
 		endif
 	endif
@@ -73,7 +73,7 @@ begin Function {}
 			player.AuxVarSetFlt "_wxE" 1 2
 			call rHit 1 -0.35 0.85	; CRIM
 			call rHit 11 0.05 1.0	; FGO
-			call rNews "Crimson Caravan chief Alice McLafferty found dead: Crimson stock tumbles"
+			call rNews 2	; Crimson Caravan chief Alice McLafferty found dead: Crimson stock tumbles
 			let iFired += 1
 		endif
 	endif
@@ -95,7 +95,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 3
 			call rHit 1 0.15 1.05	; CRIM
-			call rNews "Crimson Caravan secures its Mojave supply line"
+			call rNews 3	; Crimson Caravan secures its Mojave supply line
 			let iFired += 1
 		endif
 	endif
@@ -115,7 +115,7 @@ begin Function {}
 			call rHit 3 0.2 1.1	; MEX
 			call rHit 13 0.02 1.0	; NCRB
 			call rHit 14 0.01 1.02	; NCRD
-			call rNews "NCR sends a sheriff to Primm: Mojave Express up on safer roads"
+			call rNews 4	; NCR sends a sheriff to Primm: Mojave Express up on safer roads
 			let iFired += 1
 		endif
 	endif
@@ -141,7 +141,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 5
 			call rHit 3 0.1 1.03	; MEX
-			call rNews "Primm has a sheriff again: Mojave Express edges higher"
+			call rNews 5	; Primm has a sheriff again: Mojave Express edges higher
 			let iFired += 1
 		endif
 	endif
@@ -159,7 +159,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 6
 			call rHit 3 -0.3 0.9	; MEX
-			call rNews "Primm left lawless: Mojave Express slides"
+			call rNews 6	; Primm left lawless: Mojave Express slides
 			let iFired += 1
 		endif
 	endif
@@ -177,7 +177,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 7
 			call rHit 3 -0.25 0.85	; MEX
-			call rNews "Mojave Express founder Johnson Nash dead: shares slump"
+			call rNews 7	; Mojave Express founder Johnson Nash dead: shares slump
 			let iFired += 1
 		endif
 	endif
@@ -197,7 +197,7 @@ begin Function {}
 			call rHit 5 -0.4 0.9	; GOMR
 			call rHit 4 0.05 1.0	; TOPS
 			call rHit 6 0.05 1.0	; ULUX
-			call rNews "Omerta plot against the Strip exposed: Gomorrah plunges on the scandal"
+			call rNews 8	; Omerta plot against the Strip exposed: Gomorrah plunges on the scandal
 			let iFired += 1
 		endif
 	endif
@@ -218,7 +218,7 @@ begin Function {}
 			call rHit 4 -0.15 1.0	; TOPS
 			call rHit 6 -0.15 1.0	; ULUX
 			call rHit 7 -0.1 1.0	; WRNG
-			call rNews "Violence on the Strip: casino stocks sell off, Gomorrah aside"
+			call rNews 9	; Violence on the Strip: casino stocks sell off, Gomorrah aside
 			let iFired += 1
 		endif
 	endif
@@ -251,7 +251,7 @@ begin Function {}
 			call rHit 5 0.05 1.0	; GOMR
 			call rHit 6 0.05 1.0	; ULUX
 			call rHit 7 0.05 1.0	; WRNG
-			call rNews "Securitron army upgraded: RobCo Industries surges, the Strip rallies"
+			call rNews 10	; Securitron army upgraded: RobCo Industries surges, the Strip rallies
 			let iFired += 1
 		endif
 	endif
@@ -277,7 +277,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 11
 			call rHit 8 -0.5 0.5	; RBCO
-			call rNews "Securitron army destroyed: RobCo Industries collapses"
+			call rNews 11	; Securitron army destroyed: RobCo Industries collapses
 			let iFired += 1
 		endif
 	endif
@@ -298,7 +298,7 @@ begin Function {}
 			call rHit 4 -0.25 0.95	; TOPS
 			call rHit 5 -0.25 0.95	; GOMR
 			call rHit 6 -0.25 0.95	; ULUX
-			call rNews "Mr. House is dead: RobCo crashes, panic on the Strip"
+			call rNews 12	; Mr. House is dead: RobCo crashes, panic on the Strip
 			let iFired += 1
 		endif
 	endif

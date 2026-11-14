@@ -12,6 +12,8 @@ ref rPrice
 int iN
 int iSlot
 string_var sHead
+int iId
+ref rHead
 ref rTot
 ref rCb
 
@@ -25,7 +27,9 @@ begin Function {}
 	let iN := player.AuxVarGetFlt "_wxNewsN"
 	if iN > 0
 		let iSlot := (iN - 1) % 10
-		let sHead := player.AuxVarGetStr "_wxNews" iSlot
+		let iId := player.AuxVarGetFlt "_wxNewsId" iSlot
+		let rHead := CompileScript "WastelandBank/ExHeadline.txt"
+		let sHead := call rHead iId
 	endif
 	; exchange rates: caps per NCR dollar and per denarius, and the change since yesterday
 	let rPrice := CompileScript "WastelandBank/ExPrice.txt"

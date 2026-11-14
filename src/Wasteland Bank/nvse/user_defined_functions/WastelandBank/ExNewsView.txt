@@ -4,6 +4,9 @@ int iK
 int iSlot
 string_var sBody
 string_var sLine
+int iId
+int iDay
+ref rHead
 ref rCb
 
 begin Function {}
@@ -12,8 +15,11 @@ begin Function {}
 	let iK := 0
 	while (iK < 10) && (iK < iN)
 		let iSlot := (iN - 1 - iK) % 10
-		let sLine := player.AuxVarGetStr "_wxNews" iSlot
-		let sBody := sBody + sLine + (sv_Construct "%r")
+		let iId := player.AuxVarGetFlt "_wxNewsId" iSlot
+		let iDay := player.AuxVarGetFlt "_wxNewsDay" iSlot
+		let rHead := CompileScript "WastelandBank/ExHeadline.txt"
+		let sLine := call rHead iId
+		let sBody := sBody + (sv_Construct "Day %.0f: %z%r" iDay sLine)
 		let iK += 1
 	loop
 	if iN == 0

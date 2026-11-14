@@ -24,13 +24,15 @@ string_var sDripBtn
 ref rPrice
 ref rRate
 ref rCb
+ref rName
 
 begin Function {iT}
 	player.AuxVarSetFlt "_wxCurT" iT
 	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
 	let rRate := CompileScript "WastelandBank/ExRate.txt"
-	let sTk := player.AuxVarGetStr "_wxTk" iT
-	let sNm := player.AuxVarGetStr "_wxNm" iT
+	let rName := CompileScript "WastelandBank/ExName.txt"
+	let sTk := call rName iT 0
+	let sNm := call rName iT 1
 	let fP := call rPrice iT
 	let fPy := player.AuxVarGetFlt "_wxPy" iT
 	let fChg := 0

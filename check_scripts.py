@@ -61,6 +61,30 @@ def balance(text):
     return None
 
 
+EXPR_START = re.compile(r"^(let|while|foreach|return|setfunctionvalue|(else)?if\s+eval|call)\b", re.I)
+
+
+def compile_traps(text):
+    """Patterns that made whole files fail to precompile in xNVSE 6.4.9 (2026-11-14), silently
+    for some: a ';' inside a string (the compiler cuts the line there), an array element used
+    outside an NVSE expression (classic commands and plain 'if' can't take aFoo[i]), and setting a
+    JIP aux string from "" or a $variable."""
+    out = []
+    for n, line in enumerate(text.splitlines(), 1):
+        code = line.strip()
+        if not code or code.startswith(";"):
+            continue
+        for s in re.findall(r'"([^"]*)"', code):
+            if ";" in s:
+                out.append("line %d: ';' inside a string" % n)
+        bare = re.sub(r'"[^"]*"', '""', code).split(";")[0]
+        if re.search(r"[A-Za-z_]\w*\[", bare) and not EXPR_START.match(bare):
+            out.append("line %d: array element outside an NVSE expression (copy it into a variable first)" % n)
+        if re.search(r'AuxVarSetStr\s+"[^"]*"\s+(""|\$)', code, re.I):
+            out.append("line %d: AuxVarSetStr from \"\" or a $variable" % n)
+    return out
+
+
 def main():
     names = command_names()
     problems = []
@@ -70,6 +94,8 @@ def main():
         for var in DECL.findall(text):
             if var.lower() in names:
                 problems.append("%s: variable %s has the same name as a command" % (rel, var))
+        for trap in compile_traps(text):
+            problems.append("%s: %s" % (rel, trap))
         err = balance(text)
         if err:
             problems.append("%s: %s" % (rel, err))

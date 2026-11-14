@@ -30,7 +30,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 13
 			call rHit 8 0.05 1.1	; RBCO
-			call rNews "Boomers back Mr. House: RobCo gains"
+			call rNews 13	; Boomers back Mr. House: RobCo gains
 			let iFired += 1
 		endif
 	endif
@@ -56,7 +56,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 14
 			call rHit 8 0.03 1.05	; RBCO
-			call rNews "House consolidates the Strip families: RobCo firms"
+			call rNews 14	; House consolidates the Strip families: RobCo firms
 			let iFired += 1
 		endif
 	endif
@@ -82,7 +82,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 15
 			call rHit 8 0.03 1.05	; RBCO
-			call rNews "Brotherhood question settled in House's favor: RobCo firms"
+			call rNews 15	; Brotherhood question settled in House's favor: RobCo firms
 			let iFired += 1
 		endif
 	endif
@@ -104,7 +104,7 @@ begin Function {}
 			call rHit 12 0.05 1.0	; BRMN
 			call rHit 14 0.05 1.05	; NCRD
 			call rHit 15 -0.03 1.0	; LEGD
-			call rNews "President Kimball survives assassination attempt: NCR markets rally"
+			call rNews 16	; President Kimball survives assassination attempt: NCR markets rally
 			let iFired += 1
 		endif
 	endif
@@ -144,7 +144,7 @@ begin Function {}
 			call rHit 10 -0.1 1.0	; WTRM
 			call rHit 14 -0.15 0.85	; NCRD
 			call rHit 15 0.1 1.1	; LEGD
-			call rNews "President Kimball assassinated at Hoover Dam: NCR markets in turmoil"
+			call rNews 17	; President Kimball assassinated at Hoover Dam: NCR markets in turmoil
 			let iFired += 1
 		endif
 	endif
@@ -165,7 +165,7 @@ begin Function {}
 			call rHit 1 0.05 1.05	; CRIM
 			call rHit 14 0.03 1.03	; NCRD
 			call rHit 15 -0.05 0.95	; LEGD
-			call rNews "NCR retakes Nelson: bonds and caravans gain"
+			call rNews 18	; NCR retakes Nelson: bonds and caravans gain
 			let iFired += 1
 		endif
 	endif
@@ -186,7 +186,7 @@ begin Function {}
 			call rHit 11 0.05 1.0	; FGO
 			call rHit 3 0.05 1.0	; MEX
 			call rHit 15 -0.05 0.95	; LEGD
-			call rNews "Great Khans break with Caesar: caravan routes look safer"
+			call rNews 19	; Great Khans break with Caesar: caravan routes look safer
 			let iFired += 1
 		endif
 	endif
@@ -204,7 +204,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 20
 			call rHit 0 -0.3 0.8	; GUN
-			call rNews "Gun Runners' Isaac killed: Gun Runners shares fall"
+			call rNews 20	; Gun Runners' Isaac killed: Gun Runners shares fall
 			let iFired += 1
 		endif
 	endif
@@ -222,7 +222,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 21
 			call rHit 7 -0.4 0.7	; WRNG
-			call rNews "James Garret dead: Atomic Wrangler shares plunge"
+			call rNews 21	; James Garret dead: Atomic Wrangler shares plunge
 			let iFired += 1
 		endif
 	endif
@@ -240,7 +240,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 22
 			call rHit 4 -0.15 0.95	; TOPS
-			call rNews "Chairmen in disarray after Benny affair: The Tops slips"
+			call rNews 22	; Chairmen in disarray after Benny affair: The Tops slips
 			let iFired += 1
 		endif
 	endif
@@ -258,7 +258,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 23
 			call rHit 4 0.1 1.05	; TOPS
-			call rNews "New acts packing the Tops: shares climb"
+			call rNews 23	; New acts packing the Tops: shares climb
 			let iFired += 1
 		endif
 	endif
@@ -294,7 +294,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 24
 			call rHit 9 -0.8 0.2	; HAPY
-			call rNews "Happy Trails expedition ambushed in Zion: Happy Trails stock collapses"
+			call rNews 24	; Happy Trails expedition ambushed in Zion: Happy Trails stock collapses
 			let iFired += 1
 		endif
 	endif
@@ -311,7 +311,7 @@ begin Function {}
 		if iHit
 			player.AuxVarSetFlt "_wxE" 1 25
 			call rHit 0 0.0 1.1	; GUN
-			call rNews "Gun Runners expand their catalog"
+			call rNews 25	; Gun Runners expand their catalog
 			let iFired += 1
 		endif
 	endif

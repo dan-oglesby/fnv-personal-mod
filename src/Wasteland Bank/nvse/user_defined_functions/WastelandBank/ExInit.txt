@@ -39,7 +39,8 @@ begin Function {}
 		loop
 		let iT := 0
 		while iT < 10
-			player.AuxVarSetStr "_wxNews" "" iT
+			player.AuxVarSetFlt "_wxNewsId" 999 iT
+			player.AuxVarSetFlt "_wxNewsDay" 0 iT
 			let iT += 1
 		loop
 		let fSeed := Rand 1 999983

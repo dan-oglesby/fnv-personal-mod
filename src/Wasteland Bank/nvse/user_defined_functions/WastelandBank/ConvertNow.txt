@@ -12,6 +12,8 @@ array_var aKind
 int i
 int iCount
 int iTotal
+int iId
+int iKind
 float fValue
 float fTotal
 float fNcr
@@ -39,11 +41,13 @@ begin Function {iQuiet}
 	let fTotal := 0
 	let i := 0
 	while i < Ar_Size aItems
-		let rItem := BuildRef 0 aItems[i]
+		let iId := aItems[i]
+		let rItem := BuildRef 0 iId
 		let fValue := aBase[i]
-		if aKind[i] == 0
+		let iKind := aKind[i]
+		if iKind == 0
 			let fValue *= fNcr
-		elseif aKind[i] == 1
+		elseif iKind == 1
 			let fValue *= fLeg
 		endif
 		let iCount := player.GetItemCount rItem
@@ -51,8 +55,9 @@ begin Function {iQuiet}
 			player.RemoveItem rItem iCount 1
 			let fTotal += iCount * fValue
 		endif
-		if aCaravan[i] > 0
-			let rCaravan := BuildRef 0 aCaravan[i]
+		let iId := aCaravan[i]
+		if iId > 0
+			let rCaravan := BuildRef 0 iId
 			let iCount := player.GetItemCount rCaravan
 			if iCount > 0
 				player.RemoveItem rCaravan iCount 1

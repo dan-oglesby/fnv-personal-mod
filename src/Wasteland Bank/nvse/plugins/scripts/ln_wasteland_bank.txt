@@ -77,6 +77,10 @@ let rChk := CompileScript "WastelandBank/ExEvents3.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/ExHeadline.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/ExHit.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -94,6 +98,10 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/ExMenuBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/ExName.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif

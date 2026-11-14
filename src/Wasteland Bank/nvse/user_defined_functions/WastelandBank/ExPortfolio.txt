@@ -16,9 +16,11 @@ string_var sTk
 string_var sSign
 ref rPrice
 ref rCb
+ref rName
 
 begin Function {}
 	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let rName := CompileScript "WastelandBank/ExName.txt"
 	let sBody := ""
 	let fTotVal := 0
 	let fTotGain := 0
@@ -28,7 +30,7 @@ begin Function {}
 	while iT < iN
 		let fH := player.AuxVarGetFlt "_wxH" iT
 		if fH != 0
-			let sTk := player.AuxVarGetStr "_wxTk" iT
+			let sTk := call rName iT 0
 			let fP := call rPrice iT
 			let fC := player.AuxVarGetFlt "_wxC" iT
 			if fH > 0

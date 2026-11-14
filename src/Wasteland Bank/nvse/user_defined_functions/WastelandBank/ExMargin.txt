@@ -42,5 +42,5 @@ begin Function {}
 		let iT += 1
 	loop
 	let rNews := CompileScript "WastelandBank/ExNews.txt"
-	call rNews "Margin call: your short positions were covered"
+	call rNews 90	; margin call
 end
