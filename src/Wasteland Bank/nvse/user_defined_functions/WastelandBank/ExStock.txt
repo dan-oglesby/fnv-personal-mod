@@ -77,6 +77,9 @@ begin Function {iT}
 		let sDrip := "on"
 		let sDripBtn := "Reinvest dividends: turn off"
 	endif
+	if eval (player.AuxVarGetFlt "_wxDripAll") == 1
+		let sDrip := "on (all dividends, set in exchange settings)"
+	endif
 	let fBal := player.AuxVarGetFlt "_wbBal"
 	let rCb := CompileScript "WastelandBank/ExStockBtn.txt"
 	if eval (player.AuxVarGetFlt "_wxX" iT) == 1

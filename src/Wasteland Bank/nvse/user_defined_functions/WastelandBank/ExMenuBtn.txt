@@ -1,5 +1,5 @@
 ; Wasteland Exchange: main menu buttons (0 New Vegas Exchange, 1 Hub Exchange, 2 portfolio,
-; 3 news, 4 back to the bank).
+; 3 news, 4 exchange settings, 5 back to the bank).
 int iBtn
 ref rNext
 
@@ -12,6 +12,9 @@ begin Function {iBtn}
 		call rNext
 	elseif iBtn == 3
 		let rNext := CompileScript "WastelandBank/ExNewsView.txt"
+		call rNext
+	elseif iBtn == 4
+		let rNext := CompileScript "WastelandBank/ExSettings.txt"
 		call rNext
 	else
 		let rNext := CompileScript "WastelandBank/Open.txt"

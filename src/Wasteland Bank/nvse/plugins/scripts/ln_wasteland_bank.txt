@@ -37,6 +37,10 @@ let rChk := CompileScript "WastelandBank/DepositBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/ExAutoInvest.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/ExBack.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -130,6 +134,14 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/ExRng.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/ExSettings.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/ExSettingsBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif

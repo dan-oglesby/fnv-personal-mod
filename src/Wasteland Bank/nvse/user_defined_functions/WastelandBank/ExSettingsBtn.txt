@@ -1,0 +1,56 @@
+; Wasteland Exchange: settings buttons (0 cycle auto-invest off > index > my stocks > off,
+; 1 cycle the reserve 0 > 500 > 1,000 > 2,500 > 5,000 > 10,000 > 25,000 > 0, 2 toggle
+; reinvest-all-dividends, 3 invest now, 4 back to the exchange menu).
+int iBtn
+int iMode
+float fReserve
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 4
+		let rNext := CompileScript "WastelandBank/ExMenu.txt"
+		call rNext
+		return
+	endif
+	if iBtn == 0
+		let iMode := player.AuxVarGetFlt "_wxAutoMode"
+		let iMode += 1
+		if iMode > 2
+			let iMode := 0
+		endif
+		player.AuxVarSetFlt "_wxAutoMode" iMode
+	elseif iBtn == 1
+		let fReserve := player.AuxVarGetFlt "_wxReserve"
+		if fReserve < 500
+			let fReserve := 500
+		elseif fReserve < 1000
+			let fReserve := 1000
+		elseif fReserve < 2500
+			let fReserve := 2500
+		elseif fReserve < 5000
+			let fReserve := 5000
+		elseif fReserve < 10000
+			let fReserve := 10000
+		elseif fReserve < 25000
+			let fReserve := 25000
+		else
+			let fReserve := 0
+		endif
+		player.AuxVarSetFlt "_wxReserve" fReserve
+	elseif iBtn == 2
+		if eval (player.AuxVarGetFlt "_wxDripAll") == 1
+			player.AuxVarSetFlt "_wxDripAll" 0
+		else
+			player.AuxVarSetFlt "_wxDripAll" 1
+		endif
+	elseif iBtn == 3
+		if eval (player.AuxVarGetFlt "_wxAutoMode") == 0
+			MessageEx "Choose an auto-invest mode first."
+		else
+			let rNext := CompileScript "WastelandBank/ExAutoInvest.txt"
+			call rNext
+		endif
+	endif
+	let rNext := CompileScript "WastelandBank/ExSettings.txt"
+	call rNext
+end

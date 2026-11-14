@@ -147,3 +147,14 @@ Hanlon killed, the Boomers backing the NCR, Forlorn Hope restored, and Caesar to
 `FxApply.txt` sets the notes' and coins' item values to vanilla × multiplier, rounded (item values
 are integers). `ExRate` (the Hub Exchange) and `ConvertNow` (the bank) use the exact multiplier.
 
+## Auto-invest and account-wide reinvestment (added 2026-11-14)
+
+- `ExAutoInvest.txt` runs once per new game day from ExTick, and on demand. It invests the
+  balance above `_wxReserve` in 100-cap steps (at most 100 per run), each step buying the
+  eligible stock with the smallest holding by value. In index mode (`_wxAutoMode` 1) every listed,
+  non-delisted stock is eligible; in my-stocks mode (2) only those already held. Shorts are never
+  bought.
+- `_wxDripAll`: when 1, ExWeekly reinvests every holding's dividend regardless of the per-stock
+  `_wxD`.
+- Settings menu: `ExSettings` / `ExSettingsBtn`, from the exchange menu.
+

@@ -26,7 +26,8 @@ begin Function {}
 				let fYld := player.AuxVarGetFlt "_wxYld" iT
 				if fH > 0
 					let fDiv := fH * fP * fYld / 52
-					if eval (player.AuxVarGetFlt "_wxD" iT) == 1
+					; reinvest if this stock is set to, or "reinvest all dividends" is on
+					if eval ((player.AuxVarGetFlt "_wxD" iT) == 1) || ((player.AuxVarGetFlt "_wxDripAll") == 1)
 						let fH += fDiv / fP
 						player.AuxVarSetFlt "_wxH" fH iT
 						let fTot := player.AuxVarGetFlt "_wxC" iT

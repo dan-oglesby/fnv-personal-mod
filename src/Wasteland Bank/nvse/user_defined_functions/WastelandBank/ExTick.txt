@@ -27,6 +27,11 @@ begin Function {}
 		let iLast := iToday
 	endif
 	player.AuxVarSetFlt "_wxDay" iLast
+	; auto-invest once for each new game day reached (it does nothing if switched off)
+	if iN > 0
+		let rEv := CompileScript "WastelandBank/ExAutoInvest.txt"
+		call rEv
+	endif
 
 	let iFired := 0
 	let rEv := CompileScript "WastelandBank/ExEvents1.txt"

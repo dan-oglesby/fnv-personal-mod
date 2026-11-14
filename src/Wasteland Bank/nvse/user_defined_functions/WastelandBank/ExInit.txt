@@ -51,6 +51,9 @@ begin Function {}
 		player.AuxVarSetFlt "_wxNewsN" 0
 		player.AuxVarSetFlt "_wxDiv" 0
 		player.AuxVarSetFlt "_wxQuiet" 1
+		player.AuxVarSetFlt "_wxAutoMode" 0
+		player.AuxVarSetFlt "_wxReserve" 1000
+		player.AuxVarSetFlt "_wxDripAll" 0
 		player.AuxVarSetFlt "_wxN0" iN
 		player.AuxVarSetFlt "_wxInit" 1
 	endif

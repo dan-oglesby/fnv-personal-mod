@@ -171,6 +171,15 @@ From the bank card's menu, **Wasteland Exchange (stocks)**. Full design and rati
   margin check covers everything if equity drops below 30%. Shorts pay the dividend plus a 0.2%
   weekly borrowing fee. A delisting settles shorts at 5% of the price.
 - **Costs.** Buying pays price + 1.5%; selling gets price − 1.5%.
+- **Auto-invest** (Exchange settings). Once per game day, the bank balance above a **reserve**
+  (0–25,000 caps, default 1,000) is invested in 100-cap steps, up to 10,000 caps a day. Each step
+  buys the eligible stock you hold least of by value, so the money spreads evenly. **Index** uses
+  every listed stock; **my stocks** only tops up stocks you already own. It skips delisted stocks
+  and anything you're short, costs the same as buying by hand, and has an **Invest now** button.
+  It pairs with the bank's auto-deposit: caps carried above your keep amount go to the bank, then
+  into stocks.
+- **Reinvest all dividends** (Exchange settings): an account-wide switch. When it's on, every
+  holding reinvests; when it's off, each stock's own setting applies.
 - **Currencies float with faction power.** The NCR dollar and the Legion denarius are priced by
   the same engine, as a multiplier on their vanilla values. Kimball's fate, Nelson, Forlorn Hope,
   the Boomers, Caesar, Lanius, General Oliver and each faction's march on the Dam all move them.
