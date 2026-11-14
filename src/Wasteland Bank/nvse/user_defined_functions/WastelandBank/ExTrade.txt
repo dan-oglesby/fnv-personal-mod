@@ -1,0 +1,113 @@
+; Wasteland Exchange: trade through the bank balance. iAct 1 = buy fAmt caps' worth, 2 = sell fAmt
+; of your shares (0.5 = half, 1 = all), 3 = short fAmt caps' worth, 4 = cover the whole short.
+; Buying and covering pay the ask (price + 1.5%); selling and shorting get the bid (price - 1.5%).
+; Shares are fractional. Your own trades don't move the price.
+; Shorting needs margin: after the trade, equity (balance + shares - cost to cover shorts) must be
+; at least half of all your short positions. Weekly checks cover everything if it drops under 30%.
+int iT
+int iAct
+float fAmt
+float fP
+float fAsk
+float fBid
+float fH
+float fC
+float fBal
+float fQ
+float fV
+float fPart
+float fLong
+float fShort
+float fEq
+ref rPrice
+ref rTot
+ref rCash
+
+begin Function {iT, iAct, fAmt}
+	if eval (player.AuxVarGetFlt "_wxX" iT) == 1
+		MessageEx "That stock is delisted."
+		return
+	endif
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let rCash := CompileScript "WastelandBank/ExCash.txt"
+	let fP := call rPrice iT
+	let fAsk := fP * 1.015
+	let fBid := fP * 0.985
+	let fH := player.AuxVarGetFlt "_wxH" iT
+	let fC := player.AuxVarGetFlt "_wxC" iT
+	let fBal := player.AuxVarGetFlt "_wbBal"
+
+	if iAct == 1
+		if fH < 0
+			MessageEx "Cover your short position first."
+			return
+		endif
+		if fAmt > fBal
+			let fAmt := fBal
+		endif
+		if fAmt < 1
+			MessageEx "Not enough in the bank. Deposit caps first."
+			return
+		endif
+		let fQ := fAmt / fAsk
+		let fH += fQ
+		let fC += fAmt
+		let fV := 0 - fAmt
+		call rCash fV
+		MessageEx "Bought %.2f shares for %.0f caps" fQ fAmt
+
+	elseif iAct == 2
+		if fH <= 0
+			MessageEx "You don't own any shares of this stock."
+			return
+		endif
+		let fQ := fH * fAmt
+		let fV := fQ * fBid
+		let fPart := fC * fAmt
+		let fH -= fQ
+		let fC -= fPart
+		if fAmt >= 1
+			let fH := 0
+			let fC := 0
+		endif
+		call rCash fV
+		let fPart := fV - fPart
+		MessageEx "Sold %.2f shares for %.0f caps (gain %.0f)" fQ fV fPart
+
+	elseif iAct == 3
+		if fH > 0
+			MessageEx "Sell your shares first, then you can short it."
+			return
+		endif
+		let rTot := CompileScript "WastelandBank/ExTotals.txt"
+		let fLong := call rTot 1
+		let fShort := call rTot 2
+		let fEq := fBal + fLong - fShort
+		if fEq < 0.5 * (fShort + fAmt)
+			MessageEx "Not enough margin: you need equity of at least half your total short positions."
+			return
+		endif
+		let fQ := fAmt / fBid
+		let fH -= fQ
+		let fC += fAmt
+		call rCash fAmt
+		MessageEx "Shorted %.2f shares for %.0f caps" fQ fAmt
+
+	elseif iAct == 4
+		if fH >= 0
+			MessageEx "You have no short position in this stock."
+			return
+		endif
+		let fQ := 0 - fH
+		let fV := fQ * fAsk
+		let fPart := fC - fV
+		let fH := 0
+		let fC := 0
+		let fV := 0 - fV
+		call rCash fV
+		MessageEx "Covered %.2f shares (gain %.0f caps)" fQ fPart
+	endif
+
+	player.AuxVarSetFlt "_wxH" fH iT
+	player.AuxVarSetFlt "_wxC" fC iT
+end

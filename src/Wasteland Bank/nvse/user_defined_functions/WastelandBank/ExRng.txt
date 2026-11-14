@@ -1,0 +1,65 @@
+; Wasteland Exchange: a repeatable random number in (0,1) from (character seed, a, b, day).
+; Same inputs give the same number, so reloading a save replays the same market.
+; Each input is folded in, then squared and multiplied modulo the prime 16777213 (under 2^24, so
+; h*h stays exact in the script engine's doubles). The squaring makes it nonlinear: a plain
+; multiply-only hash just shifts its output when an input changes by 1, which would tie the
+; draws together. tools/exchange_sim.py is a Python twin that checks the draws are uniform
+; and uncorrelated across inputs and days. Reduction uses whole-number division, not Fmod
+; (whose float arguments would lose digits); the negative fix-up covers rounding either way.
+int iA
+int iB
+int iDay
+int iQ
+int iStep
+float fM
+float fH
+float fIn
+float fU
+
+begin Function {iA, iB, iDay}
+	let fM := 16777213
+	let fH := player.AuxVarGetFlt "_wxSeed"
+	let iQ := fH / fM
+	let fH := fH - iQ * fM
+	let iStep := 0
+	while iStep < 4
+		; fold in a, b, day; the 4th pass is the final mix
+		if iStep == 0
+			let fIn := iA
+		elseif iStep == 1
+			let fIn := iB
+		elseif iStep == 2
+			let fIn := iDay
+		else
+			let fIn := -1
+		endif
+		if fIn >= 0
+			let fH := fH + fIn * 7919 + 1
+			let iQ := fH / fM
+			let fH := fH - iQ * fM
+			if fH < 0
+				let fH += fM
+			endif
+			let fH := fH * fH + 12345
+		else
+			let fH := fH * fH + 54321
+		endif
+		let iQ := fH / fM
+		let fH := fH - iQ * fM
+		if fH < 0
+			let fH += fM
+		endif
+		let fH := fH * 48271
+		let iQ := fH / fM
+		let fH := fH - iQ * fM
+		if fH < 0
+			let fH += fM
+		endif
+		let iStep += 1
+	loop
+	if fH < 1
+		let fH := 1
+	endif
+	let fU := fH / fM
+	SetFunctionValue fU
+end

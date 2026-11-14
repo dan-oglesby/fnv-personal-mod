@@ -1,0 +1,15 @@
+; Wasteland Exchange: caps per NCR dollar, from the game's own value of a $5 NCR bill (0.4 in
+; vanilla), so a mod that reprices NCR money is followed.
+float fV
+float fR
+ref rNcr5
+
+begin Function {}
+	let rNcr5 := BuildRef 0 1287382	; NCRMoney5 0x13A4D6
+	let fV := GetValue rNcr5
+	let fR := fV / 5
+	if fR <= 0
+		let fR := 0.4
+	endif
+	SetFunctionValue fR
+end

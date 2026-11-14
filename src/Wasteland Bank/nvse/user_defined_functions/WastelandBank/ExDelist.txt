@@ -1,0 +1,39 @@
+; Wasteland Exchange: delist a ticker for good. Its price is fixed at fRec of the current price and
+; every position is settled there: shares are paid out, shorts are covered (a short seller's best
+; day).
+int iT
+float fRec
+float fP
+float fP0
+float fH
+float fX
+float fV
+ref rPrice
+ref rCash
+
+begin Function {iT, fRec}
+	if eval (player.AuxVarGetFlt "_wxX" iT) == 1
+		return
+	endif
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let rCash := CompileScript "WastelandBank/ExCash.txt"
+	let fP := call rPrice iT
+	let fP := fP * fRec
+	let fP0 := player.AuxVarGetFlt "_wxP0" iT
+	let fV := fP / fP0
+	let fX := Log10 fV
+	let fX := fX * 2.302585093
+	player.AuxVarSetFlt "_wxL" fX iT
+	player.AuxVarSetFlt "_wxS" 0 iT
+	player.AuxVarSetFlt "_wxW" 0 iT
+	player.AuxVarSetFlt "_wxPy" fP iT
+	let fH := player.AuxVarGetFlt "_wxH" iT
+	if fH != 0
+		let fV := fH * fP
+		call rCash fV
+		MessageEx "Wasteland Exchange: your position was settled at %.2f caps a share" fP
+	endif
+	player.AuxVarSetFlt "_wxH" 0 iT
+	player.AuxVarSetFlt "_wxC" 0 iT
+	player.AuxVarSetFlt "_wxX" 1 iT
+end

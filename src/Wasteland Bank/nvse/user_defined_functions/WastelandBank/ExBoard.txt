@@ -1,0 +1,71 @@
+; Wasteland Exchange: an exchange's quote board. iEx 0 = New Vegas Exchange (caps), 1 = Hub Exchange
+; (NCR dollars). Lists each ticker on that exchange (Gun Runners is on both) with today's change
+; and your position. The buttons are in ticker order, matching ExBoardBtn.
+int iEx
+int iT
+int iN
+float fEx
+float fP
+float fPy
+float fChg
+float fH
+float fRate
+float fQ
+string_var sBody
+string_var sLine
+string_var sTk
+string_var sNm
+string_var sSign
+ref rPrice
+ref rRate
+ref rCb
+
+begin Function {iEx}
+	player.AuxVarSetFlt "_wxCurEx" iEx
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let rRate := CompileScript "WastelandBank/ExRate.txt"
+	let fRate := call rRate
+	let sBody := ""
+	let iN := player.AuxVarGetFlt "_wxCount"
+	let iT := 0
+	while iT < iN
+		let fEx := player.AuxVarGetFlt "_wxEx" iT
+		if (fEx == iEx) || (fEx == 2)
+			let sTk := player.AuxVarGetStr "_wxTk" iT
+			let sNm := player.AuxVarGetStr "_wxNm" iT
+			let fP := call rPrice iT
+			let fPy := player.AuxVarGetFlt "_wxPy" iT
+			let fChg := 0
+			if fPy > 0
+				let fChg := (fP / fPy - 1) * 100
+			endif
+			let sSign := ""
+			if fChg >= 0
+				let sSign := "+"
+			endif
+			if eval (player.AuxVarGetFlt "_wxX" iT) == 1
+				let sLine := sv_Construct "%z  %z: DELISTED" sTk sNm
+			elseif iEx == 1
+				let fQ := fP / fRate
+				let sLine := sv_Construct "%z  %z: $%.2f NCR (%z%.1f%%)" sTk sNm fQ sSign fChg
+			else
+				let sLine := sv_Construct "%z  %z: %.2f caps (%z%.1f%%)" sTk sNm fP sSign fChg
+			endif
+			let fH := player.AuxVarGetFlt "_wxH" iT
+			if fH > 0
+				let sLine := sLine + (sv_Construct "  [own %.2f]" fH)
+			elseif fH < 0
+				let fQ := 0 - fH
+				let sLine := sLine + (sv_Construct "  [short %.2f]" fQ)
+			endif
+			let sBody := sBody + sLine + (sv_Construct "%r")
+		endif
+		let iT += 1
+	loop
+	let rCb := CompileScript "WastelandBank/ExBoardBtn.txt"
+	if iEx == 1
+		MessageBoxExAlt rCb "^Hub Exchange (NCR)^Prices in NCR dollars (%.2f caps each); trades settle in caps through the bank.%r%r%z|GUN  Gun Runners|CRIM  Crimson Caravan|HAPY  Happy Trails|WTRM  Water Merchants|FGO  Far Go Traders|BRMN  Brahmin Barons|NCRB  NCR War Bonds|Back" fRate sBody
+	else
+		MessageBoxExAlt rCb "^New Vegas Exchange^Prices in caps. Change since yesterday in brackets.%r%r%z|GUN  Gun Runners|VGE  Van Graff Energy|MEX  Mojave Express|TOPS  The Tops|GOMR  Gomorrah|ULUX  Ultra-Luxe|WRNG  Atomic Wrangler|RBCO  RobCo Industries|Back" sBody
+	endif
+end

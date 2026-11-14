@@ -1,0 +1,68 @@
+; Wasteland Exchange: every position with its value and gain or loss, and the totals.
+int iT
+int iN
+float fH
+float fP
+float fC
+float fVal
+float fGain
+float fTotVal
+float fTotGain
+float fShort
+float fBal
+float fDiv
+string_var sBody
+string_var sTk
+string_var sSign
+ref rPrice
+ref rCb
+
+begin Function {}
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let sBody := ""
+	let fTotVal := 0
+	let fTotGain := 0
+	let fShort := 0
+	let iN := player.AuxVarGetFlt "_wxCount"
+	let iT := 0
+	while iT < iN
+		let fH := player.AuxVarGetFlt "_wxH" iT
+		if fH != 0
+			let sTk := player.AuxVarGetStr "_wxTk" iT
+			let fP := call rPrice iT
+			let fC := player.AuxVarGetFlt "_wxC" iT
+			if fH > 0
+				let fVal := fH * fP
+				let fGain := fVal - fC
+				let fTotVal += fVal
+			else
+				let fVal := (0 - fH) * fP
+				let fGain := fC - fVal
+				let fShort += fVal
+			endif
+			let fTotGain += fGain
+			let sSign := ""
+			if fGain >= 0
+				let sSign := "+"
+			endif
+			if fH > 0
+				let sBody := sBody + (sv_Construct "%z: %.2f shares, %.0f caps (%z%.0f)%r" sTk fH fVal sSign fGain)
+			else
+				let fH := 0 - fH
+				let sBody := sBody + (sv_Construct "%z: SHORT %.2f shares, %.0f caps to cover (%z%.0f)%r" sTk fH fVal sSign fGain)
+			endif
+		endif
+		let iT += 1
+	loop
+	if eval (sv_Length sBody) == 0
+		let sBody := sv_Construct "No positions yet.%r"
+	endif
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let fDiv := player.AuxVarGetFlt "_wxDiv"
+	let sSign := ""
+	if fTotGain >= 0
+		let sSign := "+"
+	endif
+	let rCb := CompileScript "WastelandBank/ExBack.txt"
+	MessageBoxExAlt rCb "^My Portfolio^%z%rShares worth %.0f caps. Shorts to cover: %.0f caps.%rOpen gain/loss: %z%.0f caps. Dividends earned: %.0f caps.%rBank balance: %.0f caps.|Back" sBody fTotVal fShort sSign fTotGain fDiv fBal
+end

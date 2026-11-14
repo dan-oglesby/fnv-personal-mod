@@ -1,0 +1,35 @@
+; Wasteland Exchange: quote-board buttons. Button k is the k-th ticker on the current exchange (in
+; ticker order, as ExBoard lists them); the button after the last ticker is Back.
+int iBtn
+int iEx
+int iT
+int iN
+int iK
+int iPick
+float fEx
+ref rNext
+
+begin Function {iBtn}
+	let iEx := player.AuxVarGetFlt "_wxCurEx"
+	let iN := player.AuxVarGetFlt "_wxCount"
+	let iPick := -1
+	let iK := 0
+	let iT := 0
+	while iT < iN
+		let fEx := player.AuxVarGetFlt "_wxEx" iT
+		if (fEx == iEx) || (fEx == 2)
+			if iK == iBtn
+				let iPick := iT
+			endif
+			let iK += 1
+		endif
+		let iT += 1
+	loop
+	if iPick >= 0
+		let rNext := CompileScript "WastelandBank/ExStock.txt"
+		call rNext iPick
+	else
+		let rNext := CompileScript "WastelandBank/ExMenu.txt"
+		call rNext
+	endif
+end

@@ -1,0 +1,46 @@
+; Wasteland Exchange: margin check for short selling. Equity = bank balance + shares held - cost to
+; cover the shorts. If equity falls under 30% of the short positions, every short is covered at
+; the asking price (a margin call); any shortfall becomes loan.
+int iT
+int iN
+float fLong
+float fShort
+float fEq
+float fH
+float fP
+float fCost
+ref rTot
+ref rPrice
+ref rCash
+ref rNews
+
+begin Function {}
+	let rTot := CompileScript "WastelandBank/ExTotals.txt"
+	let fShort := call rTot 2
+	if fShort <= 0
+		return
+	endif
+	let fLong := call rTot 1
+	let fEq := player.AuxVarGetFlt "_wbBal"
+	let fEq += fLong - fShort
+	if fEq >= 0.3 * fShort
+		return
+	endif
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let rCash := CompileScript "WastelandBank/ExCash.txt"
+	let iN := player.AuxVarGetFlt "_wxCount"
+	let iT := 0
+	while iT < iN
+		let fH := player.AuxVarGetFlt "_wxH" iT
+		if fH < 0
+			let fP := call rPrice iT
+			let fCost := fH * fP * 1.015
+			call rCash fCost
+			player.AuxVarSetFlt "_wxH" 0 iT
+			player.AuxVarSetFlt "_wxC" 0 iT
+		endif
+		let iT += 1
+	loop
+	let rNews := CompileScript "WastelandBank/ExNews.txt"
+	call rNews "Margin call: your short positions were covered"
+end

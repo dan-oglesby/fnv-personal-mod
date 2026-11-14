@@ -1,0 +1,24 @@
+; Wasteland Exchange: the Mojave Market Wire, newest first (the last 10 headlines).
+int iN
+int iK
+int iSlot
+string_var sBody
+string_var sLine
+ref rCb
+
+begin Function {}
+	let iN := player.AuxVarGetFlt "_wxNewsN"
+	let sBody := ""
+	let iK := 0
+	while (iK < 10) && (iK < iN)
+		let iSlot := (iN - 1 - iK) % 10
+		let sLine := player.AuxVarGetStr "_wxNews" iSlot
+		let sBody := sBody + sLine + (sv_Construct "%r")
+		let iK += 1
+	loop
+	if iN == 0
+		let sBody := "No market news yet."
+	endif
+	let rCb := CompileScript "WastelandBank/ExBack.txt"
+	MessageBoxExAlt rCb "^Mojave Market Wire^%z|Back" sBody
+end

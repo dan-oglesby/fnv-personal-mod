@@ -1,0 +1,85 @@
+; Wasteland Exchange: one stock's page: price (and NCR dollars on the Hub), today's change, yield,
+; your position, its gain or loss, and the trade buttons (see ExStockBtn).
+int iT
+float fP
+float fPy
+float fChg
+float fYld
+float fH
+float fC
+float fVal
+float fGain
+float fBal
+float fRate
+float fQ
+float fEx
+string_var sTk
+string_var sNm
+string_var sSign
+string_var sNcr
+string_var sPos
+string_var sGSign
+string_var sDrip
+string_var sDripBtn
+ref rPrice
+ref rRate
+ref rCb
+
+begin Function {iT}
+	player.AuxVarSetFlt "_wxCurT" iT
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let rRate := CompileScript "WastelandBank/ExRate.txt"
+	let sTk := player.AuxVarGetStr "_wxTk" iT
+	let sNm := player.AuxVarGetStr "_wxNm" iT
+	let fP := call rPrice iT
+	let fPy := player.AuxVarGetFlt "_wxPy" iT
+	let fChg := 0
+	if fPy > 0
+		let fChg := (fP / fPy - 1) * 100
+	endif
+	let sSign := ""
+	if fChg >= 0
+		let sSign := "+"
+	endif
+	let sNcr := ""
+	let fEx := player.AuxVarGetFlt "_wxEx" iT
+	if fEx >= 1
+		let fRate := call rRate
+		let fQ := fP / fRate
+		let sNcr := sv_Construct " ($%.2f NCR)" fQ
+	endif
+	let fYld := player.AuxVarGetFlt "_wxYld" iT
+	let fYld := fYld * 100
+	let fH := player.AuxVarGetFlt "_wxH" iT
+	let fC := player.AuxVarGetFlt "_wxC" iT
+	if fH > 0
+		let fVal := fH * fP
+		let fGain := fVal - fC
+		let sPos := sv_Construct "You own %.2f shares, worth %.0f caps (cost %.0f)" fH fVal fC
+	elseif fH < 0
+		let fVal := (0 - fH) * fP
+		let fGain := fC - fVal
+		let fQ := 0 - fH
+		let sPos := sv_Construct "You are short %.2f shares: %.0f caps to cover (received %.0f)" fQ fVal fC
+	else
+		let fGain := 0
+		let sPos := "You have no position."
+	endif
+	let sGSign := ""
+	if fGain >= 0
+		let sGSign := "+"
+	endif
+	let sDrip := "off"
+	let sDripBtn := "Reinvest dividends: turn on"
+	if eval (player.AuxVarGetFlt "_wxD" iT) == 1
+		let sDrip := "on"
+		let sDripBtn := "Reinvest dividends: turn off"
+	endif
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let rCb := CompileScript "WastelandBank/ExStockBtn.txt"
+	if eval (player.AuxVarGetFlt "_wxX" iT) == 1
+		MessageBoxExAlt rCb "^%z  %z^Delisted. It no longer trades.|Buy 100 caps|Buy 1,000 caps|Buy 10,000 caps|Sell half|Sell all|Short 1,000 caps|Cover short|%z|Back" sTk sNm sDripBtn
+	else
+		MessageBoxExAlt rCb "^%z  %z^Price: %.2f caps%z  (%z%.1f%% since yesterday)%rDividend yield: %.1f%% a year, paid weekly. Reinvesting: %z%r%r%z%rGain/loss: %z%.0f caps%r%rBank balance: %.0f caps. Trades cost 1.5%% (spread and commission).|Buy 100 caps|Buy 1,000 caps|Buy 10,000 caps|Sell half|Sell all|Short 1,000 caps|Cover short|%z|Back" sTk sNm fP sNcr sSign fChg fYld sDrip sPos sGSign fGain fBal sDripBtn
+	endif
+end

@@ -1,0 +1,21 @@
+; Wasteland Exchange: add caps to the bank balance (a negative amount takes them). If the balance
+; would go below zero (a short covered at a loss, dividends owed on a short), the shortfall
+; becomes loan.
+float fDelta
+float fBal
+float fLoan
+float fShort
+
+begin Function {fDelta}
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let fBal += fDelta
+	if fBal < 0
+		let fShort := 0 - fBal
+		let fLoan := player.AuxVarGetFlt "_wbLoan"
+		let fLoan += fShort
+		player.AuxVarSetFlt "_wbLoan" fLoan
+		MessageEx "Wasteland Bank: %.0f caps short, added to your loan" fShort
+		let fBal := 0
+	endif
+	player.AuxVarSetFlt "_wbBal" fBal
+end

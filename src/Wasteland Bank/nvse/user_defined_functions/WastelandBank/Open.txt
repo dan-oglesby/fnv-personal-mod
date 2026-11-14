@@ -13,5 +13,5 @@ begin Function {}
 	let fEarned := player.AuxVarGetFlt "_wbEarned"
 	let fLoan := player.AuxVarGetFlt "_wbLoan"
 	let rCb := CompileScript "WastelandBank/MainBtn.txt"
-	MessageBoxExAlt rCb "^Wasteland Bank^Balance: %.0f caps (interest earned: %.0f)%rLoan owed: %.0f caps%rCarrying: %.0f caps|Deposit|Withdraw|Loans|Convert currency to caps|Settings|Close" fBal fEarned fLoan iCarry
+	MessageBoxExAlt rCb "^Wasteland Bank^Balance: %.0f caps (interest earned: %.0f)%rLoan owed: %.0f caps%rCarrying: %.0f caps|Deposit|Withdraw|Loans|Convert currency to caps|Wasteland Exchange (stocks)|Settings|Close" fBal fEarned fLoan iCarry
 end

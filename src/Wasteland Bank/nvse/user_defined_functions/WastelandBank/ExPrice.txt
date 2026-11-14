@@ -1,0 +1,15 @@
+; Wasteland Exchange: a ticker's price in caps = start x e^(level + shock + wobble).
+int iT
+float fX
+float fE
+float fP
+
+begin Function {iT}
+	let fX := player.AuxVarGetFlt "_wxL" iT
+	let fX += player.AuxVarGetFlt "_wxS" iT
+	let fX += player.AuxVarGetFlt "_wxW" iT
+	let fE := Exp fX
+	let fP := player.AuxVarGetFlt "_wxP0" iT
+	let fP := fP * fE
+	SetFunctionValue fP
+end

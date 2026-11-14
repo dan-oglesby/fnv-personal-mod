@@ -1,0 +1,55 @@
+; Wasteland Exchange: set-up, called on every load. The listings (ExData) are re-applied every
+; time so tuning takes effect; the market state is created once per character.
+; State per ticker index: _wxL permanent level, _wxS fading news shock, _wxW day-to-day wobble
+; (all natural logs: price = start x e^(L+S+W)), _wxH shares (negative = short), _wxC cost basis
+; (caps paid for a long position, or caps received for a short), _wxD dividend reinvestment 1/0,
+; _wxX delisted 1/0, _wxPy yesterday's price. Global: _wxSeed (fixed per character, so reloading
+; replays the same prices), _wxDay last day priced, _wxE event done-flags, _wxNews headline ring,
+; _wxDiv dividends earned, _wxQuiet (the first pass after set-up prices in past events silently).
+; Indexed aux variables are always filled in order from 0, so no index is skipped.
+int iT
+int iN
+int iToday
+float fSeed
+float fP0
+ref rData
+
+begin Function {}
+	let rData := CompileScript "WastelandBank/ExData.txt"
+	call rData
+	if eval (player.AuxVarGetFlt "_wxInit") == 0
+		let iN := player.AuxVarGetFlt "_wxCount"
+		let iT := 0
+		while iT < iN
+			let fP0 := player.AuxVarGetFlt "_wxP0" iT
+			player.AuxVarSetFlt "_wxL" 0 iT
+			player.AuxVarSetFlt "_wxS" 0 iT
+			player.AuxVarSetFlt "_wxW" 0 iT
+			player.AuxVarSetFlt "_wxH" 0 iT
+			player.AuxVarSetFlt "_wxC" 0 iT
+			player.AuxVarSetFlt "_wxD" 0 iT
+			player.AuxVarSetFlt "_wxX" 0 iT
+			player.AuxVarSetFlt "_wxPy" fP0 iT
+			let iT += 1
+		loop
+		let iT := 0
+		while iT < 40
+			player.AuxVarSetFlt "_wxE" 0 iT
+			let iT += 1
+		loop
+		let iT := 0
+		while iT < 10
+			player.AuxVarSetStr "_wxNews" "" iT
+			let iT += 1
+		loop
+		let fSeed := Rand 1 999983
+		let iT := fSeed
+		player.AuxVarSetFlt "_wxSeed" iT
+		let iToday := Floor GameDaysPassed
+		player.AuxVarSetFlt "_wxDay" iToday
+		player.AuxVarSetFlt "_wxNewsN" 0
+		player.AuxVarSetFlt "_wxDiv" 0
+		player.AuxVarSetFlt "_wxQuiet" 1
+		player.AuxVarSetFlt "_wxInit" 1
+	endif
+end

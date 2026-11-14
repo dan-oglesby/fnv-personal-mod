@@ -1,4 +1,4 @@
-# Wasteland Exchange: design (draft, not built)
+# Wasteland Exchange: design (built 2026-11-14, untested in play)
 
 A stock market inside Wasteland Bank, opened from the bank card's menu. Draft of 2026-11-14.
 
@@ -130,8 +130,9 @@ Plugin-free, like the rest of Wasteland Bank: JIP aux variables on the player an
 
 Prerequisite: Wasteland Bank itself hasn't been playtested yet, so test that first.
 
-## Open questions
+## Decisions (2026-11-14)
 
-1. Both exchanges, or one board in caps?
-2. Short selling: now, later, or never?
-3. How generous: is about 5–6× on the best calls, ~10× in a once-per-game case, about right?
+1. Both exchanges: the NCR-dollar Hub fits the setting.
+2. Short selling: in. Initial margin 50%, maintenance 30%, borrowing fee 0.2% a week.
+3. Generosity: 5–6× on the best calls. RobCo through House's path simulates at 5.2×, with House's
+   Dam event at ×2.1 to land there.

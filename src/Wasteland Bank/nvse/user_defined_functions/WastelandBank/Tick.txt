@@ -78,4 +78,8 @@ begin Function {}
 		let rConv := CompileScript "WastelandBank/ConvertNow.txt"
 		call rConv 1
 	endif
+
+	; Wasteland Exchange: daily prices, dividends and news events
+	let rConv := CompileScript "WastelandBank/ExTick.txt"
+	call rConv
 end

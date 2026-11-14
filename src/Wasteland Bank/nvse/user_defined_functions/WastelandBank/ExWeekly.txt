@@ -1,0 +1,52 @@
+; Wasteland Exchange: weekly bookkeeping. Dividends (annual yield / 52) on shares held are paid to
+; the bank, or buy more shares if reinvestment is on. A short position pays the dividend instead,
+; plus a 0.2% weekly borrowing fee. Then the margin check.
+int iT
+int iN
+float fH
+float fP
+float fYld
+float fDiv
+float fTot
+float fCost
+ref rPrice
+ref rCash
+ref rMargin
+
+begin Function {}
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let rCash := CompileScript "WastelandBank/ExCash.txt"
+	let iN := player.AuxVarGetFlt "_wxCount"
+	let iT := 0
+	while iT < iN
+		let fH := player.AuxVarGetFlt "_wxH" iT
+		if fH != 0
+			if eval (player.AuxVarGetFlt "_wxX" iT) == 0
+				let fP := call rPrice iT
+				let fYld := player.AuxVarGetFlt "_wxYld" iT
+				if fH > 0
+					let fDiv := fH * fP * fYld / 52
+					if eval (player.AuxVarGetFlt "_wxD" iT) == 1
+						let fH += fDiv / fP
+						player.AuxVarSetFlt "_wxH" fH iT
+						let fTot := player.AuxVarGetFlt "_wxC" iT
+						let fTot += fDiv
+						player.AuxVarSetFlt "_wxC" fTot iT
+					else
+						call rCash fDiv
+					endif
+					let fTot := player.AuxVarGetFlt "_wxDiv"
+					let fTot += fDiv
+					player.AuxVarSetFlt "_wxDiv" fTot
+				else
+					let fCost := (0 - fH) * fP * (fYld / 52 + 0.002)
+					let fCost := 0 - fCost
+					call rCash fCost
+				endif
+			endif
+		endif
+		let iT += 1
+	loop
+	let rMargin := CompileScript "WastelandBank/ExMargin.txt"
+	call rMargin
+end

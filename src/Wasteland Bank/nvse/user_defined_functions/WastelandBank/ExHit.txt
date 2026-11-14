@@ -1,0 +1,32 @@
+; Wasteland Exchange: apply news to a ticker. fPct is a fading shock (-0.35 = a 35% drop), fMult a
+; permanent change to its level (1.10 = 10% higher for good). While pricing in past events
+; (_wxQuiet) only the permanent part applies.
+int iT
+float fPct
+float fMult
+float fX
+float fV
+
+begin Function {iT, fPct, fMult}
+	if eval (player.AuxVarGetFlt "_wxX" iT) == 1
+		return
+	endif
+	if (fMult > 0) && (fMult != 1)
+		let fX := Log10 fMult
+		let fV := player.AuxVarGetFlt "_wxL" iT
+		let fV += fX * 2.302585093
+		player.AuxVarSetFlt "_wxL" fV iT
+	endif
+	if eval (player.AuxVarGetFlt "_wxQuiet") == 0
+		if fPct != 0
+			let fX := 1 + fPct
+			if fX < 0.05
+				let fX := 0.05
+			endif
+			let fX := Log10 fX
+			let fV := player.AuxVarGetFlt "_wxS" iT
+			let fV += fX * 2.302585093
+			player.AuxVarSetFlt "_wxS" fV iT
+		endif
+	endif
+end

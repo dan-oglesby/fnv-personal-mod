@@ -1,0 +1,50 @@
+; Wasteland Exchange: move every listed price one game day. The wobble mean-reverts (5% a day) and
+; is half shared with the ticker's sector; news shocks fade with a 7-day half-life; the permanent
+; level follows the ticker's trend. Every 7th day: dividends and the margin check (ExWeekly).
+int iDay
+int iT
+int iN
+int iSec
+int iSecKey
+float fZs
+float fZi
+float fVol
+float fWob
+float fS
+float fL
+float fP
+ref rNorm
+ref rPrice
+ref rWeek
+
+begin Function {iDay}
+	let rNorm := CompileScript "WastelandBank/ExNorm.txt"
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let iN := player.AuxVarGetFlt "_wxCount"
+	let iT := 0
+	while iT < iN
+		if eval (player.AuxVarGetFlt "_wxX" iT) == 0
+			let fP := call rPrice iT
+			player.AuxVarSetFlt "_wxPy" fP iT
+			let iSec := player.AuxVarGetFlt "_wxSec" iT
+			let iSecKey := 100 + iSec
+			let fZs := call rNorm iSecKey 0 iDay
+			let fZi := call rNorm iT 1 iDay
+			let fVol := player.AuxVarGetFlt "_wxVol" iT
+			let fWob := player.AuxVarGetFlt "_wxW" iT
+			let fWob := fWob * 0.95 + fVol * (0.5 * fZs + 0.866 * fZi)
+			player.AuxVarSetFlt "_wxW" fWob iT
+			let fS := player.AuxVarGetFlt "_wxS" iT
+			let fS := fS * 0.9057
+			player.AuxVarSetFlt "_wxS" fS iT
+			let fL := player.AuxVarGetFlt "_wxL" iT
+			let fL += player.AuxVarGetFlt "_wxTr" iT
+			player.AuxVarSetFlt "_wxL" fL iT
+		endif
+		let iT += 1
+	loop
+	if (iDay % 7) == 0
+		let rWeek := CompileScript "WastelandBank/ExWeekly.txt"
+		call rWeek
+	endif
+end

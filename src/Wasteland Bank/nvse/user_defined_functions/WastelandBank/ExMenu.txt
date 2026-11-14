@@ -1,0 +1,26 @@
+; Wasteland Exchange: the exchange's main menu (from the bank's main menu).
+float fBal
+float fLong
+float fShort
+float fDiv
+int iN
+int iSlot
+string_var sHead
+ref rTot
+ref rCb
+
+begin Function {}
+	let rTot := CompileScript "WastelandBank/ExTotals.txt"
+	let fLong := call rTot 1
+	let fShort := call rTot 2
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let fDiv := player.AuxVarGetFlt "_wxDiv"
+	let sHead := "No market news yet."
+	let iN := player.AuxVarGetFlt "_wxNewsN"
+	if iN > 0
+		let iSlot := (iN - 1) % 10
+		let sHead := player.AuxVarGetStr "_wxNews" iSlot
+	endif
+	let rCb := CompileScript "WastelandBank/ExMenuBtn.txt"
+	MessageBoxExAlt rCb "^Wasteland Exchange^Bank balance (cash): %.0f caps%rShares held: %.0f caps%rShort positions: %.0f caps to cover%rDividends earned: %.0f caps%r%rLatest: %z|New Vegas Exchange (caps)|Hub Exchange (NCR dollars)|My portfolio|Market news|Back to the bank" fBal fLong fShort fDiv sHead
+end

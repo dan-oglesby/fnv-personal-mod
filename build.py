@@ -22,6 +22,10 @@ from pathlib import Path
 import check_scripts
 import make_plugins
 
+sys.path.insert(0, str(Path(__file__).resolve().parent / "tools"))
+import exchange_sim  # noqa: E402
+import gen_exchange  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent
 STAGING = Path(os.environ.get("APPDATA", "")) / "Vortex" / "falloutnv" / "mods"
 
@@ -67,6 +71,9 @@ def stage(mod: Path) -> str:
 
 
 def main(argv):
+    gen_exchange.main()             # Wasteland Exchange's generated data and event scripts
+    if exchange_sim.main():         # the exchange's maths, checked offline
+        sys.exit("build stopped: Wasteland Exchange simulation failed")
     if check_scripts.main():        # a script that would not compile in game stops the build
         sys.exit("build stopped: fix the script problems above")
     make_plugins.main()             # the small item plugins some mods use as their menu item

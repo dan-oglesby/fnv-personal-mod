@@ -1,0 +1,50 @@
+; Wasteland Exchange: called by the bank's 10-second bookkeeping tick. Prices every game day that
+; has passed (up to 60 at a time, so a long sleep doesn't stall the game), then checks the news
+; events. The first pass after set-up prices in past events quietly (no shocks, no pop-ups).
+int iToday
+int iLast
+int iN
+int iFired
+int iPart
+ref rDay
+ref rEv
+ref rMargin
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_wxInit") == 0
+		return
+	endif
+	let rDay := CompileScript "WastelandBank/ExDay.txt"
+	let iToday := Floor GameDaysPassed
+	let iLast := player.AuxVarGetFlt "_wxDay"
+	let iN := 0
+	while (iLast < iToday) && (iN < 60)
+		let iLast += 1
+		call rDay iLast
+		let iN += 1
+	loop
+	if iLast < iToday
+		let iLast := iToday
+	endif
+	player.AuxVarSetFlt "_wxDay" iLast
+
+	let iFired := 0
+	let rEv := CompileScript "WastelandBank/ExEvents1.txt"
+	let iPart := call rEv
+	let iFired += iPart
+	let rEv := CompileScript "WastelandBank/ExEvents2.txt"
+	let iPart := call rEv
+	let iFired += iPart
+	let rEv := CompileScript "WastelandBank/ExEvents3.txt"
+	let iPart := call rEv
+	let iFired += iPart
+	if eval (player.AuxVarGetFlt "_wxQuiet") == 1
+		player.AuxVarSetFlt "_wxQuiet" 0
+		if iFired > 0
+			MessageEx "Wasteland Exchange: %.0f past events priced in. See the market news." iFired
+		endif
+	elseif iFired > 0
+		let rMargin := CompileScript "WastelandBank/ExMargin.txt"
+		call rMargin
+	endif
+end

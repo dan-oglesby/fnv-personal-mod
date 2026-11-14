@@ -23,7 +23,7 @@ it. The old hotkeys (K and L) are still in the `ln_` files, commented out.
 
 | Mod | What it does | Needs | Status |
 |---|---|---|---|
-| Wasteland Bank | A rewrite of Bank Card (BankCard.esp, Nexus 39741, 2011) without its bugs. Equip the **Wasteland Bank Card** from the Pip-Boy's Apparel tab and the bank opens when you close the Pip-Boy, as with the original: deposit and withdraw caps with daily interest, take one loan at a time with weekly interest, convert NCR, Legion and pre-war money to caps, and optional auto-deposit (keeps a set amount on hand) and auto-convert. | xNVSE 6.2.8+, JIP LN 56.95+. Enable `WastelandBank.esp` | Built 2026-11-11, untested in play. Don't run it alongside BankCard.esp |
+| Wasteland Bank | A rewrite of Bank Card (BankCard.esp, Nexus 39741, 2011) without its bugs. Equip the **Wasteland Bank Card** from the Pip-Boy's Apparel tab and the bank opens when you close the Pip-Boy, as with the original: deposit and withdraw caps with daily interest, take one loan at a time with weekly interest, convert NCR, Legion and pre-war money to caps, and optional auto-deposit (keeps a set amount on hand) and auto-convert. Includes the **Wasteland Exchange**: stocks on a New Vegas and an NCR (Hub) exchange, with dividends, reinvestment, short selling and prices that react to your quests. | xNVSE 6.2.8+, JIP LN 56.95+. Enable `WastelandBank.esp` | Built 2026-11-11, untested in play. Don't run it alongside BankCard.esp |
 | Monocyte Limb Regen | With the Monocyte Breeder implant (New Vegas Medical Clinic), crippled limbs heal on their own at the implant's own health rate, 0.1 a second, so a fully crippled limb heals in about 17 minutes of play. | xNVSE 6.2.8+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 | Auto Smoke | An add-on for Light Up and Smoke Those Cigarettes (edisleado, Nexus 49677). Lights your next cigarette for you, as if you'd used it from the Pip-Boy: keep one lit, light up 1 to 20 minutes after the last one goes out, or only when you have nicotine withdrawal. Opens a pack or carton when you run out of loose ones. Settings: equip the **Cigarette Case (Auto Smoke)** from the Pip-Boy's Apparel tab. | Light Up and Smoke Those Cigarettes, xNVSE 6.2.8+, JIP LN 56.95+. Enable `AutoSmoke.esp` | Built 2026-11-11, untested in play |
 | Scan Null Fix | Fixes a crash in xNVSE itself: scripts that scan the objects around you (`GetFirstRef`/`GetNextRef`, used by Auto Loot Enhanced, Increased Wasteland Spawns, Alternative Start and others) crash on an object whose base item is gone, such as an item just picked up. Skips those objects instead. | xNVSE **6.4.9** exactly (does nothing on any other version, and says so in `ScanNullFix.log`) | Built and tested offline against the real xNVSE DLL 2026-11-13 |
@@ -144,4 +144,36 @@ shortcut in the Startup folder:
 MIT (see `LICENSE`). Wasteland Bank is a fresh rewrite inspired by Bank Card (Nexus 39741) and
 contains none of its files. Auto Smoke uses, but doesn't include, Light Up and Smoke Those
 Cigarettes (Nexus 49677).
+
+## Wasteland Exchange (inside Wasteland Bank)
+
+From the bank card's menu, **Wasteland Exchange (stocks)**. Full design and rationale:
+[docs/wasteland-exchange-design.md](docs/wasteland-exchange-design.md).
+
+- **Two exchanges.** The New Vegas Exchange (Mr. House's, in caps): Gun Runners, Van Graff Energy,
+  Mojave Express, The Tops, Gomorrah, Ultra-Luxe, Atomic Wrangler, RobCo Industries. The Hub
+  Exchange (NCR, in NCR dollars at the game's own rate): Gun Runners, Crimson Caravan, Happy Trails,
+  Water Merchants, Far Go Traders, Brahmin Barons, NCR War Bonds. Trades settle in caps through
+  the bank balance.
+- **Prices.** Each stock's price is its start price × e^(level + shock + wobble). The wobble moves
+  every game day, mean-reverts, and is half shared within a sector. News shocks fade with a 7-day
+  half-life. The level is permanent and changes only through big events. The randomness is seeded
+  per character, so reloading replays the same market.
+- **News.** 30 events, keyed to real quest stages and deaths (e.g. *My Kind of Town*'s sheriff,
+  *How Little We Know*, *The House Always Wins*, Alice McLafferty, the Van Graffs, each faction's
+  march on the Dam). Each posts a Mojave Market Wire headline. Wiping out the Van Graffs **delists**
+  Van Graff Energy. When the exchange is added to an existing save, past events are priced in
+  quietly.
+- **Getting rich.** Calling the war right pays: RobCo bought early and held through House's whole
+  path is about 5×. Holding NCR bonds when the Legion takes the Dam is not a good time.
+- **Dividends** are paid weekly. Reinvestment can be switched on per stock (fractional shares).
+- **Short selling.** Your equity must cover half of all short positions to open one. A weekly
+  margin check covers everything if equity drops below 30%. Shorts pay the dividend plus a 0.2%
+  weekly borrowing fee. A delisting settles shorts at 5% of the price.
+- **Costs.** Buying pays price + 1.5%; selling gets price − 1.5%.
+
+Built from `tools/gen_exchange.py` (listings and events as a table, generating `ExData.txt` and
+`ExEvents1-3.txt`). `tools/exchange_sim.py` is a Python twin of the price maths, run by
+`build.py`: it checks the random draws are uniform and independent, that prices without news stay
+in range, and that the best path lands at 5–6×.
 

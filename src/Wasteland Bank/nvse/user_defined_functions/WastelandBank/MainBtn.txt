@@ -1,4 +1,5 @@
-; Wasteland Bank: main menu buttons (0 Deposit, 1 Withdraw, 2 Loans, 3 Convert, 4 Settings, 5 Close).
+; Wasteland Bank: main menu buttons (0 Deposit, 1 Withdraw, 2 Loans, 3 Convert, 4 Wasteland Exchange,
+; 5 Settings, 6 Close).
 int iBtn
 ref rNext
 
@@ -18,6 +19,9 @@ begin Function {iBtn}
 		let rNext := CompileScript "WastelandBank/Open.txt"
 		call rNext
 	elseif iBtn == 4
+		let rNext := CompileScript "WastelandBank/ExMenu.txt"
+		call rNext
+	elseif iBtn == 5
 		let rNext := CompileScript "WastelandBank/Settings.txt"
 		call rNext
 	endif

@@ -1,0 +1,28 @@
+; Wasteland Exchange: total value of positions in caps. iWhich 1 = shares held, 2 = short positions
+; (what it would cost to cover them at today's price).
+int iWhich
+int iT
+int iN
+float fH
+float fP
+float fSum
+ref rPrice
+
+begin Function {iWhich}
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let iN := player.AuxVarGetFlt "_wxCount"
+	let fSum := 0
+	let iT := 0
+	while iT < iN
+		let fH := player.AuxVarGetFlt "_wxH" iT
+		if ((iWhich == 1) && (fH > 0)) || ((iWhich == 2) && (fH < 0))
+			let fP := call rPrice iT
+			if fH < 0
+				let fH := 0 - fH
+			endif
+			let fSum += fH * fP
+		endif
+		let iT += 1
+	loop
+	SetFunctionValue fSum
+end

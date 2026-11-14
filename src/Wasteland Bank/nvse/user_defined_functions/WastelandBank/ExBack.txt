@@ -1,0 +1,8 @@
+; Wasteland Exchange: a Back button that returns to the exchange's main menu.
+int iBtn
+ref rNext
+
+begin Function {iBtn}
+	let rNext := CompileScript "WastelandBank/ExMenu.txt"
+	call rNext
+end

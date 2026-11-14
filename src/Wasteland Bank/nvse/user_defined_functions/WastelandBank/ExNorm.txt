@@ -1,0 +1,24 @@
+; Wasteland Exchange: a repeatable bell-curve number (mean 0, spread 1) from four ExRng draws.
+int iA
+int iB
+int iDay
+int iK
+int iSub
+float fSum
+float fU
+float fZ
+ref rRng
+
+begin Function {iA, iB, iDay}
+	let rRng := CompileScript "WastelandBank/ExRng.txt"
+	let fSum := 0
+	let iK := 0
+	while iK < 4
+		let iSub := iB * 4 + iK
+		let fU := call rRng iA iSub iDay
+		let fSum += fU
+		let iK += 1
+	loop
+	let fZ := (fSum - 2) * 1.7320508
+	SetFunctionValue fZ
+end
