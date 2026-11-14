@@ -125,3 +125,20 @@ normal references matching as before. When xNVSE updates, re-check the three fun
 (`dumpbin /disasm` around `?Accept@RefMatcher...`) and update the offsets, bytes and timestamp,
 or drop the fix if xNVSE has added the check.
 
+## Session watcher (`tools/fnv_watch.ps1`)
+
+A small PowerShell script for chasing crashes. It waits for `FalloutNV.exe`, records its memory
+every 10 s, and when the game exits saves that session's logs (xNVSE, error, Havok, crash logger,
+DXVK, Scan Null Fix, plugins.txt) into `Documents\My Games\FalloutNV\SessionLogs\<start time>\`
+with a `summary.txt`: duration, whether it crashed, peak memory against the 32-bit 4 GB ceiling,
+and the last save/load events. It keeps the newest 30 sessions. To run it at sign-in, put a
+shortcut in the Startup folder:
+`powershell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File tools\fnv_watch.ps1`.
+`-TestStart "<date time>"` summarizes an earlier session's logs and exits.
+
+## License
+
+MIT (see `LICENSE`). Wasteland Bank is a fresh rewrite inspired by Bank Card (Nexus 39741) and
+contains none of its files. Auto Smoke uses, but doesn't include, Light Up and Smoke Those
+Cigarettes (Nexus 49677).
+

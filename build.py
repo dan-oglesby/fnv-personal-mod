@@ -5,7 +5,7 @@
 
 Each src/<Mod Name>/ folder mirrors the game's Data folder (nvse/..., meshes/..., *.esp).
 
-Staging (Dan, 2026-11-11: "staging a copy of anything we work on in the vortex folder"): each mod is
+Staging: each mod is
 mirrored into Vortex's New Vegas staging folder as <Mod Name>/, so it appears in Vortex's Mods list
 (after Vortex refreshes or restarts) ready to enable and deploy. Files are rewritten in place, not
 replaced, so a copy Vortex has already deployed (hardlinked into the game) updates with it; files

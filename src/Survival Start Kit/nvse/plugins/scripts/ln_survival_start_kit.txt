@@ -1,4 +1,4 @@
-; Survival Start Kit (Dan, 2026-11-11): "grants the bed roll immediately for my survival mode runs".
+; Survival Start Kit (Dan, 2026-11-11), for survival-mode runs.
 ; Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) from the start.
 ;
 ; Run by JIP LN NVSE's script runner: ln_ files run on a new game and on every save load, compiled
