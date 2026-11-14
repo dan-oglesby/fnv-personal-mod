@@ -33,7 +33,7 @@ function Save-Session($start, $samples, $proc) {
     $samples | Export-Csv (Join-Path $dir 'memory.csv') -NoTypeInformation
 
     # logs written this session
-    $files = 'nvse.log','falloutnv_error.log','falloutnv_havok.log','CobbCrashLogger.log','ScanNullFix.log',
+    $files = 'nvse.log','falloutnv_error.log','falloutnv_havok.log','CobbCrashLogger.log','CrashLogger.log','ScanNullFix.log',
              'FalloutNV_d3d9.log','FalloutNV_dxgi.log','nvse_steam_loader.log','mcm.log','ShowOffNVSE.log'
     foreach ($f in $files) {
         $p = Join-Path $game $f
@@ -42,11 +42,11 @@ function Save-Session($start, $samples, $proc) {
             else { Copy-Item $p $dir }
         }
     }
-    foreach ($sub in 'CrashLogs','Data\NVSE\Plugins\CrashLogs','logs') {
+    foreach ($sub in 'Crash Logs','CrashLogs','Data\NVSE\Plugins\CrashLogs','logs') {
         $p = Join-Path $game $sub
         if (Test-Path $p) {
             Get-ChildItem $p -File | Where-Object { $_.LastWriteTime -ge $start.AddMinutes(-1) } |
-                ForEach-Object { Copy-Item $_.FullName (Join-Path $dir ((($sub -replace '\\','_') + '_' + $_.Name))) }
+                ForEach-Object { Copy-Item $_.FullName (Join-Path $dir ((($sub -replace '[\\ ]','_') + '_' + $_.Name))) }
         }
     }
     Copy-Item (Join-Path $env:LOCALAPPDATA 'FalloutNV\plugins.txt') $dir
@@ -55,7 +55,9 @@ function Save-Session($start, $samples, $proc) {
     $crashLog = Join-Path $game 'CobbCrashLogger.log'
     $loggerCrash = (Test-Path $crashLog) -and (Get-Item $crashLog).LastWriteTime -ge $start -and
                    ((Get-Content $crashLog -Raw) -match 'Exception')
-    $newCrashFiles = @(Get-ChildItem (Join-Path $game 'CrashLogs') -File | Where-Object { $_.LastWriteTime -ge $start })
+    # Yvile's Crash Logger writes 'Crash Logs\CrashLogger.<time>.log' (older loggers: CrashLogs)
+    $newCrashFiles = @(Get-ChildItem (Join-Path $game 'Crash Logs'), (Join-Path $game 'CrashLogs') -File |
+                       Where-Object { $_.LastWriteTime -ge $start })
     $winErr = Get-WinEvent -FilterHashtable @{LogName='Application'; Id=1000; StartTime=$start} |
               Where-Object { $_.Message -match 'FalloutNV.exe' } | Select-Object -First 1
     $crashed = $loggerCrash -or $newCrashFiles.Count -gt 0 -or $winErr
@@ -72,7 +74,11 @@ function Save-Session($start, $samples, $proc) {
     $s += "Fallout: New Vegas session $($start.ToString('yyyy-MM-dd HH:mm:ss')) -> $($end.ToString('HH:mm:ss'))  ($([int]($end-$start).TotalMinutes) min)"
     $s += "Exit: " + $(if ($crashed) { 'CRASH' } else { 'normal (no crash recorded)' })
     if ($loggerCrash)      { $s += "  crash logger: " + ((Get-Content $crashLog | Select-String 'Exception|GAME CRASHED AT' | ForEach-Object { $_.Line.Trim() }) -join ' / ') }
-    if ($newCrashFiles)    { $s += "  crash log files: " + (($newCrashFiles | ForEach-Object Name) -join ', ') }
+    foreach ($cf in $newCrashFiles) {
+        $s += "  crash log: $($cf.Name)"
+        $s += (Get-Content $cf.FullName -TotalCount 40 | Select-String '^Exception:|^Thread:' | ForEach-Object { '    ' + $_.Line.Trim() })
+        if ((Get-Content $cf.FullName -Raw) -match 'LdrShutdownProcess') { $s += '    (crashed while the game was closing: harmless)' }
+    }
     if ($winErr)           { $s += "  Windows: " + (($winErr.Message -split "`n" | Select-Object -First 5 | ForEach-Object { $_.Trim() }) -join ' | ') }
     $s += ""
     $s += "Memory (32-bit game, hard ceiling 4096 MB of address space):"
