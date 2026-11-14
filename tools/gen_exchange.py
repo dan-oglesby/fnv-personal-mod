@@ -16,8 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 UDF = ROOT / "src" / "Wasteland Bank" / "nvse" / "user_defined_functions" / "WastelandBank"
 LN = ROOT / "src" / "Wasteland Bank" / "nvse" / "plugins" / "scripts" / "ln_wasteland_bank.txt"
 
-NVX, HX, BOTH = 0, 1, 2
-ARMS, TRADE, CASINO, TECH, NCR = range(5)
+NVX, HX, BOTH, HIDDEN = 0, 1, 2, 9          # HIDDEN: priced like a stock, not traded (currencies)
+ARMS, TRADE, CASINO, TECH, NCR, NCRCUR, LEGCUR = range(7)
 
 # ticker, name, exchange, start price (caps), daily vol, annual dividend yield, sector, daily trend (log)
 TICKERS = [
@@ -35,6 +35,10 @@ TICKERS = [
     ("FGO",  "Far Go Traders",           HX,    35, 0.025, 0.04, TRADE,  0.0005),
     ("BRMN", "Brahmin Barons Index",     HX,   100, 0.015, 0.04, NCR,    0.0007),
     ("NCRB", "NCR War Bonds",            HX,   100, 0.005, 0.08, NCR,    0.0000),
+    # Currencies: a multiplier on the vanilla value (1.0 = vanilla), moved by the same news engine.
+    # FxApply.txt turns them into item values; ExRate and ConvertNow use them exactly.
+    ("NCRD", "NCR dollar",               HIDDEN, 1, 0.006, 0.00, NCRCUR, 0.0000),
+    ("LEGD", "Legion denarius",          HIDDEN, 1, 0.008, 0.00, LEGCUR, 0.0000),
 ]
 T = {t[0]: i for i, t in enumerate(TICKERS)}
 ALL_NVX = [t[0] for t in TICKERS if t[2] in (NVX, BOTH)]
@@ -145,6 +149,37 @@ EVENTS = [
     (29, "Legion heads to the Dam (Render Unto Caesar 100)",
      [[stage(0x129D14, 100)]], [("NCRB", -0.50, 0.20)] + [(t, -0.30, 0.80) for t in ALL_HX if t != "NCRB"] + [(t, -0.25, 1.0) for t in ALL_NVX], None,
      "Legion marches on Hoover Dam: NCR bonds in default panic, markets crash"),
+]
+
+
+# The currencies react to who is gaining power. Extra effects on the events above:
+CURRENCY = {
+    4:  [("NCRD", 0.01, 1.02)],                             # NCR sheriff in Primm
+    16: [("NCRD", 0.05, 1.05), ("LEGD", -0.03, 1.0)],       # Kimball saved
+    17: [("NCRD", -0.15, 0.85), ("LEGD", 0.10, 1.10)],      # Kimball killed
+    18: [("NCRD", 0.03, 1.03), ("LEGD", -0.05, 0.95)],      # Nelson retaken
+    19: [("LEGD", -0.05, 0.95)],                            # Khans break with Caesar
+    26: [("NCRD", 0.10, 1.15), ("LEGD", -0.10, 0.90)],      # NCR heads to the Dam
+    27: [("NCRD", -0.10, 0.85), ("LEGD", -0.05, 1.0)],      # House heads to the Dam
+    28: [("NCRD", -0.10, 0.85), ("LEGD", -0.05, 1.0)],      # Yes Man heads to the Dam
+    29: [("NCRD", -0.30, 0.60), ("LEGD", 0.25, 1.40)],      # Legion heads to the Dam
+}
+EVENTS = [(e[0], e[1], e[2], e[3] + CURRENCY.get(e[0], []), e[4], e[5]) for e in EVENTS]
+EVENTS += [
+    (30, "Caesar killed", [[dead(0x121FF0)]], [("LEGD", -0.40, 0.50), ("NCRD", 0.05, 1.05)], None,
+     "Caesar is dead: the denarius collapses as the Legion's future comes into doubt"),
+    (31, "Legate Lanius killed", [[dead(0x137A9D)]], [("LEGD", -0.20, 0.80), ("NCRD", 0.03, 1.0)], None,
+     "Legate Lanius falls: Legion coin slides"),
+    (32, "General Lee Oliver killed", [[dead(0x134DB4)], [dead(0x1483F1)]], [("NCRD", -0.20, 0.85), ("LEGD", 0.05, 1.0)], None,
+     "General Oliver killed: the NCR dollar sinks"),
+    (33, "Things That Go Boom: the Boomers will help the NCR (VMS23 100)", [[stage(0x116B41, 100)]],
+     [("NCRD", 0.03, 1.03)], None, "Boomers pledge air support to the NCR: the dollar firms"),
+    (34, "Restoring Hope completed (VMS30 200)", [[stage(0x1214AA, 200)]],
+     [("NCRD", 0.02, 1.02), ("LEGD", -0.02, 1.0)], None, "Camp Forlorn Hope restored: NCR confidence up"),
+    (35, "Render Unto Caesar: House dead, Caesar told (VMQ02 15)", [[stage(0x129D14, 15)]],
+     [("LEGD", 0.05, 1.05)], None, "Caesar's agent strikes in Vegas: the denarius gains"),
+    (36, "Chief Hanlon killed", [[dead(0x106D79)]], [("NCRD", -0.05, 0.97)], None,
+     "NCR Ranger Chief Hanlon dead: dollar dips"),
 ]
 
 

@@ -1,0 +1,67 @@
+; Wasteland Exchange: currency values follow faction power. The NCR dollar (ticker 14, NCRD) and the
+; Legion denarius (ticker 15, LEGD) are priced by the same engine as the stocks: a multiplier on
+; the vanilla value, moved by news (Kimball, Nelson, Caesar, the Dam...), a fading shock and a
+; small daily wobble. This sets each note and coin's value in the game to vanilla x multiplier,
+; rounded to whole caps (item values are whole numbers, so a $5 note can only be 1, 2 or 3 caps;
+; the bank's converter and the Hub Exchange use the exact rate). Values set this way aren't saved,
+; so this runs on every load and on the bank's 10-second tick.
+; FalloutNV.esm items (decimal IDs): $5, $20, $100 NCR; denarius, mangled denarius, aureus.
+float fNcr
+float fLeg
+float fV
+int iV
+ref rPrice
+ref rItem
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_wxInit") == 0
+		return
+	endif
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let fNcr := call rPrice 14
+	let fLeg := call rPrice 15
+
+	let rItem := BuildRef 0 1287382	; NCRMoney5 (vanilla 2)
+	let fV := 2 * fNcr + 0.5
+	let iV := fV
+	if iV < 1
+		let iV := 1
+	endif
+	SetBaseItemValue rItem iV
+	let rItem := BuildRef 0 1287383	; NCRMoney20 (vanilla 8)
+	let fV := 8 * fNcr + 0.5
+	let iV := fV
+	if iV < 1
+		let iV := 1
+	endif
+	SetBaseItemValue rItem iV
+	let rItem := BuildRef 0 1287384	; NCRMoney100 (vanilla 40)
+	let fV := 40 * fNcr + 0.5
+	let iV := fV
+	if iV < 1
+		let iV := 1
+	endif
+	SetBaseItemValue rItem iV
+
+	let rItem := BuildRef 0 1276829	; LegionMoney1, denarius (vanilla 4)
+	let fV := 4 * fLeg + 0.5
+	let iV := fV
+	if iV < 1
+		let iV := 1
+	endif
+	SetBaseItemValue rItem iV
+	let rItem := BuildRef 0 1520182	; LegionMoney1Mangled (vanilla 3)
+	let fV := 3 * fLeg + 0.5
+	let iV := fV
+	if iV < 1
+		let iV := 1
+	endif
+	SetBaseItemValue rItem iV
+	let rItem := BuildRef 0 1287385	; LegionMoney25, aureus (vanilla 100)
+	let fV := 100 * fLeg + 0.5
+	let iV := fV
+	if iV < 1
+		let iV := 1
+	endif
+	SetBaseItemValue rItem iV
+end

@@ -3,7 +3,7 @@
 ; _wxP0 start price in caps, _wxVol daily volatility, _wxYld annual dividend yield,
 ; _wxSec sector (0 arms, 1 trade, 2 casino, 3 tech, 4 NCR), _wxTr daily trend (log).
 begin Function {}
-	player.AuxVarSetFlt "_wxCount" 14
+	player.AuxVarSetFlt "_wxCount" 16
 	; 0 GUN
 	player.AuxVarSetStr "_wxTk" "GUN" 0
 	player.AuxVarSetStr "_wxNm" "Gun Runners" 0
@@ -130,4 +130,22 @@ begin Function {}
 	player.AuxVarSetFlt "_wxYld" 0.08 13
 	player.AuxVarSetFlt "_wxSec" 4 13
 	player.AuxVarSetFlt "_wxTr" 0.0 13
+	; 14 NCRD
+	player.AuxVarSetStr "_wxTk" "NCRD" 14
+	player.AuxVarSetStr "_wxNm" "NCR dollar" 14
+	player.AuxVarSetFlt "_wxEx" 9 14
+	player.AuxVarSetFlt "_wxP0" 1 14
+	player.AuxVarSetFlt "_wxVol" 0.006 14
+	player.AuxVarSetFlt "_wxYld" 0.0 14
+	player.AuxVarSetFlt "_wxSec" 5 14
+	player.AuxVarSetFlt "_wxTr" 0.0 14
+	; 15 LEGD
+	player.AuxVarSetStr "_wxTk" "LEGD" 15
+	player.AuxVarSetStr "_wxNm" "Legion denarius" 15
+	player.AuxVarSetFlt "_wxEx" 9 15
+	player.AuxVarSetFlt "_wxP0" 1 15
+	player.AuxVarSetFlt "_wxVol" 0.008 15
+	player.AuxVarSetFlt "_wxYld" 0.0 15
+	player.AuxVarSetFlt "_wxSec" 6 15
+	player.AuxVarSetFlt "_wxTr" 0.0 15
 end

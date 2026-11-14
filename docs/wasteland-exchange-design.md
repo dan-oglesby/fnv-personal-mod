@@ -136,3 +136,14 @@ Prerequisite: Wasteland Bank itself hasn't been playtested yet, so test that fir
 2. Short selling: in. Initial margin 50%, maintenance 30%, borrowing fee 0.2% a week.
 3. Generosity: 5–6× on the best calls. RobCo through House's path simulates at 5.2×, with House's
    Dam event at ×2.1 to land there.
+
+## Currencies (added 2026-11-14)
+
+The NCR dollar (NCRD) and the Legion denarius (LEGD) are two hidden tickers: start price 1.0 (a
+multiplier on the vanilla value), daily volatility 0.6% and 0.8%, their own sectors, no trend.
+They are moved by currency effects added to the power-shift events (Primm, Kimball saved or killed,
+Nelson, the Khans, each Dam march) and by new events: Caesar, Lanius, General Oliver or Chief
+Hanlon killed, the Boomers backing the NCR, Forlorn Hope restored, and Caesar told of House's death.
+`FxApply.txt` sets the notes' and coins' item values to vanilla × multiplier, rounded (item values
+are integers). `ExRate` (the Hub Exchange) and `ConvertNow` (the bank) use the exact multiplier.
+

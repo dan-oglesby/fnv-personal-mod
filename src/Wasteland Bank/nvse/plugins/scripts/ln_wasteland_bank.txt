@@ -149,6 +149,10 @@ let rChk := CompileScript "WastelandBank/ExWeekly.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/FxApply.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/Init.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -209,6 +213,8 @@ else
 	call rInit
 	let rInit := CompileScript "WastelandBank/ExInit.txt"
 	call rInit	; Wasteland Exchange (stocks)
+	let rInit := CompileScript "WastelandBank/FxApply.txt"
+	call rInit	; currency values (not saved by the game, so set on every load)
 	if eval IsModLoaded "WastelandBank.esp"
 		let int iWB := GetModIndex "WastelandBank.esp"
 		let ref rCard := BuildRef iWB 2048	; WBBankCard 0x000800

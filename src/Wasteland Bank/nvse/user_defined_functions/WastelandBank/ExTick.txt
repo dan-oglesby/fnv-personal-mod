@@ -47,4 +47,7 @@ begin Function {}
 		let rMargin := CompileScript "WastelandBank/ExMargin.txt"
 		call rMargin
 	endif
+	; NCR and Legion money values follow their currencies
+	let rMargin := CompileScript "WastelandBank/FxApply.txt"
+	call rMargin
 end

@@ -50,6 +50,27 @@ begin Function {}
 		player.AuxVarSetFlt "_wxNewsN" 0
 		player.AuxVarSetFlt "_wxDiv" 0
 		player.AuxVarSetFlt "_wxQuiet" 1
+		player.AuxVarSetFlt "_wxN0" iN
 		player.AuxVarSetFlt "_wxInit" 1
 	endif
+	; tickers added after this character's exchange was set up (the currencies, 2026-11-14) start
+	; fresh; _wxN0 counts the tickers already set up (14 if it was set up before this was recorded)
+	let iN := player.AuxVarGetFlt "_wxCount"
+	let iT := player.AuxVarGetFlt "_wxN0"
+	if iT == 0
+		let iT := 14
+	endif
+	while iT < iN
+		let fP0 := player.AuxVarGetFlt "_wxP0" iT
+		player.AuxVarSetFlt "_wxL" 0 iT
+		player.AuxVarSetFlt "_wxS" 0 iT
+		player.AuxVarSetFlt "_wxW" 0 iT
+		player.AuxVarSetFlt "_wxH" 0 iT
+		player.AuxVarSetFlt "_wxC" 0 iT
+		player.AuxVarSetFlt "_wxD" 0 iT
+		player.AuxVarSetFlt "_wxX" 0 iT
+		player.AuxVarSetFlt "_wxPy" fP0 iT
+		let iT += 1
+	loop
+	player.AuxVarSetFlt "_wxN0" iN
 end

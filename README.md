@@ -171,6 +171,14 @@ From the bank card's menu, **Wasteland Exchange (stocks)**. Full design and rati
   margin check covers everything if equity drops below 30%. Shorts pay the dividend plus a 0.2%
   weekly borrowing fee. A delisting settles shorts at 5% of the price.
 - **Costs.** Buying pays price + 1.5%; selling gets price − 1.5%.
+- **Currencies float with faction power.** The NCR dollar and the Legion denarius are priced by
+  the same engine, as a multiplier on their vanilla values. Kimball's fate, Nelson, Forlorn Hope,
+  the Boomers, Caesar, Lanius, General Oliver and each faction's march on the Dam all move them.
+  Merchants see the new values: every load and every 10 s, the NCR notes and Legion coins are
+  revalued to vanilla × multiplier, rounded to whole caps, so a $5 note is 1–3 caps. The bank's
+  currency converter and the Hub Exchange use the exact rate. In simulation the NCR's path lifts
+  the dollar from 0.40 to about 0.54 caps, and the Legion's sinks it to about 0.20 while the
+  denarius goes from 4 to about 6. The rates show on the exchange menu.
 
 Built from `tools/gen_exchange.py` (listings and events as a table, generating `ExData.txt` and
 `ExEvents1-3.txt`). `tools/exchange_sim.py` is a Python twin of the price maths, run by

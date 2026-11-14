@@ -104,6 +104,29 @@ def main():
     if not 4.5 <= x <= 6.5:
         fails.append("RobCo best path %.2fx, outside the agreed 5-6x" % x)
 
+    # currencies: the NCR's path vs the Legion's path, events as generated
+    ev = {e[0]: e for e in g.EVENTS}
+
+    def run_path(ids):
+        st = {k: [0.0, 0.0, 0.0] for k in ("NCRD", "LEGD")}
+        for d in range(1, 91):
+            for k in st:
+                st[k] = step(st[k], g.T[k], d, seed)
+            if d % 15 == 0 and ids:
+                for tk, pct, mult in ev[ids.pop(0)][3]:
+                    if tk in st:
+                        hit(st[tk], pct, mult)
+        return {k: price(g.T[k], v) for k, v in st.items()}
+
+    ncr = run_path([18, 16, 34, 33, 26])          # Nelson, Kimball saved, Forlorn Hope, Boomers, Dam
+    leg = run_path([35, 17, 29])                  # House dead for Caesar, Kimball killed, Legion's Dam
+    print("NCR's path:    NCR dollar %.3f caps, denarius %.2f caps" % (0.4 * ncr["NCRD"], 4 * ncr["LEGD"]))
+    print("Legion's path: NCR dollar %.3f caps, denarius %.2f caps" % (0.4 * leg["NCRD"], 4 * leg["LEGD"]))
+    if not (ncr["NCRD"] > 1.15 and ncr["LEGD"] < 0.95):
+        fails.append("NCR's path should lift the dollar and sink the denarius")
+    if not (leg["NCRD"] < 0.7 and leg["LEGD"] > 1.3):
+        fails.append("Legion's path should sink the dollar and lift the denarius")
+
     for f in fails:
         print("SIM FAIL:", f)
     return 1 if fails else 0

@@ -16,131 +16,6 @@ begin Function {}
 	let rDelist := CompileScript "WastelandBank/ExDelist.txt"
 	let rNews := CompileScript "WastelandBank/ExNews.txt"
 	let iFired := 0
-	; E20: Isaac (Gun Runners) killed
-	if eval (player.AuxVarGetFlt "_wxE" 20) == 0
-		let iHit := 0
-		if iHit == 0
-			let iOK := 1
-			let rA0 := BuildRef 0 1018643	; 0x0F8B13
-			if eval (rA0.GetDead) == 0
-				let iOK := 0
-			endif
-			let iHit := iOK
-		endif
-		if iHit
-			player.AuxVarSetFlt "_wxE" 1 20
-			call rHit 0 -0.3 0.8	; GUN
-			call rNews "Gun Runners' Isaac killed: Gun Runners shares fall"
-			let iFired += 1
-		endif
-	endif
-	; E21: James Garret killed
-	if eval (player.AuxVarGetFlt "_wxE" 21) == 0
-		let iHit := 0
-		if iHit == 0
-			let iOK := 1
-			let rA0 := BuildRef 0 1104102	; 0x10D8E6
-			if eval (rA0.GetDead) == 0
-				let iOK := 0
-			endif
-			let iHit := iOK
-		endif
-		if iHit
-			player.AuxVarSetFlt "_wxE" 1 21
-			call rHit 7 -0.4 0.7	; WRNG
-			call rNews "James Garret dead: Atomic Wrangler shares plunge"
-			let iFired += 1
-		endif
-	endif
-	; E22: Ring-a-Ding-Ding! completed (Benny's scheme ends)
-	if eval (player.AuxVarGetFlt "_wxE" 22) == 0
-		let iHit := 0
-		if iHit == 0
-			let iOK := 1
-			let rA0 := BuildRef 0 1127517	; 0x11345D
-			if eval (GetQuestCompleted rA0) == 0
-				let iOK := 0
-			endif
-			let iHit := iOK
-		endif
-		if iHit
-			player.AuxVarSetFlt "_wxE" 1 22
-			call rHit 4 -0.15 0.95	; TOPS
-			call rNews "Chairmen in disarray after Benny affair: The Tops slips"
-			let iFired += 1
-		endif
-	endif
-	; E23: Talent Pool completed (VMSTopsTalentPool 60)
-	if eval (player.AuxVarGetFlt "_wxE" 23) == 0
-		let iHit := 0
-		if iHit == 0
-			let iOK := 1
-			let rA0 := BuildRef 0 1139972	; 0x116504
-			if eval (GetStageDone rA0 60) == 0
-				let iOK := 0
-			endif
-			let iHit := iOK
-		endif
-		if iHit
-			player.AuxVarSetFlt "_wxE" 1 23
-			call rHit 4 0.1 1.05	; TOPS
-			call rNews "New acts packing the Tops: shares climb"
-			let iFired += 1
-		endif
-	endif
-	; E24: Honest Hearts: the Happy Trails expedition is ambushed (Arrival at Zion 5)
-	if eval (player.AuxVarGetFlt "_wxE" 24) == 0
-		let iHit := 0
-		if iHit == 0
-			let iOK := 1
-			if eval (IsModLoaded "HonestHearts.esm") == 0
-				let iOK := 0
-			else
-				let iHH := GetModIndex "HonestHearts.esm"
-				let rA0 := BuildRef iHH 34963	; 0x008893
-				if eval (GetStageDone rA0 5) == 0
-					let iOK := 0
-				endif
-			endif
-			let iHit := iOK
-		endif
-		if iHit == 0
-			let iOK := 1
-			if eval (IsModLoaded "HonestHearts.esm") == 0
-				let iOK := 0
-			else
-				let iHH := GetModIndex "HonestHearts.esm"
-				let rA0 := BuildRef iHH 34961	; 0x008891
-				if eval (GetStageDone rA0 100) == 0
-					let iOK := 0
-				endif
-			endif
-			let iHit := iOK
-		endif
-		if iHit
-			player.AuxVarSetFlt "_wxE" 1 24
-			call rHit 9 -0.8 0.2	; HAPY
-			call rNews "Happy Trails expedition ambushed in Zion: Happy Trails stock collapses"
-			let iFired += 1
-		endif
-	endif
-	; E25: Gun Runners' Arsenal loaded
-	if eval (player.AuxVarGetFlt "_wxE" 25) == 0
-		let iHit := 0
-		if iHit == 0
-			let iOK := 1
-			if eval (IsModLoaded "GunRunnersArsenal.esm") == 0
-				let iOK := 0
-			endif
-			let iHit := iOK
-		endif
-		if iHit
-			player.AuxVarSetFlt "_wxE" 1 25
-			call rHit 0 0.0 1.1	; GUN
-			call rNews "Gun Runners expand their catalog"
-			let iFired += 1
-		endif
-	endif
 	; E26: NCR heads to the Dam (For the Republic 2, stage 100)
 	if eval (player.AuxVarGetFlt "_wxE" 26) == 0
 		let iHit := 0
@@ -161,6 +36,8 @@ begin Function {}
 			call rHit 11 0.1 1.1	; FGO
 			call rHit 12 0.1 1.1	; BRMN
 			call rHit 8 -0.2 0.85	; RBCO
+			call rHit 14 0.1 1.15	; NCRD
+			call rHit 15 -0.1 0.9	; LEGD
 			call rNews "Battle for Hoover Dam: markets bet on the NCR"
 			let iFired += 1
 		endif
@@ -183,6 +60,8 @@ begin Function {}
 			call rHit 5 0.1 1.2	; GOMR
 			call rHit 6 0.1 1.2	; ULUX
 			call rHit 13 -0.1 1.0	; NCRB
+			call rHit 14 -0.1 0.85	; NCRD
+			call rHit 15 -0.05 1.0	; LEGD
 			call rNews "Mr. House moves on Hoover Dam: RobCo soars, the Strip celebrates"
 			let iFired += 1
 		endif
@@ -209,6 +88,8 @@ begin Function {}
 			call rHit 7 0.15 1.1	; WRNG
 			call rHit 8 0.1 1.2	; RBCO
 			call rHit 13 -0.1 1.0	; NCRB
+			call rHit 14 -0.1 0.85	; NCRD
+			call rHit 15 -0.05 1.0	; LEGD
 			call rNews "An independent Vegas makes its move on Hoover Dam: New Vegas Exchange rallies"
 			let iFired += 1
 		endif
@@ -241,7 +122,147 @@ begin Function {}
 			call rHit 6 -0.25 1.0	; ULUX
 			call rHit 7 -0.25 1.0	; WRNG
 			call rHit 8 -0.25 1.0	; RBCO
+			call rHit 14 -0.3 0.6	; NCRD
+			call rHit 15 0.25 1.4	; LEGD
 			call rNews "Legion marches on Hoover Dam: NCR bonds in default panic, markets crash"
+			let iFired += 1
+		endif
+	endif
+	; E30: Caesar killed
+	if eval (player.AuxVarGetFlt "_wxE" 30) == 0
+		let iHit := 0
+		if iHit == 0
+			let iOK := 1
+			let rA0 := BuildRef 0 1187824	; 0x121FF0
+			if eval (rA0.GetDead) == 0
+				let iOK := 0
+			endif
+			let iHit := iOK
+		endif
+		if iHit
+			player.AuxVarSetFlt "_wxE" 1 30
+			call rHit 15 -0.4 0.5	; LEGD
+			call rHit 14 0.05 1.05	; NCRD
+			call rNews "Caesar is dead: the denarius collapses as the Legion's future comes into doubt"
+			let iFired += 1
+		endif
+	endif
+	; E31: Legate Lanius killed
+	if eval (player.AuxVarGetFlt "_wxE" 31) == 0
+		let iHit := 0
+		if iHit == 0
+			let iOK := 1
+			let rA0 := BuildRef 0 1276573	; 0x137A9D
+			if eval (rA0.GetDead) == 0
+				let iOK := 0
+			endif
+			let iHit := iOK
+		endif
+		if iHit
+			player.AuxVarSetFlt "_wxE" 1 31
+			call rHit 15 -0.2 0.8	; LEGD
+			call rHit 14 0.03 1.0	; NCRD
+			call rNews "Legate Lanius falls: Legion coin slides"
+			let iFired += 1
+		endif
+	endif
+	; E32: General Lee Oliver killed
+	if eval (player.AuxVarGetFlt "_wxE" 32) == 0
+		let iHit := 0
+		if iHit == 0
+			let iOK := 1
+			let rA0 := BuildRef 0 1265076	; 0x134DB4
+			if eval (rA0.GetDead) == 0
+				let iOK := 0
+			endif
+			let iHit := iOK
+		endif
+		if iHit == 0
+			let iOK := 1
+			let rA0 := BuildRef 0 1344497	; 0x1483F1
+			if eval (rA0.GetDead) == 0
+				let iOK := 0
+			endif
+			let iHit := iOK
+		endif
+		if iHit
+			player.AuxVarSetFlt "_wxE" 1 32
+			call rHit 14 -0.2 0.85	; NCRD
+			call rHit 15 0.05 1.0	; LEGD
+			call rNews "General Oliver killed: the NCR dollar sinks"
+			let iFired += 1
+		endif
+	endif
+	; E33: Things That Go Boom: the Boomers will help the NCR (VMS23 100)
+	if eval (player.AuxVarGetFlt "_wxE" 33) == 0
+		let iHit := 0
+		if iHit == 0
+			let iOK := 1
+			let rA0 := BuildRef 0 1141569	; 0x116B41
+			if eval (GetStageDone rA0 100) == 0
+				let iOK := 0
+			endif
+			let iHit := iOK
+		endif
+		if iHit
+			player.AuxVarSetFlt "_wxE" 1 33
+			call rHit 14 0.03 1.03	; NCRD
+			call rNews "Boomers pledge air support to the NCR: the dollar firms"
+			let iFired += 1
+		endif
+	endif
+	; E34: Restoring Hope completed (VMS30 200)
+	if eval (player.AuxVarGetFlt "_wxE" 34) == 0
+		let iHit := 0
+		if iHit == 0
+			let iOK := 1
+			let rA0 := BuildRef 0 1184938	; 0x1214AA
+			if eval (GetStageDone rA0 200) == 0
+				let iOK := 0
+			endif
+			let iHit := iOK
+		endif
+		if iHit
+			player.AuxVarSetFlt "_wxE" 1 34
+			call rHit 14 0.02 1.02	; NCRD
+			call rHit 15 -0.02 1.0	; LEGD
+			call rNews "Camp Forlorn Hope restored: NCR confidence up"
+			let iFired += 1
+		endif
+	endif
+	; E35: Render Unto Caesar: House dead, Caesar told (VMQ02 15)
+	if eval (player.AuxVarGetFlt "_wxE" 35) == 0
+		let iHit := 0
+		if iHit == 0
+			let iOK := 1
+			let rA0 := BuildRef 0 1219860	; 0x129D14
+			if eval (GetStageDone rA0 15) == 0
+				let iOK := 0
+			endif
+			let iHit := iOK
+		endif
+		if iHit
+			player.AuxVarSetFlt "_wxE" 1 35
+			call rHit 15 0.05 1.05	; LEGD
+			call rNews "Caesar's agent strikes in Vegas: the denarius gains"
+			let iFired += 1
+		endif
+	endif
+	; E36: Chief Hanlon killed
+	if eval (player.AuxVarGetFlt "_wxE" 36) == 0
+		let iHit := 0
+		if iHit == 0
+			let iOK := 1
+			let rA0 := BuildRef 0 1076601	; 0x106D79
+			if eval (rA0.GetDead) == 0
+				let iOK := 0
+			endif
+			let iHit := iOK
+		endif
+		if iHit
+			player.AuxVarSetFlt "_wxE" 1 36
+			call rHit 14 -0.05 0.97	; NCRD
+			call rNews "NCR Ranger Chief Hanlon dead: dollar dips"
 			let iFired += 1
 		endif
 	endif
