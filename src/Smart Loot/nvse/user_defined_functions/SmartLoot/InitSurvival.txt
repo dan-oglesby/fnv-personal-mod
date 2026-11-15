@@ -1,0 +1,11 @@
+; Smart Loot: auto-consume defaults (settings version 3).
+begin Function {}
+	player.AuxVarSetFlt "_seFood" 1		; water and food in Hardcore
+	player.AuxVarSetFlt "_seEarly" 50	; step in 50 points before a need's first penalty (stage at 200)
+	player.AuxVarSetFlt "_seSleep" 0	; sleep items (coffee, Nuka-Cola): off, sleeping is the real fix
+	player.AuxVarSetFlt "_seRads" 1		; RadAway near radiation sickness, Rad-X while taking radiation
+	player.AuxVarSetFlt "_seHP" 25		; a stimpak at 25 percent health or less, even in combat (0 = never)
+	player.AuxVarSetFlt "_seLimb" 1		; a doctor's bag for a crippled limb, out of combat
+	player.AuxVarSetFlt "_seRad" 1		; irradiated food only when nothing clean is left
+	player.AuxVarSetFlt "_seAddict" 0	; never addictive items
+end

@@ -1,14 +1,14 @@
 ; Smart Loot: page 2 buttons. 0 aid to keep off > 3 > 5 > 10 > 20; 1 carry weight free
 ; 0 > 10 > 25 > 50 lb; 2 unlocking off > with skill > skill and a bobby pin; 3 messages off >
 ; upgrades and unlocks > everything; 4 sounds; 5 combat; 6 quest items; 7 enemies' things;
-; 8 back to page 1 (which has Close).
+; 8 survival settings (page 3, which has Back and Close).
 int iBtn
 float fVal
 ref rNext
 
 begin Function {iBtn}
 	if iBtn == 8
-		let rNext := CompileScript "SmartLoot/Open.txt"
+		let rNext := CompileScript "SmartLoot/Open3.txt"
 		call rNext
 		return
 	endif

@@ -1,0 +1,53 @@
+; Smart Loot: settings, page 3 (survival: what it uses for you).
+float fVal
+string_var sFood
+string_var sSleep
+string_var sRads
+string_var sHP
+string_var sLimb
+string_var sPick
+string_var sBody
+ref rCb
+
+begin Function {}
+	let sFood := "off"
+	if eval (player.AuxVarGetFlt "_seFood") == 1
+		let sFood := "on"
+	endif
+	let sSleep := "off"
+	if eval (player.AuxVarGetFlt "_seSleep") == 1
+		let sSleep := "on"
+	endif
+	let sRads := "off"
+	if eval (player.AuxVarGetFlt "_seRads") == 1
+		let sRads := "on"
+	endif
+	let fVal := player.AuxVarGetFlt "_seHP"
+	let sHP := "never"
+	if fVal > 0
+		let sHP := sv_Construct "at %.0f percent health or less, even in combat" fVal
+	endif
+	let sLimb := "off"
+	if eval (player.AuxVarGetFlt "_seLimb") == 1
+		let sLimb := "on"
+	endif
+	let fVal := player.AuxVarGetFlt "_seRad"
+	let sPick := "irradiated food only when nothing clean is left, never anything addictive"
+	if fVal == 0
+		let sPick := "never anything irradiated or addictive"
+	elseif fVal == 2
+		let sPick := "anything, irradiated or addictive included"
+	endif
+
+	let fVal := player.AuxVarGetFlt "_seEarly"
+	let sBody := sv_Construct "Out of combat, steps in %.0f points before the first penalty of each need.%r" fVal
+	let sBody := sBody + (sv_Construct "Water and food (Hardcore): %z. Sleep items such as coffee: %z.%r" sFood sSleep)
+	let sBody := sBody + (sv_Construct "RadAway near radiation sickness, Rad-X while taking radiation: %z.%r" sRads)
+	let sBody := sBody + (sv_Construct "Stimpaks: %z. Doctor's bag for a crippled limb: %z.%r" sHP sLimb)
+	let sBody := sBody + (sv_Construct "Choices: %z. Food and drink: the heaviest for what it gives first. Aid: the cheapest that works." sPick)
+	if eval (player.AuxVarGetFlt "_seOk") == 0
+		let sBody := sBody + (sv_Construct "%rUnavailable: its script didn't load (it needs ITR NVSE, see the console).")
+	endif
+	let rCb := CompileScript "SmartLoot/Open3Btn.txt"
+	MessageBoxExAlt rCb "^Smart Loot: survival^%z|Water and food on or off|Change how early|Sleep items on or off|RadAway and Rad-X on or off|Change stimpak health|Doctor's bag on or off|Change choices|Back to the start|Close" sBody
+end

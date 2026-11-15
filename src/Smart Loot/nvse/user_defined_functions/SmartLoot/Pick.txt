@@ -1,0 +1,119 @@
+; Smart Loot: picks which aid item in your inventory to use for one effect (rEff, a base effect such as
+; RestoreDehydrationLevel). Returns the item, or nothing. The amount an item gives is its largest
+; magnitude for that effect (items list Hardcore and normal amounts separately).
+;   iMode 0 (food, drink, sleep): "heaviest for its value" first. The item carrying the most weight
+;     per point restored goes first, so the same thirst fixed with less weight carried stays in your
+;     pack. Weightless items go last, and among equals the cheaper goes first.
+;   iMode 1 (stimpaks, doctor's bags, RadAway, Rad-X): the cheapest that works, so aid is used
+;     sparingly.
+; Never quest items. Addictive items (chems, alcohol) only if allowed. Irradiated items (any
+; radiation damage) are used only when nothing clean will do, or never, or freely, per the setting.
+int iNum
+int iIdx
+int iEff
+int iK
+int iRad
+int iBestRad
+float fAmt
+float fMag
+float fWt
+float fVal
+float fScore
+float fBest
+float fBestVal
+float fBestClean
+float fBestCleanVal
+ref rItem
+ref rBase
+ref rPick
+ref rClean
+ref rRadEff
+ref rEff
+int iMode
+
+begin Function {rEff, iMode}
+	SetFunctionValue 0
+	let rRadEff := BuildRef 0 132374	; DamageRadiationLevel (FalloutNV.esm 0x020516)
+	let rPick := 0
+	let rClean := 0
+	let fBest := -1
+	let fBestClean := -1
+	let fBestVal := 0
+	let fBestCleanVal := 0
+	let iNum := player.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := player.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		if eval (GetType rItem) != 47
+			continue
+		endif
+		if eval IsQuestItem rItem
+			continue
+		endif
+		if eval (player.AuxVarGetFlt "_seAddict") == 0
+			if eval (GetAddictionChance rItem) > 0
+				continue
+			endif
+		endif
+		; how much it gives, and whether it irradiates
+		let fAmt := 0
+		let iRad := 0
+		let iEff := GetNumEffects rItem
+		let iK := 0
+		while iK < iEff
+			let rBase := GetNthEffectBase rItem iK
+			if eval rBase == rEff
+				let fMag := GetNthEffectTraitNumeric rItem iK 0
+				if fMag > fAmt
+					let fAmt := fMag
+				endif
+			elseif eval rBase == rRadEff
+				let iRad := 1
+			endif
+			let iK += 1
+		loop
+		if fAmt <= 0
+			continue
+		endif
+		let fWt := GetWeight rItem
+		let fVal := GetValue rItem
+		if iMode == 0
+			let fScore := fWt / fAmt
+		else
+			let fScore := 0 - fVal
+		endif
+		; best overall (ties: cheaper first)
+		if fScore > fBest || (fScore == fBest && fVal < fBestVal)
+			let fBest := fScore
+			let fBestVal := fVal
+			let rPick := rItem
+			let iBestRad := iRad
+		endif
+		if iRad == 0
+			if fScore > fBestClean || (fScore == fBestClean && fVal < fBestCleanVal)
+				let fBestClean := fScore
+				let fBestCleanVal := fVal
+				let rClean := rItem
+			endif
+		endif
+	loop
+	; irradiated items: 0 never, 1 only when nothing clean (default), 2 freely
+	let iRad := player.AuxVarGetFlt "_seRad"
+	if eval IsFormValid rClean
+		if iRad < 2
+			SetFunctionValue rClean
+			return
+		endif
+	endif
+	if eval (IsFormValid rPick) == 0
+		return
+	endif
+	if iBestRad == 1 && iRad == 0
+		return
+	endif
+	SetFunctionValue rPick
+end

@@ -1,0 +1,190 @@
+; Smart Loot: auto-consume, run at the start of every check (Tick.txt). Items are used through ITR's
+; UseAidItem, the game's own "use from the Pip-Boy" path, so each plays its own sound, counts toward
+; addiction and gets your perks. Which item: Pick.txt.
+; - Stimpak, even in combat, only when health is at or under the set level (default 25 percent),
+;   one at a time (none while one is still healing, and at least 6 s apart).
+; - Everything else waits until you are out of combat, and is checked every 6 s:
+;   a doctor's bag when a limb is crippled; in Hardcore, water and food (and, if on, sleep items)
+;   once a need is within the set margin of its first penalty stage; RadAway when radiation is
+;   within the margin of radiation sickness; Rad-X while you are taking radiation.
+; Thresholds are the game's own stage forms (FalloutNV.esm Water1 0x161901, hunger1 0x161906,
+; sleep1 0x16190B, Rad1 0x0335A2), so a mod that moves them is followed.
+int iT
+int iUsed
+int iLimbs
+float fSet
+float fHP
+float fNeed
+float fAt
+ref rFn
+ref rItem
+ref rEff
+ref rStage
+ref rAte
+
+begin Function {}
+	if player.GetDead
+		return
+	endif
+	let rFn := CompileScript "SmartLoot/Pick.txt"
+	let rAte := CompileScript "SmartLoot/Ate.txt"
+
+	; stimpaks: dire straits only, combat or not
+	let iT := player.AuxVarGetFlt "*_seStimT"
+	if iT > 0
+		let iT -= 1
+		player.AuxVarSetFlt "*_seStimT" iT
+	endif
+	let fSet := player.AuxVarGetFlt "_seHP"
+	if fSet > 0 && iT == 0
+		let fHP := player.GetHealthPercentage
+		let fHP *= 100
+		let rEff := BuildRef 0 654947	; RestoreHealthStimpak (0x09FE63)
+		if eval fHP <= fSet && (player.HasMagicEffect rEff) == 0
+			let rItem := call rFn rEff 1
+			if eval IsFormValid rItem
+				if eval (player.UseAidItem rItem)
+					player.AuxVarSetFlt "*_seStimT" 4
+					call rAte rItem 0 fHP
+				endif
+			endif
+		endif
+	endif
+
+	; nothing else during combat, and only every 4th check (6 s)
+	if player.IsInCombat
+		return
+	endif
+	let iT := player.AuxVarGetFlt "*_seT"
+	let iT += 1
+	if iT < 4
+		player.AuxVarSetFlt "*_seT" iT
+		return
+	endif
+	player.AuxVarSetFlt "*_seT" 0
+	let fSet := player.AuxVarGetFlt "_seEarly"
+	let iUsed := 0
+
+	; crippled limb: a doctor's bag (anything restoring all limbs)
+	if eval (player.AuxVarGetFlt "_seLimb") == 1
+		let iLimbs := 0
+		if eval (player.GetAV PerceptionCondition) <= 0
+			let iLimbs += 1
+		endif
+		if eval (player.GetAV EnduranceCondition) <= 0
+			let iLimbs += 1
+		endif
+		if eval (player.GetAV LeftAttackCondition) <= 0
+			let iLimbs += 1
+		endif
+		if eval (player.GetAV RightAttackCondition) <= 0
+			let iLimbs += 1
+		endif
+		if eval (player.GetAV LeftMobilityCondition) <= 0
+			let iLimbs += 1
+		endif
+		if eval (player.GetAV RightMobilityCondition) <= 0
+			let iLimbs += 1
+		endif
+		if iLimbs > 0
+			let rEff := BuildRef 0 831581	; RestoreAllLimbs (0x0CB05D), the doctor's bag
+			let rItem := call rFn rEff 1
+			if eval (IsFormValid rItem) == 0
+				let rEff := BuildRef 0 1047712	; NVRestoreLimbs (0x0FFCA0)
+				let rItem := call rFn rEff 1
+			endif
+			if eval IsFormValid rItem
+				if eval (player.UseAidItem rItem)
+					call rAte rItem 4 iLimbs
+					return
+				endif
+			endif
+		endif
+	endif
+
+	; radiation (Hardcore or not)
+	if eval (player.AuxVarGetFlt "_seRads") == 1
+		let rStage := BuildRef 0 210338	; Rad1 (0x0335A2)
+		let fAt := GetHardcoreStageThreshold rStage
+		if fAt <= 0
+			let fAt := 200
+		endif
+		let fNeed := player.GetAV RadiationRads
+		let rEff := BuildRef 0 86394	; RestoreRadiationLevel (0x01517A), RadAway
+		if eval fNeed >= fAt - fSet && (player.HasMagicEffect rEff) == 0
+			let rItem := call rFn rEff 1
+			if eval IsFormValid rItem
+				if eval (player.UseAidItem rItem)
+					call rAte rItem 3 fNeed
+					return
+				endif
+			endif
+		endif
+		let rEff := BuildRef 0 86393	; IncreaseRadiationResistance (0x015179), Rad-X
+		if eval (player.GetRadiationLevel) > 1 && (player.HasMagicEffect rEff) == 0
+			let rItem := call rFn rEff 1
+			if eval IsFormValid rItem
+				if eval (player.UseAidItem rItem)
+					call rAte rItem 5 fNeed
+					return
+				endif
+			endif
+		endif
+	endif
+
+	if player.IsHardcore == 0
+		return
+	endif
+	; thirst, then hunger, then (if on) sleep: one item per check
+	if eval (player.AuxVarGetFlt "_seFood") == 1
+		let rStage := BuildRef 0 1448193	; Water1 (0x161901)
+		let fAt := GetHardcoreStageThreshold rStage
+		if fAt <= 0
+			let fAt := 200
+		endif
+		let fNeed := player.GetAV Dehydration
+		if fNeed >= fAt - fSet
+			let rEff := BuildRef 0 1449782	; RestoreDehydrationLevel (0x161F36)
+			let rItem := call rFn rEff 0
+			if eval IsFormValid rItem
+				if eval (player.UseAidItem rItem)
+					call rAte rItem 1 fNeed
+					return
+				endif
+			endif
+		endif
+		let rStage := BuildRef 0 1448198	; hunger1 (0x161906)
+		let fAt := GetHardcoreStageThreshold rStage
+		if fAt <= 0
+			let fAt := 200
+		endif
+		let fNeed := player.GetAV Hunger
+		if fNeed >= fAt - fSet
+			let rEff := BuildRef 0 1453004	; RestoreStarvationLevel (0x162BCC)
+			let rItem := call rFn rEff 0
+			if eval IsFormValid rItem
+				if eval (player.UseAidItem rItem)
+					call rAte rItem 2 fNeed
+					return
+				endif
+			endif
+		endif
+	endif
+	if eval (player.AuxVarGetFlt "_seSleep") == 1
+		let rStage := BuildRef 0 1448203	; sleep1 (0x16190B)
+		let fAt := GetHardcoreStageThreshold rStage
+		if fAt <= 0
+			let fAt := 200
+		endif
+		let fNeed := player.GetAV SleepDeprevation
+		if fNeed >= fAt - fSet
+			let rEff := BuildRef 0 1453198	; RestoreSleepDeprivationLevel (0x162C8E)
+			let rItem := call rFn rEff 0
+			if eval IsFormValid rItem
+				if eval (player.UseAidItem rItem)
+					call rAte rItem 6 fNeed
+				endif
+			endif
+		endif
+	endif
+end

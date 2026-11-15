@@ -1,0 +1,69 @@
+; Smart Loot: page 3 buttons. 0 water and food; 1 how early 0 > 25 > 50 > 100 points; 2 sleep
+; items; 3 RadAway and Rad-X; 4 stimpak health off > 15 > 25 > 40 percent; 5 doctor's bag;
+; 6 choices: never irradiated or addictive > irradiated only if nothing clean > anything; 7 page 1;
+; 8 close.
+int iBtn
+float fVal
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 8
+		return
+	endif
+	if iBtn == 7
+		let rNext := CompileScript "SmartLoot/Open.txt"
+		call rNext
+		return
+	endif
+	if iBtn == 0
+		let fVal := 1 - (player.AuxVarGetFlt "_seFood")
+		player.AuxVarSetFlt "_seFood" fVal
+	elseif iBtn == 1
+		let fVal := player.AuxVarGetFlt "_seEarly"
+		if fVal < 25
+			let fVal := 25
+		elseif fVal < 50
+			let fVal := 50
+		elseif fVal < 100
+			let fVal := 100
+		else
+			let fVal := 0
+		endif
+		player.AuxVarSetFlt "_seEarly" fVal
+	elseif iBtn == 2
+		let fVal := 1 - (player.AuxVarGetFlt "_seSleep")
+		player.AuxVarSetFlt "_seSleep" fVal
+	elseif iBtn == 3
+		let fVal := 1 - (player.AuxVarGetFlt "_seRads")
+		player.AuxVarSetFlt "_seRads" fVal
+	elseif iBtn == 4
+		let fVal := player.AuxVarGetFlt "_seHP"
+		if fVal <= 0
+			let fVal := 15
+		elseif fVal < 25
+			let fVal := 25
+		elseif fVal < 40
+			let fVal := 40
+		else
+			let fVal := 0
+		endif
+		player.AuxVarSetFlt "_seHP" fVal
+	elseif iBtn == 5
+		let fVal := 1 - (player.AuxVarGetFlt "_seLimb")
+		player.AuxVarSetFlt "_seLimb" fVal
+	elseif iBtn == 6
+		let fVal := player.AuxVarGetFlt "_seRad"
+		let fVal += 1
+		if fVal > 2
+			let fVal := 0
+		endif
+		player.AuxVarSetFlt "_seRad" fVal
+		if fVal == 2
+			player.AuxVarSetFlt "_seAddict" 1
+		else
+			player.AuxVarSetFlt "_seAddict" 0
+		endif
+	endif
+	let rNext := CompileScript "SmartLoot/Open3.txt"
+	call rNext
+end

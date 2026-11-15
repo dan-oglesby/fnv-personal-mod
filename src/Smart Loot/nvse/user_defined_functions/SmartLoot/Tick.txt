@@ -34,6 +34,11 @@ begin Function {}
 	if player.GetDead
 		return
 	endif
+	; auto-consume first: stimpaks must work in combat (Survive.txt waits out combat for the rest)
+	if eval (player.AuxVarGetFlt "_seOk") == 1
+		let rFn := CompileScript "SmartLoot/Survive.txt"
+		call rFn
+	endif
 	if eval (player.AuxVarGetFlt "_slOn") == 0
 		return
 	endif

@@ -1,0 +1,27 @@
+; Smart Loot: says what auto-consume just used, if messages are on. iKind: 0 stimpak (fVal =
+; health percent before), 1 thirst, 2 hunger, 3 radiation (RadAway), 4 crippled limbs (fVal =
+; how many), 5 Rad-X, 6 sleep. The item plays its own sound when used, so nothing is played here.
+ref rItem
+int iKind
+float fVal
+
+begin Function {rItem, iKind, fVal}
+	if eval (player.AuxVarGetFlt "_slMsg") < 1
+		return
+	endif
+	if iKind == 0
+		MessageEx "Smart Loot: used %n (health was %.0f percent)" rItem fVal
+	elseif iKind == 1
+		MessageEx "Smart Loot: had %n (thirst %.0f)" rItem fVal
+	elseif iKind == 2
+		MessageEx "Smart Loot: ate %n (hunger %.0f)" rItem fVal
+	elseif iKind == 3
+		MessageEx "Smart Loot: used %n (radiation %.0f)" rItem fVal
+	elseif iKind == 4
+		MessageEx "Smart Loot: used %n (%.0f crippled limbs)" rItem fVal
+	elseif iKind == 5
+		MessageEx "Smart Loot: took %n (you are taking radiation)" rItem
+	else
+		MessageEx "Smart Loot: had %n (sleep deprivation %.0f)" rItem fVal
+	endif
+end

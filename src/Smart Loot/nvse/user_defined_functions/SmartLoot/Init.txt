@@ -1,15 +1,23 @@
 ; Smart Loot: default settings, set once per save (JIP auxiliary variables on the player, kept in
 ; JIP's co-save). The settings menu (Open.txt / Open2.txt) changes them.
+ref rSurv
+
 begin Function {}
-	if eval (player.AuxVarGetFlt "_slInit") >= 2
+	if eval (player.AuxVarGetFlt "_slInit") >= 3
 		return
+	endif
+	if eval (player.AuxVarGetFlt "_slInit") == 1
+		player.AuxVarSetFlt "_slEnemy" 1	; added in settings version 2
 	endif
 	if eval (player.AuxVarGetFlt "_slInit") >= 1
-		player.AuxVarSetFlt "_slEnemy" 1	; added in settings version 2
-		player.AuxVarSetFlt "_slInit" 2
+		let rSurv := CompileScript "SmartLoot/InitSurvival.txt"
+		call rSurv	; added in settings version 3
+		player.AuxVarSetFlt "_slInit" 3
 		return
 	endif
-	player.AuxVarSetFlt "_slInit" 2
+	player.AuxVarSetFlt "_slInit" 3
+	let rSurv := CompileScript "SmartLoot/InitSurvival.txt"
+	call rSurv
 	player.AuxVarSetFlt "_slOn" 1		; auto-loot on
 	player.AuxVarSetFlt "_slRad" 200	; reach, in game units (about 3 m)
 	player.AuxVarSetFlt "_slRatio" 10	; take items worth at least 10 caps a pound (0 = off)

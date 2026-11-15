@@ -56,5 +56,5 @@ begin Function {}
 	let sBody := sBody + (sv_Construct "Takes things owned by your enemies (factions hostile to you): %z.%r" sEnemy)
 	let sBody := sBody + (sv_Construct "Never takes anything else that is owned or in an owned place.")
 	let rCb := CompileScript "SmartLoot/Open2Btn.txt"
-	MessageBoxExAlt rCb "^Smart Loot^%z|Change aid to keep|Change carry weight kept free|Change unlocking|Change messages|Pickup sounds on or off|Loot in combat on or off|Quest items on or off|Enemies' things on or off|Back" sBody
+	MessageBoxExAlt rCb "^Smart Loot^%z|Change aid to keep|Change carry weight kept free|Change unlocking|Change messages|Pickup sounds on or off|Loot in combat on or off|Quest items on or off|Enemies' things on or off|Survival settings" sBody
 end

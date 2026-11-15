@@ -28,7 +28,7 @@ it. The old hotkeys (K and L) are still in the `ln_` files, commented out.
 | Auto Smoke | An add-on for Light Up and Smoke Those Cigarettes (edisleado, Nexus 49677). Lights your next cigarette for you, as if you'd used it from the Pip-Boy: keep one lit, light up 1 to 20 minutes after the last one goes out, or only when you have nicotine withdrawal. Opens a pack or carton when you run out of loose ones. Settings: equip the **Cigarette Case (Auto Smoke)** from the Pip-Boy's Apparel tab. | Light Up and Smoke Those Cigarettes, xNVSE 6.2.8+, JIP LN 56.95+. Enable `AutoSmoke.esp` | Built 2026-11-11, untested in play |
 | Scan Null Fix | Fixes a crash in xNVSE itself: scripts that scan the objects around you (`GetFirstRef`/`GetNextRef`, used by Auto Loot Enhanced, Increased Wasteland Spawns, Alternative Start and others) crash on an object whose base item is gone, such as an item just picked up. Skips those objects instead. | xNVSE **6.4.9** exactly (does nothing on any other version, and says so in `ScanNullFix.log`) | Built and tested offline against the real xNVSE DLL 2026-11-13 |
 | Needs Meters | Thirst, hunger, sleep (Hardcore) and radiation as four small segmented meters on the HUD, in the vanilla HUD style. Replaces Primary Needs HUD without replacing the game's HUD file. No plugin. | xNVSE 6.2.8+, JIP LN 56.95+, UI Organizer | Built 2026-11-14, untested in play. Disable Primary Needs HUD |
-| Smart Loot | Auto-loot that takes what is useful to you now: ammo for the weapons you carry (up to a cap), weapons with more Pip-Boy DPS than your best, spares for repairs, weapon mods that fit, a few of each aid item, keys, notes, anything weightless with value, and anything else worth enough caps a pound. From loose items, corpses and unowned containers (unlocked with your skill when that's no crime). Never steals. Settings: equip the **Scavenger's Duffel (Smart Loot)**. | xNVSE 6.4+, JIP LN, JohnnyGuitar NVSE. Enable `SmartLoot.esp` | Built 2026-11-14, untested in play. Disable Auto Loot Enhanced / Ultimate |
+| Smart Loot | Auto-loot that takes what is useful to you now: ammo for the weapons you carry (up to a cap), weapons with more Pip-Boy DPS than your best, spares for repairs, weapon mods that fit, a few of each aid item, keys, notes, anything weightless with value, and anything else worth enough caps a pound. From loose items, corpses and unowned containers (unlocked with your skill when that's no crime). Never steals. Also eats, drinks and patches you up (replaces Hardcore Helper). Settings: equip the **Scavenger's Duffel (Smart Loot)**. | xNVSE 6.4+, JIP LN, JohnnyGuitar NVSE, ITR NVSE (auto-consume). Enable `SmartLoot.esp` | Built 2026-11-14, untested in play. Disable Auto Loot Enhanced / Ultimate and Hardcore Helper |
 | Survival Start Kit | Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) at the start of a new game, or on the next load of an existing save, once, the same way the DLC does. No plugin. | Lonesome Road, xNVSE 6.1+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 
 ## How the Survival Start Kit works
@@ -190,6 +190,35 @@ a bobby pin. "Requires key" locks need the key.
 
 **Other settings:** reach (150, 200, 300 or 450 units), messages (off, upgrades and unlocks, or every
 pickup), pickup sounds, and looting in combat.
+
+**Auto-consume** (settings page 3; replaces Hardcore Helper). Items are used through ITR NVSE's
+`UseAidItem`, which is the game's own "use from the Pip-Boy" path. Each one plays its own eating or
+drinking sound, counts toward addiction and gets your perks. Hardcore Helper applied the effect and
+deleted the item instead, and only knew about 60 items by name. Smart Loot reads each item's own
+effects, so modded food works too.
+
+| Need | When | Uses |
+|---|---|---|
+| Stimpak | at 25% health or less, **even in combat**, one at a time | the cheapest healer (stimpak before super stimpak) |
+| Everything below | **never during combat**, checked every 6 s | |
+| Crippled limb | any limb crippled | the cheapest limb restorer (doctor's bag) |
+| Radiation | 50 points before radiation sickness | RadAway |
+| Taking radiation | while you are being irradiated | Rad-X |
+| Thirst, hunger (Hardcore) | 50 points before the first penalty stage | water and food |
+| Sleep items (off by default) | 50 points before the first penalty stage | coffee, Nuka-Cola... |
+
+The thresholds are read from the game's own stage records (Water1, hunger1, sleep1, Rad1), so a mod
+that moves them is followed.
+
+**Which food or drink:** the **heaviest for what it gives** goes first. If another item gives the
+same thirst for less weight carried, the heavier one is used. Weightless items go last, and among
+equals the cheaper goes first. Aid (stimpaks, doctor's bags, RadAway, Rad-X) uses the cheapest that
+works. It never uses quest items. It also avoids addictive items (chems, alcohol), and only uses
+irradiated food or dirty water when nothing clean is left.
+
+**Choices:** the 50-point margin (0, 25, 50 or 100), the stimpak level (never, 15, 25 or 40%), each
+need on or off, and the food rule (never irradiated or addictive / irradiated only if nothing clean
+/ anything).
 
 **How it decides what you want:** every few seconds, or as soon as what you carry changes, it reads
 your inventory and builds its lists. These are the ammo types your weapons fire, the mods that fit

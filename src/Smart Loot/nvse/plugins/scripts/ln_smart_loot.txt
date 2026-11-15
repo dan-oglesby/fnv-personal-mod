@@ -8,8 +8,11 @@
 ; when you close the Pip-Boy. The duffel is given on the first load and again if it is ever lost.
 ; It lives in SmartLoot.esp (one item and three empty form lists, made by make_plugins.py).
 ;
-; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.4+, JIP LN
-; and JohnnyGuitar NVSE (for the Pip-Boy DPS). Re-registering on every load is safe: xNVSE clears
+; Also auto-consume (Survive.txt): water and food just before Hardcore penalties, RadAway and Rad-X,
+; a doctor's bag for crippled limbs, and a stimpak only in dire straits. Settings page 3.
+;
+; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.4+, JIP LN,
+; JohnnyGuitar NVSE (for the Pip-Boy DPS) and ITR NVSE (UseAidItem, for auto-consume). Re-registering on every load is safe: xNVSE clears
 ; repeating calls on load and new game, and the equip handler is removed before it is added again.
 
 if eval IsModLoaded "SmartLoot.esp"
@@ -76,6 +79,35 @@ if eval IsModLoaded "SmartLoot.esp"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
 	endif
+	let rChk := CompileScript "SmartLoot/Ate.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/InitSurvival.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Open3.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Open3Btn.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Pick.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	; Survive.txt (auto-consume) uses ITR NVSE's UseAidItem. It is optional: if it failed to compile,
+	; only auto-consume switches off (_seOk 0), not Smart Loot.
+	let rChk := CompileScript "SmartLoot/Survive.txt"
+	if eval (IsFormValid rChk) == 0
+		player.AuxVarSetFlt "_seOk" 0
+		print "Smart Loot: auto-consume is off because Survive.txt failed to compile (it needs ITR NVSE, see nvse.log)"
+	else
+		player.AuxVarSetFlt "_seOk" 1
+	endif
 	if iBad > 0
 		print "Smart Loot: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
 		MessageEx "Smart Loot is switched off: a script failed to compile"
@@ -83,6 +115,10 @@ if eval IsModLoaded "SmartLoot.esp"
 		if eval IsModLoaded "AutoLootEnhanced.esp"
 			print "Smart Loot: Auto Loot Enhanced is also enabled. Disable one of them, or both will loot."
 			MessageEx "Smart Loot: disable Auto Loot Enhanced, or both will loot"
+		endif
+		if eval IsModLoaded "Hardcore Helper (Chet Edition).esp"
+			print "Smart Loot: Hardcore Helper is also enabled. Disable it, or both will eat and drink for you."
+			MessageEx "Smart Loot: disable Hardcore Helper, or both will eat for you"
 		endif
 		if eval IsModLoaded "Auto Loot Ultimate.esp"
 			print "Smart Loot: Auto Loot Ultimate is also enabled. Disable one of them, or both will loot."
