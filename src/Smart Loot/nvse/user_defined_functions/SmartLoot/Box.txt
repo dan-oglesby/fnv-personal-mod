@@ -1,5 +1,6 @@
 ; Smart Loot: loots one container or corpse (rRef), moving at most iBudget stacks. Returns how many
-; stacks it moved. Containers that are owned, or in an owned cell, are never touched.
+; stacks it moved. Containers that are owned, or in an owned cell, are never touched, unless every
+; owner is your enemy (Owned.txt). Moving items by script is no crime and costs no karma.
 ; A locked, unowned container is unlocked first if the setting allows: with its key, or with your
 ; Lockpick skill if the lock is no harder than your skill (and, if set, a bobby pin), for the same
 ; XP as Auto Loot Ultimate gives (20, plus 10 per lock level). "Requires key" locks need the key.
@@ -82,7 +83,7 @@ begin Function {rRef, iBudget}
 		let iHave := rRef.GetItemCount rItem
 		let iTake := call rFn rItem iHave
 		if iTake > 0
-			rRef.RemoveItemTarget rItem player iTake
+			rRef.RemoveItemTarget rItem player iTake 1	; 1 = clear the old owner, so nothing arrives marked stolen
 			let rSnd := CompileScript "SmartLoot/Sound.txt"
 			call rSnd rItem
 			let rSnd := CompileScript "SmartLoot/Note.txt"

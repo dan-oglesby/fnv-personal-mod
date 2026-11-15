@@ -6,7 +6,7 @@
 ;    that crashes on a reference with no base item), sorted into loose items and containers or
 ;    corpses. Nothing is picked up during the scan: picking up mid-scan is what crashed Auto Loot
 ;    Enhanced.
-; 3. Then up to 10 pickups: loose items by activating them for you (the same as pressing E: their
+; 3. Then up to 10 pickups (an enemy's things are made yours first, so it's no theft): loose items by activating them for you (the same as pressing E: their
 ;    scripts run and the game adds them as usual), then containers and corpses (Box.txt).
 int iInv
 int iT
@@ -16,6 +16,7 @@ int iHave
 int iTake
 int iMsg
 int iLeft
+int iOwn
 float fRad
 array_var aRefs
 array_var aEntry
@@ -104,7 +105,8 @@ begin Function {}
 		if eval (IsFormValid rBase) == 0
 			continue
 		endif
-		if eval (call rOwned rRef) == 1
+		let iOwn := call rOwned rRef
+		if iOwn == 1
 			continue
 		endif
 		let iHave := rRef.GetRefCount
@@ -114,6 +116,9 @@ begin Function {}
 		let iTake := call rJudge rBase iHave
 		; a loose stack is picked up whole: only if all of it is wanted (ammo: any room under the cap)
 		if eval iTake >= iHave || (iTake > 0 && (GetType rBase) == 41)
+			if iOwn == 2
+				rRef.SetOwnership	; an enemy's: make it yours first, so taking it is no theft
+			endif
 			rRef.Activate player 1
 			call rSnd rBase
 			call rNote rBase

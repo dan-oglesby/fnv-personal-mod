@@ -177,8 +177,13 @@ pickup sound, unless that sound is already playing.
 
 **Carry weight:** weighted items never use your last 25 lb of carry weight (0, 10, 25 or 50).
 
-**Containers and corpses:** corpses are always fair game. A container is only touched if neither it
-nor its cell has an owner, so it never steals, and it never empties your own containers at home. A
+**Containers and corpses:** corpses are always fair game. A container or loose item is taken from
+only if neither it nor its cell has an owner, or if every owner is your **enemy**. An enemy is a
+faction the game counts as hostile to you (`GetPCEnemyOfFaction`, the test the Lucky 38 scripts use),
+or a person in such a faction. Robbing the Legion once it wants you dead costs no karma: an enemy's
+loose item is made yours just before it is picked up, and items from containers arrive with the old
+owner cleared, so nothing is marked stolen. This can be switched off ("Enemies' things" on page 2).
+It never empties your own containers at home. A
 locked container is unlocked if your Lockpick skill is at least the lock's level, or with its key.
 It gives the same XP as Auto Loot Ultimate (20, plus 10 per lock level). Optionally it also uses up
 a bobby pin. "Requires key" locks need the key.

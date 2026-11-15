@@ -6,6 +6,7 @@ string_var sMsg
 string_var sSnd
 string_var sFight
 string_var sQuest
+string_var sEnemy
 string_var sBody
 ref rCb
 
@@ -42,13 +43,18 @@ begin Function {}
 		let sQuest := "taken"
 	endif
 
+	let sEnemy := "never"
+	if eval (player.AuxVarGetFlt "_slEnemy") == 1
+		let sEnemy := "yes, with no karma lost"
+	endif
 	let fVal := player.AuxVarGetFlt "_slRes"
 	let sBody := sv_Construct "Food, drink and other aid with weight: %z.%r" sAid
 	let sBody := sBody + (sv_Construct "Keeps %.0f lb of carry weight free.%r" fVal)
 	let sBody := sBody + (sv_Construct "Unlocks containers nobody owns: %z.%r" sLock)
 	let sBody := sBody + (sv_Construct "Messages: %z. Pickup sounds: %z.%r" sMsg sSnd)
 	let sBody := sBody + (sv_Construct "Loots during combat: %z. Quest items: %z.%r" sFight sQuest)
-	let sBody := sBody + (sv_Construct "Never takes anything owned or from an owned place, so it never steals.")
+	let sBody := sBody + (sv_Construct "Takes things owned by your enemies (factions hostile to you): %z.%r" sEnemy)
+	let sBody := sBody + (sv_Construct "Never takes anything else that is owned or in an owned place.")
 	let rCb := CompileScript "SmartLoot/Open2Btn.txt"
-	MessageBoxExAlt rCb "^Smart Loot^%z|Change aid to keep|Change carry weight kept free|Change unlocking|Change messages|Pickup sounds on or off|Loot in combat on or off|Quest items on or off|Back|Close" sBody
+	MessageBoxExAlt rCb "^Smart Loot^%z|Change aid to keep|Change carry weight kept free|Change unlocking|Change messages|Pickup sounds on or off|Loot in combat on or off|Quest items on or off|Enemies' things on or off|Back" sBody
 end
