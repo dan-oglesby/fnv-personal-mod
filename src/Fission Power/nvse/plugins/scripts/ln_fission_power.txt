@@ -7,6 +7,7 @@
 ;   player.AuxVarSetFlt "_fpPen" 0         no dead-suit penalty (1 = on)
 ;   player.AuxVarSetFlt "_fpSlow" 40       a dead suit slows you 40 percent (default 25)
 ;   player.AuxVarSetFlt "_fpIdle" 2        standby draw, steps per second worn (default 1, 0 = none)
+;   player.AuxVarSetFlt "_fpSnd" 1         eject sound: battle rifle reload part 1, 2 or 3 (default 3)
 ; Shows on the HUD through Needs Meters (PWR). Smart Loot keeps a few batteries while you own power
 ; armor. FissionPower.esp holds one item, the Depleted Fission Battery.
 ;

@@ -6,10 +6,11 @@
 ; hours standing still, against about half an hour running. Doors and fast travel don't count:
 ; a change of cell (or worldspace, outside) or a jump of more than 1,000 units in a second is skipped.
 ; When the battery runs out the spent one is ejected (dropped at your feet as a Depleted Fission
-; Battery) and a fresh one from your inventory goes in. With none left, the suit is dead weight
+; Battery, with the battle rifle's clip-spring sound) and a fresh one from your inventory goes in. With none left, the suit is dead weight
 ; (Penalty.txt) until you pick one up. Needs Meters shows the charge (PWR) and your spares.
 int iPlug
 int iSpare
+int iSnd
 float fX
 float fY
 float fDist
@@ -78,7 +79,14 @@ begin Function {}
 			let rSpent := BuildRef iPlug 2048	; Depleted Fission Battery (FPDepletedBattery 0x000800)
 			player.RemoveItem rBatt 1 1
 			player.PlaceAtMe rSpent 1
-			let rSnd := GetPutdownSound rBatt
+			; the battle rifle's own reload sound (This Machine): a crisp spring snap by default
+			; (_fpSnd 3 = WPNThisMachineReloadPt3; 1 and 2 are the other parts of its reload)
+			let iSnd := player.AuxVarGetFlt "_fpSnd"
+			if iSnd < 1 || iSnd > 3
+				let iSnd := 3
+			endif
+			let iSnd += 1525397	; WPNThisMachineReloadPt1-3 are FalloutNV.esm 0x174696-8 (1525398-400)
+			let rSnd := BuildRef 0 iSnd
 			if eval IsFormValid rSnd
 				PlaySound rSnd
 			endif

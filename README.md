@@ -164,7 +164,8 @@ second) don't count. Only armor the game flags as power armor needs power. NCR S
 has had its servos stripped, and the game doesn't flag it, so it runs on nothing.
 
 - **A battery runs out:** the spent one is ejected and dropped at your feet as a Depleted Fission
-  Battery (worth nothing, so Smart Loot leaves it), with the battery's put-down sound. A fresh one
+  Battery (worth nothing, so Smart Loot leaves it), with the battle rifle's crisp clip-spring
+  sound (This Machine's reload sound, part 3). A fresh one
   from your inventory goes in, and a message says how many spares are left.
 - **No batteries left:** the suit is dead weight. Like NCR Salvaged Power Armor, the stripped-servo
   suit, you get Agility -2, and the suit's own Strength bonus is cancelled (read from its
@@ -187,6 +188,8 @@ a full battery.
 - `player.AuxVarSetFlt "_fpPen" 0` turns off the dead-suit penalty.
 - `player.AuxVarSetFlt "_fpSlow" 40` sets how much slower a dead suit makes you, in percent.
 - `player.AuxVarSetFlt "_fpIdle" 2` sets the standby draw, in steps per second worn (0 = none).
+- `player.AuxVarSetFlt "_fpSnd" 1` sets the eject sound to part 1, 2 or 3 of the battle rifle's
+  reload (default 3). To hear them in the console: `playsound 174696`, `174697`, `174698`.
 - `player.AuxVarSetFlt "_slBatt" 6` sets the batteries Smart Loot keeps.
 
 Take power armor off before uninstalling, or a dead-suit penalty that is active at the time stays.
