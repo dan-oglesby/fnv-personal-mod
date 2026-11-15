@@ -24,6 +24,7 @@ array_var aRefs
 array_var aEntry
 array_var aLoose
 array_var aBoxes
+array_var aPers
 ref rRef
 ref rBase
 ref rFn
@@ -31,6 +32,8 @@ ref rJudge
 ref rOwned
 ref rSnd
 ref rNote
+ref rWS
+ref rPC
 ref rAlways
 
 begin Function {}
@@ -76,7 +79,25 @@ begin Function {}
 	let fRad := player.AuxVarGetFlt "_slRad"
 	let aRefs := player.GetRefs 0 1 0 fRad
 	if eval aRefs == Ar_Null
-		return
+		let aRefs := Ar_Construct "array"
+	endif
+	; Outdoors, persistent references (quest-placed actors such as the Legion assassin squads, which
+	; quests move to you) live in the worldspace's persistent cell, not in the cells GetRefs walks
+	; (xNVSE Commands_MiscRef.cpp scans the player's cell and its neighbours only). Scan that cell too,
+	; with the same reach (JIP GetWorldspacePersistentCell, xNVSE GetRefsInCell called on the player,
+	; which measures distance from the player). Found 2026-11-15: assassins never showed up.
+	let rWS := player.GetParentWorldspace
+	if eval IsFormValid rWS
+		let rPC := GetWorldspacePersistentCell rWS
+		if eval IsFormValid rPC
+			let aPers := player.GetRefsInCell rPC 0 0 0 fRad
+			if eval aPers != Ar_Null
+				foreach aEntry <- aPers
+					let rRef := aEntry["value"]
+					Ar_Append aRefs rRef
+				loop
+			endif
+		endif
 	endif
 	let rAlways := BuildRef (GetModIndex "SmartLoot.esp") 2052	; SLAlwaysTake
 	let aLoose := Ar_Construct "array"
@@ -170,6 +191,7 @@ begin Function {}
 		MessageEx "Smart Loot: picked up %.0f item(s)" iActs
 	endif
 	let aRefs := Ar_Null
+	let aPers := Ar_Null
 	let aLoose := Ar_Null
 	let aBoxes := Ar_Null
 	let aEntry := Ar_Null
