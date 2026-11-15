@@ -1,0 +1,44 @@
+; Fission Power (Dan, 2026-11-15): power armor runs on fission batteries. Walking drains the one in
+; the suit; when it runs out the spent battery is ejected at your feet and the next goes in. With none
+; left the suit is dead weight (Agility -2, no Strength bonus) until you find another. Batteries are
+; the only fuel. Settings (console):
+;   player.AuxVarSetFlt "_fpLife" 20000    steps per battery (default 10000, about 7.5 km)
+;   player.AuxVarSetFlt "_fpPen" 0         no dead-suit penalty (1 = on)
+; Shows on the HUD through Needs Meters (PWR). Smart Loot keeps a few batteries while you own power
+; armor. FissionPower.esp holds one item, the Depleted Fission Battery.
+;
+; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.4+ and JIP LN.
+
+if eval IsModLoaded "FissionPower.esp"
+	; Every function must have compiled: a timer that calls a function that failed to compile can
+	; crash xNVSE (2026-11-13). If one failed, register nothing and say so.
+	let int iBad := 0
+	let ref rChk := CompileScript "FissionPower/Always.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "FissionPower/Init.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "FissionPower/Penalty.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "FissionPower/Tick.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	if iBad > 0
+		print "Fission Power: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
+		MessageEx "Fission Power is switched off: a script failed to compile"
+	else
+		let ref rInit := CompileScript "FissionPower/Init.txt"
+		call rInit
+		player.AuxVarSetFlt "*_fpHave" 0
+		; once a second of play: flags 4 + 16 = not in menus, not while paused
+		let ref rTick := CompileScript "FissionPower/Tick.txt"
+		let ref rTrue := CompileScript "FissionPower/Always.txt"
+		CallWhilePerSeconds 1 rTick rTrue 20
+	endif
+endif

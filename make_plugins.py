@@ -35,6 +35,15 @@ ITEMS = [
      None),
 ]
 
+# Plugins holding one miscellaneous item instead (object ID 0x800): plugin file, mod folder,
+# editor ID, name, world model, inventory icon, value, weight
+MISC_ITEMS = [
+    # Fission Power: what a spent battery becomes; it is dropped at your feet when ejected.
+    # Same model and icon as the vanilla Fission Battery (FalloutNV.esm 0x033BC6), worth nothing.
+    ("FissionPower.esp", "Fission Power", "FPDepletedBattery", "Depleted Fission Battery",
+     r"Clutter\Junk\9VoltBattery01.NIF", r"Interface\Icons\PipboyImages\Items\item_junk.dds", 0, 6.0),
+]
+
 # plugin file -> editor IDs of empty form lists, in object-ID order from 0x801
 LISTS = {
     "SmartLoot.esp": ["SLWantAmmo", "SLWantMods", "SLWantRepair", "SLAlwaysTake"],
@@ -82,10 +91,33 @@ def plugin(edid, name, model, icon, small_icon, lists=()) -> bytes:
     return header + group("ARMO", armo) + (group("FLST", flsts) if lists else b"")
 
 
+def misc_plugin(edid, name, model, icon, value, weight) -> bytes:
+    body = (sub("EDID", z(edid))
+            + sub("OBND", bytes(12))
+            + sub("FULL", z(name))
+            + sub("MODL", z(model))
+            + sub("ICON", z(icon))
+            + sub("DATA", struct.pack("<if", value, weight)))
+    misc = record("MISC", 0, 0x01000000 | OBJECT_ID, body)
+    header = record("TES4", 0, 0,
+                    sub("HEDR", struct.pack("<fiI", 1.34, 1, OBJECT_ID + 1))
+                    + sub("CNAM", z("fnv-personal-mod"))
+                    + sub("MAST", z("FalloutNV.esm"))
+                    + sub("DATA", bytes(8)))
+    return header + group("MISC", misc)
+
+
 def main():
     for fname, mod, edid, name, model, icon, small in ITEMS:
         out = ROOT / "src" / mod / fname
         data = plugin(edid, name, model, icon, small, LISTS.get(fname, ()))
+        if not out.exists() or out.read_bytes() != data:
+            out.write_bytes(data)
+            print("wrote", out.relative_to(ROOT))
+    for fname, mod, edid, name, model, icon, value, weight in MISC_ITEMS:
+        out = ROOT / "src" / mod / fname
+        out.parent.mkdir(parents=True, exist_ok=True)
+        data = misc_plugin(edid, name, model, icon, value, weight)
         if not out.exists() or out.read_bytes() != data:
             out.write_bytes(data)
             print("wrote", out.relative_to(ROOT))

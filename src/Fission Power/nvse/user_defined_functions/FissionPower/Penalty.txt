@@ -1,0 +1,49 @@
+; Fission Power: puts the dead-suit penalty on or takes it off. iOn 1 = the suit rSuit is out of
+; power. Like NCR Salvaged Power Armor (servos stripped, Agility -2, no Strength bonus): the dead
+; servos cost Agility 2 and cancel the suit's own Strength bonus (read from its enchantment).
+; Applied amounts are kept in "_fpAgi" / "_fpStr", so this only ever changes the difference, and
+; taking the suit off or powering it gives everything back. (Before uninstalling, take power armor
+; off, or the penalty stays.)
+int iOn
+ref rSuit
+int iAgi
+int iStr
+int iNum
+int iK
+float fDelta
+ref rEnch
+ref rBase
+ref rStrEff
+
+begin Function {iOn, rSuit}
+	let iAgi := 0
+	let iStr := 0
+	if eval iOn == 1 && (player.AuxVarGetFlt "_fpPen") == 1
+		let iAgi := 2
+		let rEnch := GetObjectEffect rSuit
+		if eval IsFormValid rEnch
+			let rStrEff := BuildRef 0 86364	; IncreaseStrength (FalloutNV.esm 0x01515C)
+			let iNum := GetNumEffects rEnch
+			let iK := 0
+			while iK < iNum
+				let rBase := GetNthEffectBase rEnch iK
+				if eval rBase == rStrEff
+					let iStr += GetNthEffectTraitNumeric rEnch iK 0
+				endif
+				let iK += 1
+			loop
+		endif
+	endif
+	let fDelta := player.AuxVarGetFlt "_fpAgi"
+	let fDelta -= iAgi
+	if fDelta != 0
+		player.ModAV Agility fDelta
+		player.AuxVarSetFlt "_fpAgi" iAgi
+	endif
+	let fDelta := player.AuxVarGetFlt "_fpStr"
+	let fDelta -= iStr
+	if fDelta != 0
+		player.ModAV Strength fDelta
+		player.AuxVarSetFlt "_fpStr" iStr
+	endif
+end

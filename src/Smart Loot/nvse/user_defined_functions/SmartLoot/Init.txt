@@ -3,7 +3,12 @@
 ref rSurv
 
 begin Function {}
-	if eval (player.AuxVarGetFlt "_slInit") >= 3
+	if eval (player.AuxVarGetFlt "_slInit") >= 4
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_slInit") == 3
+		player.AuxVarSetFlt "_slBatt" 4	; added in settings version 4
+		player.AuxVarSetFlt "_slInit" 4
 		return
 	endif
 	if eval (player.AuxVarGetFlt "_slInit") == 1
@@ -12,10 +17,12 @@ begin Function {}
 	if eval (player.AuxVarGetFlt "_slInit") >= 1
 		let rSurv := CompileScript "SmartLoot/InitSurvival.txt"
 		call rSurv	; added in settings version 3
-		player.AuxVarSetFlt "_slInit" 3
+		player.AuxVarSetFlt "_slBatt" 4	; added in settings version 4
+		player.AuxVarSetFlt "_slInit" 4
 		return
 	endif
-	player.AuxVarSetFlt "_slInit" 3
+	player.AuxVarSetFlt "_slInit" 4
+	player.AuxVarSetFlt "_slBatt" 4		; fission batteries kept while you own power armor (Fission Power)
 	let rSurv := CompileScript "SmartLoot/InitSurvival.txt"
 	call rSurv
 	player.AuxVarSetFlt "_slOn" 1		; auto-loot on

@@ -7,6 +7,8 @@
 <_NMRads> 0 </_NMRads>
 <_NMHardcore> 0 </_NMHardcore>
 <_NMBlink> 0 </_NMBlink>
+<_NMPower> -1 </_NMPower>
+<_NMBatt> 0 </_NMBatt>
 <!-- Settings, also set by Tick.txt from the player's saved settings: -->
 <_NMOn> 1 </_NMOn>
 <_NMX> 0 </_NMX>
@@ -21,7 +23,7 @@
 		<and src="ActionPoints" trait="visible"/>
 	</visible>
 	<width> 166 </width>
-	<height> 88 </height>
+	<height> 110 </height>
 	<x>
 		<copy src="screen()" trait="width"/>
 		<sub> 50 </sub>
@@ -1489,5 +1491,376 @@
 				<gte> 1 </gte>
 			</visible>
 		</image>
+	</rect>
+	<!-- PWR -->
+	<rect name="NMPower">
+		<locus> &true; </locus>
+		<x> 0 </x>
+		<y> 88 </y>
+		<width> 166 </width>
+		<height> 22 </height>
+		<visible>
+			<copy src="io()" trait="_NMPower"/>
+			<gte> 0 </gte>
+		</visible>
+		<_need><copy src="io()" trait="_NMPower"/></_need>
+		<_fill>
+			<copy src="io()" trait="_NMPower"/>
+		</_fill>
+		<_warn>
+			<copy src="me()" trait="_need"/>
+			<lte> 200 </lte>
+		</_warn>
+		<_crit>
+			<copy src="me()" trait="_need"/>
+			<lte> 100 </lte>
+		</_crit>
+		<text name="lbl">
+			<x> 36 </x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &right; </justify>
+			<string> PWR </string>
+			<alpha>
+				<copy> 255 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+		</text>
+		<image name="b0">
+			<filename> Interface\Shared\solid.dds </filename>
+			<depth> 2 </depth>
+			<x> 44 </x>
+			<y> 8 </y>
+			<width> 22 </width>
+			<height> 8 </height>
+			<alpha> 48 </alpha>
+		</image>
+		<image name="b1">
+			<filename> Interface\Shared\solid.dds </filename>
+			<depth> 2 </depth>
+			<x> 69 </x>
+			<y> 8 </y>
+			<width> 22 </width>
+			<height> 8 </height>
+			<alpha> 48 </alpha>
+		</image>
+		<image name="b2">
+			<filename> Interface\Shared\solid.dds </filename>
+			<depth> 2 </depth>
+			<x> 94 </x>
+			<y> 8 </y>
+			<width> 22 </width>
+			<height> 8 </height>
+			<alpha> 48 </alpha>
+		</image>
+		<image name="b3">
+			<filename> Interface\Shared\solid.dds </filename>
+			<depth> 2 </depth>
+			<x> 119 </x>
+			<y> 8 </y>
+			<width> 22 </width>
+			<height> 8 </height>
+			<alpha> 48 </alpha>
+		</image>
+		<image name="b4">
+			<filename> Interface\Shared\solid.dds </filename>
+			<depth> 2 </depth>
+			<x> 144 </x>
+			<y> 8 </y>
+			<width> 22 </width>
+			<height> 8 </height>
+			<alpha> 48 </alpha>
+		</image>
+		<image name="f0">
+			<filename> Interface\Shared\solid.dds </filename>
+			<systemcolor> &hudmain; </systemcolor>
+			<depth> 3 </depth>
+			<x> 44 </x>
+			<y> 8 </y>
+			<height> 8 </height>
+			<width>
+				<copy src="parent()" trait="_fill"/>
+				<sub> 0 </sub>
+				<div> 200 </div>
+				<max> 0 </max>
+				<min> 1 </min>
+				<mul> 22 </mul>
+			</width>
+			<alpha>
+				<copy> 230 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<lt> 1 </lt>
+			</visible>
+		</image>
+		<image name="w0">
+			<filename> Interface\Shared\solid.dds </filename>
+			<systemcolor> &hudalt; </systemcolor>
+			<depth> 3 </depth>
+			<x> 44 </x>
+			<y> 8 </y>
+			<height> 8 </height>
+			<width>
+				<copy src="parent()" trait="_fill"/>
+				<sub> 0 </sub>
+				<div> 200 </div>
+				<max> 0 </max>
+				<min> 1 </min>
+				<mul> 22 </mul>
+			</width>
+			<alpha>
+				<copy> 230 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<gte> 1 </gte>
+			</visible>
+		</image>
+		<image name="f1">
+			<filename> Interface\Shared\solid.dds </filename>
+			<systemcolor> &hudmain; </systemcolor>
+			<depth> 3 </depth>
+			<x> 69 </x>
+			<y> 8 </y>
+			<height> 8 </height>
+			<width>
+				<copy src="parent()" trait="_fill"/>
+				<sub> 200 </sub>
+				<div> 200 </div>
+				<max> 0 </max>
+				<min> 1 </min>
+				<mul> 22 </mul>
+			</width>
+			<alpha>
+				<copy> 230 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<lt> 1 </lt>
+			</visible>
+		</image>
+		<image name="w1">
+			<filename> Interface\Shared\solid.dds </filename>
+			<systemcolor> &hudalt; </systemcolor>
+			<depth> 3 </depth>
+			<x> 69 </x>
+			<y> 8 </y>
+			<height> 8 </height>
+			<width>
+				<copy src="parent()" trait="_fill"/>
+				<sub> 200 </sub>
+				<div> 200 </div>
+				<max> 0 </max>
+				<min> 1 </min>
+				<mul> 22 </mul>
+			</width>
+			<alpha>
+				<copy> 230 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<gte> 1 </gte>
+			</visible>
+		</image>
+		<image name="f2">
+			<filename> Interface\Shared\solid.dds </filename>
+			<systemcolor> &hudmain; </systemcolor>
+			<depth> 3 </depth>
+			<x> 94 </x>
+			<y> 8 </y>
+			<height> 8 </height>
+			<width>
+				<copy src="parent()" trait="_fill"/>
+				<sub> 400 </sub>
+				<div> 200 </div>
+				<max> 0 </max>
+				<min> 1 </min>
+				<mul> 22 </mul>
+			</width>
+			<alpha>
+				<copy> 230 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<lt> 1 </lt>
+			</visible>
+		</image>
+		<image name="w2">
+			<filename> Interface\Shared\solid.dds </filename>
+			<systemcolor> &hudalt; </systemcolor>
+			<depth> 3 </depth>
+			<x> 94 </x>
+			<y> 8 </y>
+			<height> 8 </height>
+			<width>
+				<copy src="parent()" trait="_fill"/>
+				<sub> 400 </sub>
+				<div> 200 </div>
+				<max> 0 </max>
+				<min> 1 </min>
+				<mul> 22 </mul>
+			</width>
+			<alpha>
+				<copy> 230 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<gte> 1 </gte>
+			</visible>
+		</image>
+		<image name="f3">
+			<filename> Interface\Shared\solid.dds </filename>
+			<systemcolor> &hudmain; </systemcolor>
+			<depth> 3 </depth>
+			<x> 119 </x>
+			<y> 8 </y>
+			<height> 8 </height>
+			<width>
+				<copy src="parent()" trait="_fill"/>
+				<sub> 600 </sub>
+				<div> 200 </div>
+				<max> 0 </max>
+				<min> 1 </min>
+				<mul> 22 </mul>
+			</width>
+			<alpha>
+				<copy> 230 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<lt> 1 </lt>
+			</visible>
+		</image>
+		<image name="w3">
+			<filename> Interface\Shared\solid.dds </filename>
+			<systemcolor> &hudalt; </systemcolor>
+			<depth> 3 </depth>
+			<x> 119 </x>
+			<y> 8 </y>
+			<height> 8 </height>
+			<width>
+				<copy src="parent()" trait="_fill"/>
+				<sub> 600 </sub>
+				<div> 200 </div>
+				<max> 0 </max>
+				<min> 1 </min>
+				<mul> 22 </mul>
+			</width>
+			<alpha>
+				<copy> 230 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<gte> 1 </gte>
+			</visible>
+		</image>
+		<image name="f4">
+			<filename> Interface\Shared\solid.dds </filename>
+			<systemcolor> &hudmain; </systemcolor>
+			<depth> 3 </depth>
+			<x> 144 </x>
+			<y> 8 </y>
+			<height> 8 </height>
+			<width>
+				<copy src="parent()" trait="_fill"/>
+				<sub> 800 </sub>
+				<div> 200 </div>
+				<max> 0 </max>
+				<min> 1 </min>
+				<mul> 22 </mul>
+			</width>
+			<alpha>
+				<copy> 230 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<lt> 1 </lt>
+			</visible>
+		</image>
+		<image name="w4">
+			<filename> Interface\Shared\solid.dds </filename>
+			<systemcolor> &hudalt; </systemcolor>
+			<depth> 3 </depth>
+			<x> 144 </x>
+			<y> 8 </y>
+			<height> 8 </height>
+			<width>
+				<copy src="parent()" trait="_fill"/>
+				<sub> 800 </sub>
+				<div> 200 </div>
+				<max> 0 </max>
+				<min> 1 </min>
+				<mul> 22 </mul>
+			</width>
+			<alpha>
+				<copy> 230 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<gte> 1 </gte>
+			</visible>
+		</image>
+		<text name="spare">
+			<x> 172 </x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<string><copy src="io()" trait="_NMBatt"/></string>
+		</text>
 	</rect>
 </rect>

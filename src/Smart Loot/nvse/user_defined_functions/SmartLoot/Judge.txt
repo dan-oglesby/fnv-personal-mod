@@ -9,6 +9,7 @@
 ;   weapons: a copy of your worn-down equipped weapon (repair setting), or one whose DPS beats your
 ;     best of the same skill (or your best overall if you carry none of that skill) by the margin.
 ;   weapon mods: ones that fit a carried weapon, if you don't have one already.
+;   fission batteries, while you own power armor: up to "_slBatt" (Fission Power's fuel).
 ;   aid with weight (food, drink...): up to the set number of each.
 ;   anything else: if it is worth at least the set caps per pound.
 ; Weighted items are then limited so the carry-weight reserve is never used.
@@ -105,6 +106,18 @@ begin Function {rItem, iHave}
 		let rList := BuildRef iPlug 2050
 		if eval (ListGetFormIndex rList rItem) >= 0 && iOwn == 0
 			let iTake := 1
+		endif
+	elseif eval iType == 31 && (player.AuxVarGetFlt "*_slPA") == 1
+		; Fission Power's fuel: while you own power armor, keep up to "_slBatt" batteries (default 4)
+		let rList := BuildRef 0 211910	; Fission Battery (FalloutNV.esm 0x033BC6)
+		if eval rItem == rList
+			let iCap := player.AuxVarGetFlt "_slBatt"
+			if iCap > iOwn
+				let iTake := iCap - iOwn
+				if iTake > iHave
+					let iTake := iHave
+				endif
+			endif
 		endif
 	elseif iType == 47
 		let iCap := player.AuxVarGetFlt "_slAid"

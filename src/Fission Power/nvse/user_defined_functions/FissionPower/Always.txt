@@ -1,0 +1,4 @@
+; Fission Power: condition for the once-a-second check (always run; xNVSE clears it on load).
+begin Function {}
+	SetFunctionValue 1
+end

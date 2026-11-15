@@ -35,12 +35,16 @@ ROW_H = 22
 BAR_W = SEGS * SEG_W + (SEGS - 1) * GAP
 BLOCK_W = BAR_X + BAR_W
 
-# name, label, io trait, drains (True: shows 1000 - value), warn at, crit at
+# name, label, io trait, mode, warn at, crit at. Modes: "drain" shows 1000 - value (needs, shown in
+# Hardcore), "fill" shows the value (radiation, shown when above 0), "level" shows the value with
+# warnings when it is LOW (power armor charge from Fission Power, 0-1000, shown when 0 or more, with
+# the number of spare batteries after the bar).
 ROWS = [
-    ("NMWater", "H2O", "_NMWater", True, 400, 800),
-    ("NMFood", "FOD", "_NMFood", True, 400, 800),
-    ("NMSleep", "SLP", "_NMSleep", True, 400, 800),
-    ("NMRads", "RAD", "_NMRads", False, 200, 800),
+    ("NMWater", "H2O", "_NMWater", "drain", 400, 800),
+    ("NMFood", "FOD", "_NMFood", "drain", 400, 800),
+    ("NMSleep", "SLP", "_NMSleep", "drain", 400, 800),
+    ("NMRads", "RAD", "_NMRads", "fill", 200, 800),
+    ("NMPower", "PWR", "_NMPower", "level", 200, 100),
 ]
 
 
@@ -80,8 +84,22 @@ def segment(i, warn):
 """
 
 
-def row(n, name, label, trait, drains, warn_at, crit_at):
-    if drains:
+def row(n, name, label, trait, mode, warn_at, crit_at):
+    cmp = "lte" if mode == "level" else "gte"
+    extra = ""
+    if mode == "level":
+        fill = f"""<copy src="io()" trait="{trait}"/>"""
+        shown = f"""<copy src="io()" trait="{trait}"/>
+			<gte> 0 </gte>"""
+        extra = f"""		<text name="spare">
+			<x> {BAR_X + BAR_W + 6} </x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<string><copy src="io()" trait="_NMBatt"/></string>
+		</text>
+"""
+    elif mode == "drain":
         fill = f"""<copy> 1000 </copy>
 			<sub src="io()" trait="{trait}"/>"""
         shown = """<copy src="io()" trait="_NMHardcore"/>"""
@@ -116,11 +134,11 @@ def row(n, name, label, trait, drains, warn_at, crit_at):
 		</_fill>
 		<_warn>
 			<copy src="me()" trait="_need"/>
-			<gte> {warn_at} </gte>
+			<{cmp}> {warn_at} </{cmp}>
 		</_warn>
 		<_crit>
 			<copy src="me()" trait="_need"/>
-			<gte> {crit_at} </gte>
+			<{cmp}> {crit_at} </{cmp}>
 		</_crit>
 		<text name="lbl">
 			<x> 36 </x>
@@ -137,7 +155,7 @@ def row(n, name, label, trait, drains, warn_at, crit_at):
 				</sub>
 			</alpha>
 		</text>
-{backs}{segs}	</rect>
+{backs}{segs}{extra}	</rect>
 """
 
 
@@ -152,6 +170,8 @@ def main():
 <_NMRads> 0 </_NMRads>
 <_NMHardcore> 0 </_NMHardcore>
 <_NMBlink> 0 </_NMBlink>
+<_NMPower> -1 </_NMPower>
+<_NMBatt> 0 </_NMBatt>
 <!-- Settings, also set by Tick.txt from the player's saved settings: -->
 <_NMOn> 1 </_NMOn>
 <_NMX> 0 </_NMX>

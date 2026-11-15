@@ -1,0 +1,108 @@
+; Fission Power: once a second of play (registered by ln_fission_power.txt; not in menus or paused).
+; While you wear power armor (upper body slot, flagged as power armor; NCR Salvaged Power Armor has
+; no servos and isn't), the distance you cover drains its battery: one step = 52.5 game units (0.75 m),
+; one battery = "_fpLife" steps (default 10,000, about 7.5 km). Doors and fast travel don't count:
+; a change of cell (or worldspace, outside) or a jump of more than 1,000 units in a second is skipped.
+; When the battery runs out the spent one is ejected (dropped at your feet as a Depleted Fission
+; Battery) and a fresh one from your inventory goes in. With none left, the suit is dead weight
+; (Penalty.txt) until you pick one up. Needs Meters shows the charge (PWR) and your spares.
+int iPlug
+int iSpare
+float fX
+float fY
+float fDist
+float fLife
+float fLeft
+float fPct
+ref rSuit
+ref rWhere
+ref rLast
+ref rBatt
+ref rSpent
+ref rFn
+ref rSnd
+
+begin Function {}
+	if player.GetDead
+		return
+	endif
+	let rFn := CompileScript "FissionPower/Penalty.txt"
+	let rSuit := player.GetEquippedObject 2
+	if eval (IsFormValid rSuit) == 0 || (IsPowerArmor rSuit) == 0
+		SetUIFloat "HUDMainMenu\_NMPower" -1
+		player.AuxVarSetFlt "*_fpHave" 0
+		call rFn 0 rSuit
+		return
+	endif
+
+	; distance since the last second, in the same place
+	let fX := player.GetPos X
+	let fY := player.GetPos Y
+	let rWhere := player.GetParentWorldspace
+	if eval (IsFormValid rWhere) == 0
+		let rWhere := player.GetParentCell
+	endif
+	let fDist := 0
+	if eval (player.AuxVarGetFlt "*_fpHave") == 1
+		let rLast := player.AuxVarGetRef "*_fpWhere"
+		if eval rLast == rWhere
+			let fDist := ((fX - (player.AuxVarGetFlt "*_fpX")) ^ 2 + (fY - (player.AuxVarGetFlt "*_fpY")) ^ 2) ^ 0.5
+			if fDist > 1000
+				let fDist := 0
+			endif
+		endif
+	endif
+	player.AuxVarSetFlt "*_fpX" fX
+	player.AuxVarSetFlt "*_fpY" fY
+	player.AuxVarSetRef "*_fpWhere" rWhere
+	player.AuxVarSetFlt "*_fpHave" 1
+
+	let fLife := player.AuxVarGetFlt "_fpLife"
+	if fLife < 100
+		let fLife := 10000
+	endif
+	let fLeft := player.AuxVarGetFlt "_fpLeft"
+	let fLeft -= fDist / 52.5
+	let rBatt := BuildRef 0 211910	; Fission Battery (FalloutNV.esm 0x033BC6)
+	let iSpare := player.GetItemCount rBatt
+	if fLeft <= 0
+		let fLeft := 0
+		if iSpare > 0
+			; eject the spent battery and load a fresh one
+			let iPlug := GetModIndex "FissionPower.esp"
+			let rSpent := BuildRef iPlug 2048	; Depleted Fission Battery (FPDepletedBattery 0x000800)
+			player.RemoveItem rBatt 1 1
+			player.PlaceAtMe rSpent 1
+			let rSnd := GetPutdownSound rBatt
+			if eval IsFormValid rSnd
+				PlaySound rSnd
+			endif
+			let fLeft := fLife
+			let iSpare -= 1
+			player.AuxVarSetFlt "_fpDead" 0
+			player.AuxVarSetFlt "_fpWarn" 0
+			MessageEx "Fission battery spent and ejected. %.0f spare(s) left." iSpare
+		elseif eval (player.AuxVarGetFlt "_fpDead") == 0
+			player.AuxVarSetFlt "_fpDead" 1
+			MessageEx "Your power armor is out of power: the servos are dead weight."
+		endif
+	endif
+	player.AuxVarSetFlt "_fpLeft" fLeft
+	if fLeft > 0
+		call rFn 0 rSuit
+	else
+		call rFn 1 rSuit
+	endif
+
+	; low-charge warning, once per battery, when there is no spare to swap in
+	let fPct := fLeft / fLife
+	if fPct < 0.1 && fLeft > 0 && iSpare == 0
+		if eval (player.AuxVarGetFlt "_fpWarn") == 0
+			player.AuxVarSetFlt "_fpWarn" 1
+			MessageEx "Power armor battery below 10 percent, and no spare fission batteries."
+		endif
+	endif
+	let fPct *= 1000
+	SetUIFloat "HUDMainMenu\_NMPower" fPct
+	SetUIFloat "HUDMainMenu\_NMBatt" iSpare
+end

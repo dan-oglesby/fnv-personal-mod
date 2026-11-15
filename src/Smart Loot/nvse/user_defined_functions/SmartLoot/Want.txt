@@ -4,6 +4,7 @@
 ;   each entry of its ammo list, so special ammo such as AP or hollow point counts too).
 ; - SLWantMods (0x802): every weapon mod that fits a carried weapon.
 ; - SLWantRepair (0x803): your equipped weapon, if its condition is under the repair setting.
+; - "*_slPA": 1 if you carry any power armor (Fission Power's fuel, kept by Judge.txt).
 ; - "*_slDPS" (temporary): your best DPS per weapon skill, index = the skill's actor value code,
 ;   and index 0 = your best DPS overall. DPS is the Pip-Boy's own figure (JohnnyGuitar's
 ;   GetCalculatedWeaponDPS: your skills, perks and ammo, at full condition).
@@ -42,10 +43,17 @@ begin Function {}
 
 	let iNum := player.GetNumItems
 	let iIdx := 0
+	player.AuxVarSetFlt "*_slPA" 0
 	while iIdx < iNum
 		let rItem := player.GetInventoryObject iIdx
 		let iIdx += 1
 		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		if eval (GetType rItem) == 24
+			if eval IsPowerArmor rItem
+				player.AuxVarSetFlt "*_slPA" 1	; you own power armor: keep fission batteries (Judge.txt)
+			endif
 			continue
 		endif
 		if eval (GetType rItem) != 40

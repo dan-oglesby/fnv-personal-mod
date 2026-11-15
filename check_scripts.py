@@ -93,6 +93,11 @@ def compile_traps(text):
         # High-traffic game events must be filtered: xNVSE queues events fired on background threads
         # (NPCs equipping gear during cell loads) onto an unlocked list, a race that crashed the
         # loaders on 2026-11-14. A filter (e.g. "second"::yourItem) drops other events first.
+        # "eval" switches a condition to an NVSE expression and must come right after if/elseif.
+        # Put mid-condition ("if x == 1 && eval ...") it doesn't compile (written twice on 2026-11-15).
+        if re.match(r"(else)?if\b", bare, re.I) and re.search(r"\beval\b", bare, re.I) \
+                and not re.match(r"(else)?if\s+eval\b", bare, re.I):
+            out.append("line %d: 'eval' must come right after if/elseif" % n)
         # A form ID written in decimal must match the hex in its comment: on 2026-11-15 a hand
         # conversion put 1191988 for 0x123054 (1192020), so the item was never matched.
         b = re.search(r"BuildRef\s+\S+\s+(\d+)", line)
