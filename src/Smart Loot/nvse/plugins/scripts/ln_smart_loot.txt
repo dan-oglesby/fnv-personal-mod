@@ -77,6 +77,16 @@ if eval IsModLoaded "SmartLoot.esp"
 		let iBad += 1
 		print "Smart Loot: Tick.txt failed to compile (see nvse.log)"
 	endif
+	let rChk := CompileScript "SmartLoot/Ajar.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+		print "Smart Loot: Ajar.txt failed to compile (see nvse.log)"
+	endif
+	let rChk := CompileScript "SmartLoot/Freeze.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+		print "Smart Loot: Freeze.txt failed to compile (see nvse.log)"
+	endif
 	let rChk := CompileScript "SmartLoot/Want.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1

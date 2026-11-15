@@ -22,6 +22,9 @@ ref rPin
 ref rSnd
 ref rRef
 int iBudget
+int iNow
+int iPrev
+int iVisit
 int iLog
 int iDead
 int iLockd
@@ -86,6 +89,15 @@ begin Function {rRef, iBudget}
 	endif
 
 	let rFn := CompileScript "SmartLoot/Judge.txt"
+	; a "visit": the container was out of reach on the previous check and is in reach now
+	if iType == 27
+		let iNow := player.AuxVarGetFlt "*_slTickN"
+		let iPrev := rRef.AuxVarGetFlt "*_slSeenT"
+		rRef.AuxVarSetFlt "*_slSeenT" iNow
+		if iNow - iPrev > 1
+			rRef.AuxVarSetFlt "*_slVisit" iNow
+		endif
+	endif
 	let iMoved := 0
 	let iNum := rRef.GetNumItems
 	let iIdx := iNum - 1
@@ -113,5 +125,14 @@ begin Function {rRef, iBudget}
 			let iMoved += 1
 		endif
 	loop
+	; searched all the way through (not stopped by the budget): show it, once per visit
+	if iType == 27 && iIdx < 0
+		let iVisit := rRef.AuxVarGetFlt "*_slVisit"
+		if eval (rRef.AuxVarGetFlt "*_slAjarV") != iVisit
+			rRef.AuxVarSetFlt "*_slAjarV" iVisit
+			let rSnd := CompileScript "SmartLoot/Ajar.txt"
+			call rSnd rRef
+		endif
+	endif
 	SetFunctionValue iMoved
 end

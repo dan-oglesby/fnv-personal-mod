@@ -16,6 +16,7 @@ int iHave
 int iTake
 int iMsg
 int iLeft
+int iTickN
 int iDead
 string_var sLog
 int iOwn
@@ -75,6 +76,9 @@ begin Function {}
 	endif
 	player.AuxVarSetFlt "*_slT" iT
 	player.AuxVarSetFlt "*_slSndN" 0
+	let iTickN := player.AuxVarGetFlt "*_slTickN"
+	let iTickN += 1
+	player.AuxVarSetFlt "*_slTickN" iTickN
 
 	let fRad := player.AuxVarGetFlt "_slRad"
 	let aRefs := player.GetRefs 0 1 0 fRad

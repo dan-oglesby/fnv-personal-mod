@@ -1,0 +1,33 @@
+; Smart Loot: shows a container has been searched by leaving it slightly open. Plays the container's
+; own "Open" animation (JIP PlayAnimSequence; vanilla footlockers, ammo boxes, lockers, gun cabinets,
+; trunks, first aid kits, toolboxes and safes all have "Open" and "Close" sequences) and, 0.3 s later,
+; freezes it part-way (Freeze.txt sets the sequence's speed to 0). Containers without an animation
+; (plain metal boxes) can't show it. The container is marked "_slSearched" (kept with the save) so
+; it opens again whenever you come back in reach. Setting "_slAjar" (1 on, 0 off).
+ref rRef
+ref rFreeze
+int iOk
+int iN
+
+begin Function {rRef}
+	if eval (player.AuxVarGetFlt "_slAjar") == 0
+		return
+	endif
+	if eval (IsFormValid rRef) == 0
+		return
+	endif
+	rRef.AuxVarSetFlt "_slSearched" 1
+	rRef.SetAnimSequenceFrequency "Open" 1	; undo an earlier freeze so it can play again
+	let iOk := rRef.PlayAnimSequence "Open"
+	if iOk == 0
+		return
+	endif
+	let iN := player.AuxVarGetFlt "*_slAjarN"
+	player.AuxVarSetRef "*_slAjarQ" rRef iN
+	let iN += 1
+	player.AuxVarSetFlt "*_slAjarN" iN
+	if iN == 1
+		let rFreeze := CompileScript "SmartLoot/Freeze.txt"
+		CallAfterSeconds 0.3 rFreeze
+	endif
+end

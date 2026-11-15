@@ -295,6 +295,14 @@ locked container is unlocked if your Lockpick skill is at least the lock's level
 It gives the same XP as Auto Loot Ultimate (20, plus 10 per lock level). Optionally it also uses up
 a bobby pin. "Requires key" locks need the key.
 
+**Searched containers stay slightly open.** Once Smart Loot has gone through a container, it
+plays the container's own "Open" animation (JIP `PlayAnimSequence`) and freezes it part-way 0.3 s
+later (`SetAnimSequenceFrequency "Open" 0`), so you can see what's been searched. All the common
+vanilla containers (footlockers, ammo boxes, lockers, gun cabinets, trunks, first aid kits,
+toolboxes, safes) have that animation. Plain metal boxes don't, so they can't show it. Searched
+containers are remembered with the save and open again when you come back. Turn it off with
+`player.AuxVarSetFlt "_slAjar" 0`.
+
 **Other settings:** reach (150, 200, 300 or 450 units), messages (off, upgrades and unlocks, or every
 pickup), pickup sounds, and looting in combat.
 

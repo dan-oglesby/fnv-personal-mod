@@ -1,0 +1,18 @@
+; Smart Loot: 0.3 s after Ajar.txt started containers opening, stops their "Open" animation where it
+; is (JIP SetAnimSequenceFrequency "Open" 0), so each stays slightly open. Empties the queue.
+int iN
+int iK
+ref rRef
+
+begin Function {}
+	let iN := player.AuxVarGetFlt "*_slAjarN"
+	let iK := 0
+	while iK < iN
+		let rRef := player.AuxVarGetRef "*_slAjarQ" iK
+		if eval IsFormValid rRef
+			rRef.SetAnimSequenceFrequency "Open" 0
+		endif
+		let iK += 1
+	loop
+	player.AuxVarSetFlt "*_slAjarN" 0
+end
