@@ -164,7 +164,8 @@ pickup sound, unless that sound is already playing.
 
 | Rule | Default | Choices |
 |---|---|---|
-| Keys, notes and NCR dogtags (dogtags are quest-flagged, but always taken) | always | |
+| Every currency (caps, NCR dollars, Legion coins, pre-war money, caravan money, casino chips, Sierra Madre chips) and NCR dogtags, quest flag or not | always | |
+| Keys and notes | always | |
 | No weight but some value (caps, money, stimpaks, magazines) | always | |
 | Ammo that a weapon you carry can fire (including its special ammo) | up to 300 per calibre | 100, 200, 300, 500, no cap |
 | Weapons with more DPS than your best of the same skill (or your best overall, if you carry none of that skill). DPS is the Pip-Boy's own figure for you, from JohnnyGuitar's `GetCalculatedWeaponDPS`. | 10% better | off, any better, 10%, 25% |

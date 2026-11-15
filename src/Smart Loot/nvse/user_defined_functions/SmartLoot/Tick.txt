@@ -29,6 +29,7 @@ ref rJudge
 ref rOwned
 ref rSnd
 ref rNote
+ref rAlways
 
 begin Function {}
 	if player.GetDead
@@ -65,6 +66,7 @@ begin Function {}
 	if eval aRefs == Ar_Null
 		return
 	endif
+	let rAlways := BuildRef (GetModIndex "SmartLoot.esp") 2052	; SLAlwaysTake
 	let aLoose := Ar_Construct "array"
 	let aBoxes := Ar_Construct "array"
 	foreach aEntry <- aRefs
@@ -90,6 +92,8 @@ begin Function {}
 			Ar_Append aLoose rRef
 		elseif iType == 46 || iType == 47 || iType == 49 || iType == 103 || iType == 116
 			Ar_Append aLoose rRef
+		elseif eval (ListGetFormIndex rAlways rBase) >= 0
+			Ar_Append aLoose rRef	; casino chips, caravan money and the like
 		endif
 	loop
 

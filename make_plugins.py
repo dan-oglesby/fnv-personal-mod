@@ -37,7 +37,7 @@ ITEMS = [
 
 # plugin file -> editor IDs of empty form lists, in object-ID order from 0x801
 LISTS = {
-    "SmartLoot.esp": ["SLWantAmmo", "SLWantMods", "SLWantRepair"],
+    "SmartLoot.esp": ["SLWantAmmo", "SLWantMods", "SLWantRepair", "SLAlwaysTake"],
 }
 
 

@@ -79,6 +79,10 @@ if eval IsModLoaded "SmartLoot.esp"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
 	endif
+	let rChk := CompileScript "SmartLoot/AlwaysTake.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
 	let rChk := CompileScript "SmartLoot/Ate.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
@@ -126,6 +130,8 @@ if eval IsModLoaded "SmartLoot.esp"
 		endif
 		let ref rInit := CompileScript "SmartLoot/Init.txt"
 		call rInit
+		let ref rAlways := CompileScript "SmartLoot/AlwaysTake.txt"
+		call rAlways
 		let int iSL := GetModIndex "SmartLoot.esp"
 		let ref rBag := BuildRef iSL 2048	; SLDuffel 0x000800
 		if eval (player.GetItemCount rBag) == 0

@@ -2,6 +2,7 @@
 ; are there. Rules, in order:
 ;   quest items: left unless the setting says otherwise. Unplayable items (creature parts,
 ;     NPC-only gear): always left.
+;   currency of every kind and NCR dogtags (SLAlwaysTake): all, quest flag or not.
 ;   keys and notes: all.
 ;   no weight but some value (caps, money, stimpaks, magazines...): all.
 ;   ammo: only types a carried weapon fires, up to the cap per calibre.
@@ -35,15 +36,11 @@ begin Function {rItem, iHave}
 	if eval (IsPlayable rItem) == 0
 		return
 	endif
-	; always taken, even though the game flags them as quest items: NCR dogtags (FalloutNV.esm
-	; NCRDogtag 0x123054, IrradiatedNCRDogtag 0x13FE77)
-	let rList := BuildRef 0 1191988
-	if eval rItem == rList
-		SetFunctionValue iHave
-		return
-	endif
-	let rList := BuildRef 0 1310327
-	if eval rItem == rList
+	; always taken: every currency and NCR dogtags (SLAlwaysTake, filled by AlwaysTake.txt). Checked
+	; before the quest-item rule because the game flags dogtags as quest items.
+	let iPlug := GetModIndex "SmartLoot.esp"
+	let rList := BuildRef iPlug 2052
+	if eval (ListGetFormIndex rList rItem) >= 0
 		SetFunctionValue iHave
 		return
 	endif
