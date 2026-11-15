@@ -1,0 +1,39 @@
+; Perk Bank (Dan, 2026-11-15): lets you finish the level-up menu without taking a perk, and saves
+; the perk for later. Banked perks come back at your next perk level: after you take that level's
+; perk the menu opens again, once per banked perk. Useful when every perk you qualify for is taken
+; (the perk page then shows only greyed-out perks and Done can never be clicked).
+;   player.AuxVarGetFlt "_pbBank"   how many perks are banked (console: print it)
+; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE and JIP LN.
+; Re-registering on every load is safe: JIP keeps menu handlers in a set.
+
+let int iBad := 0
+let ref rChk := 0
+let rChk := CompileScript "PerkBank/InMenu.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "PerkBank/OnClose.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "PerkBank/OnOpen.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "PerkBank/Spend.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "PerkBank/Watch.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+if iBad > 0
+	print "Perk Bank: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
+else
+	player.AuxVarSetFlt "*_pbSpending" 0
+	let ref rOpen := CompileScript "PerkBank/OnOpen.txt"
+	let ref rClose := CompileScript "PerkBank/OnClose.txt"
+	SetOnMenuOpenEventHandler rOpen 1 1027
+	SetOnMenuCloseEventHandler rClose 1 1027
+endif

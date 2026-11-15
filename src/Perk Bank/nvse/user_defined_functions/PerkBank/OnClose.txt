@@ -1,0 +1,45 @@
+; Perk Bank: JIP menu-close handler for the level-up menu (1027).
+; - Closed without taking a perk you were offered: the perk is banked ("_pbBank", kept with the
+;   save).
+; - Took a perk and have perks banked: the level-up menu opens again (Spend.txt) so you can take
+;   another, one per banked perk. The game only offers perks on a perk level (every 2nd level by
+;   default), so banked perks are spent at your next perk level, or straight away if you're on one.
+; - A menu opened to spend a banked perk that you close without taking one leaves the bank as it
+;   was. If the game offered nothing (no perk you qualify for), the bank waits for later.
+int iMenu
+float fOwed
+float fCur
+float fBank
+ref rSpend
+
+begin Function {iMenu}
+	if iMenu != 1027
+		return
+	endif
+	let fOwed := player.AuxVarGetFlt "*_pbOwed"
+	let fCur := player.AuxVarGetFlt "*_pbCur"
+	let fBank := player.AuxVarGetFlt "_pbBank"
+	if eval (player.AuxVarGetFlt "*_pbSpending") == 1
+		player.AuxVarSetFlt "*_pbSpending" 0
+		if fOwed > 0 && fCur >= fOwed
+			let fBank -= 1
+			player.AuxVarSetFlt "_pbBank" fBank
+		elseif fOwed == 0
+			MessageEx "Perk Bank: no perks you qualify for right now. %.0f still banked." fBank
+			return
+		else
+			MessageEx "Perk Bank: %.0f perk(s) still banked." fBank
+			return
+		endif
+	elseif fOwed > fCur
+		let fBank += fOwed - fCur
+		player.AuxVarSetFlt "_pbBank" fBank
+		MessageEx "Perk Bank: perk saved for later. %.0f banked." fBank
+		return
+	endif
+	if fBank > 0 && fOwed > 0
+		player.AuxVarSetFlt "*_pbSpending" 1
+		let rSpend := CompileScript "PerkBank/Spend.txt"
+		CallAfterSeconds 0.5 rSpend
+	endif
+end

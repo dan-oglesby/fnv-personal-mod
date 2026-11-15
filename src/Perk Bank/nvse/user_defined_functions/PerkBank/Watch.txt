@@ -1,0 +1,25 @@
+; Perk Bank: every frame while the level-up menu is open. On the perk page it keeps Continue/Done
+; clickable whether or not you picked a perk. The button is clickable only while the menu's
+; _CurrPoints equals its _MaxPoints (vanilla levelup_menu.xml), and clicking it finishes the menu
+; without the engine checking anything else (LevelUpMenu click case 7 -> SetPage(page + 1), past the
+; last page -> close; decompiled 0x00785AA0 / 0x00785830). So _MaxPoints is held equal to
+; _CurrPoints, and the number of perks the game offered is remembered in "*_pbOwed" for OnClose.
+float fPage
+float fCur
+float fMax
+
+begin Function {}
+	let fPage := GetUIFloat "LevelUpMenu/_CurrentPage"
+	if fPage != 1
+		return
+	endif
+	let fCur := GetUIFloat "LevelUpMenu/_CurrPoints"
+	let fMax := GetUIFloat "LevelUpMenu/_MaxPoints"
+	player.AuxVarSetFlt "*_pbCur" fCur
+	if fMax != fCur
+		if eval fMax > (player.AuxVarGetFlt "*_pbOwed")
+			player.AuxVarSetFlt "*_pbOwed" fMax
+		endif
+		SetUIFloat "LevelUpMenu/_MaxPoints" fCur
+	endif
+end

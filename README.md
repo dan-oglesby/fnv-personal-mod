@@ -28,6 +28,7 @@ it. The old hotkeys (K and L) are still in the `ln_` files, commented out.
 | Auto Smoke | An add-on for Light Up and Smoke Those Cigarettes (edisleado, Nexus 49677). Lights your next cigarette for you, as if you'd used it from the Pip-Boy: keep one lit, light up 1 to 20 minutes after the last one goes out, or only when you have nicotine withdrawal. Opens a pack or carton when you run out of loose ones. Settings: equip the **Cigarette Case (Auto Smoke)** from the Pip-Boy's Apparel tab. | Light Up and Smoke Those Cigarettes, xNVSE 6.2.8+, JIP LN 56.95+. Enable `AutoSmoke.esp` | Built 2026-11-11, untested in play |
 | Scan Null Fix | Fixes a crash in xNVSE itself: scripts that scan the objects around you (`GetFirstRef`/`GetNextRef`, used by Auto Loot Enhanced, Increased Wasteland Spawns, Alternative Start and others) crash on an object whose base item is gone, such as an item just picked up. Skips those objects instead. | xNVSE **6.4.9** exactly (does nothing on any other version, and says so in `ScanNullFix.log`) | Built and tested offline against the real xNVSE DLL 2026-11-13 |
 | Fission Power | Power armor runs on fission batteries. Walking drains the one in the suit; when it's spent it's ejected at your feet as a Depleted Fission Battery and the next goes in. Out of batteries, the suit is dead weight (Agility -2, no Strength bonus, like NCR Salvaged Power Armor, and 25% slower: the dead servos drag) until you find one. PWR meter via Needs Meters; Smart Loot keeps a few batteries. | xNVSE 6.4+, JIP LN. Enable `FissionPower.esp` | Built 2026-11-15, untested in play |
+| Perk Bank | Finish the level-up menu without taking a perk and save the perk for later. Done stays clickable on the perk page, so you're never stuck when every perk you qualify for is taken. Banked perks come back at your next perk level: after you take that level's perk, the menu opens again once per banked perk. No plugin. | xNVSE, JIP LN | Built 2026-11-15, untested in play |
 | Needs Meters | Thirst, hunger, sleep (Hardcore), radiation and power armor charge (with Fission Power) as small segmented meters on the HUD, in the vanilla HUD style. Replaces Primary Needs HUD without replacing the game's HUD file. No plugin. | xNVSE 6.2.8+, JIP LN 56.95+, UI Organizer | Built 2026-11-14, untested in play. Disable Primary Needs HUD |
 | Smart Loot | Auto-loot that takes what is useful to you now: ammo for the weapons you carry (up to a cap), weapons with more Pip-Boy DPS than your best, spares for repairs, weapon mods that fit, a few of each aid item, keys, notes, anything weightless with value, and anything else worth enough caps a pound. From loose items, corpses and unowned containers (unlocked with your skill when that's no crime). Never steals. Also eats, drinks and patches you up (replaces Hardcore Helper). Settings: equip the **Scavenger's Duffel (Smart Loot)**. | xNVSE 6.4+, JIP LN, JohnnyGuitar NVSE, ITR NVSE (auto-consume). Enable `SmartLoot.esp` | Built 2026-11-14, untested in play. Disable Auto Loot Enhanced / Ultimate and Hardcore Helper |
 | Survival Start Kit | Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) at the start of a new game, or on the next load of an existing save, once, the same way the DLC does. No plugin. | Lonesome Road, xNVSE 6.1+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
@@ -122,6 +123,23 @@ smoking mod isn't loaded.
 
 Check it worked: with some cigarettes, equip the Cigarette Case, close the Pip-Boy, set "keep one lit", close, and wait a few
 seconds. You should hear the lighter.
+
+## How Perk Bank works
+
+On the level-up menu's perk page, the Continue/Done button is clickable only while the menu's
+`_CurrPoints` equals its `_MaxPoints`, which means "perks chosen = perks offered" (vanilla
+`levelup_menu.xml`). Clicking it finishes the menu with no other check. The decompiled click handler
+(0x00785AA0, case 7) just moves to the next page, and past the last page the menu closes. You get
+stuck when every perk the game lists is greyed out, because then nothing can be picked. Perk Bank
+watches the menu every frame and holds `_MaxPoints` equal to `_CurrPoints`, so Done always works.
+
+- **Done without a perk:** the perk is banked (`_pbBank`, saved with the game), with a message.
+- **Spending:** the game only offers perks on a perk level, and only one per menu
+  (`LevelUpMenu_Create`, 0x00784C80, fills the list only when your level divides by
+  `iLevelsPerPerk`). So when you take a perk with some banked, the level-up menu opens again (JIP
+  `ShowLevelUpMenuEx 0`), once per banked perk. Close one of those without picking and the bank stays
+  as it was. If nothing is offered, the bank waits.
+- **Check the bank:** in the console, `print player.AuxVarGetFlt "_pbBank"` shows how many are banked.
 
 ## How Needs Meters works
 

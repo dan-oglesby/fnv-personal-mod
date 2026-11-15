@@ -1,0 +1,15 @@
+; Perk Bank: JIP menu-open handler for the level-up menu (1027). Starts the per-frame watch.
+int iMenu
+ref rWatch
+ref rCond
+
+begin Function {iMenu}
+	if iMenu != 1027
+		return
+	endif
+	player.AuxVarSetFlt "*_pbOwed" 0
+	player.AuxVarSetFlt "*_pbCur" 0
+	let rWatch := CompileScript "PerkBank/Watch.txt"
+	let rCond := CompileScript "PerkBank/InMenu.txt"
+	CallWhile rWatch rCond
+end

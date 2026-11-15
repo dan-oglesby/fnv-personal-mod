@@ -1,0 +1,10 @@
+; Perk Bank: opens the level-up menu again (JIP ShowLevelUpMenuEx, no skill points) to spend a
+; banked perk. The game fills the perk page only on a perk level.
+begin Function {}
+	if eval (player.AuxVarGetFlt "_pbBank") < 1
+		player.AuxVarSetFlt "*_pbSpending" 0
+		return
+	endif
+	MessageEx "Perk Bank: choose a banked perk."
+	ShowLevelUpMenuEx 0
+end

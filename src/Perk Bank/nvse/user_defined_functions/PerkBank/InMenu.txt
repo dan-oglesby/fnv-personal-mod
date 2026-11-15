@@ -1,0 +1,8 @@
+; Perk Bank: condition for the per-frame watch, true while the level-up menu (1027) is open.
+begin Function {}
+	if MenuMode 1027
+		SetFunctionValue 1
+	else
+		SetFunctionValue 0
+	endif
+end
