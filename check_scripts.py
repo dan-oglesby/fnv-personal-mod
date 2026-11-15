@@ -93,6 +93,13 @@ def compile_traps(text):
         # High-traffic game events must be filtered: xNVSE queues events fired on background threads
         # (NPCs equipping gear during cell loads) onto an unlocked list, a race that crashed the
         # loaders on 2026-11-14. A filter (e.g. "second"::yourItem) drops other events first.
+        # A form ID written in decimal must match the hex in its comment: on 2026-11-15 a hand
+        # conversion put 1191988 for 0x123054 (1192020), so the item was never matched.
+        b = re.search(r"BuildRef\s+\S+\s+(\d+)", line)
+        h = re.search(r";.*?0x([0-9A-Fa-f]+)", line)
+        if b and h and int(b.group(1)) != int(h.group(1), 16) % 0x1000000:
+            out.append("line %d: BuildRef %s does not match the comment's 0x%s (= %d)"
+                       % (n, b.group(1), h.group(1), int(h.group(1), 16) % 0x1000000))
         m = re.match(r'SetEventHandler\s+"(OnActorEquip|OnActorUnequip|OnAdd|OnDrop|OnHit|OnHitWith)"', code, re.I)
         if m and "::" not in code:
             out.append("line %d: unfiltered %s handler (add a filter such as \"second\"::item)" % (n, m.group(1)))
