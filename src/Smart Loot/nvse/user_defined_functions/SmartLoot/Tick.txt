@@ -85,24 +85,6 @@ begin Function {}
 	if eval aRefs == Ar_Null
 		let aRefs := Ar_Construct "array"
 	endif
-	; Outdoors, persistent references (quest-placed actors such as the Legion assassin squads, which
-	; quests move to you) live in the worldspace's persistent cell, not in the cells GetRefs walks
-	; (xNVSE Commands_MiscRef.cpp scans the player's cell and its neighbours only). Scan that cell too,
-	; with the same reach (JIP GetWorldspacePersistentCell, xNVSE GetRefsInCell called on the player,
-	; which measures distance from the player). Found 2026-11-15: assassins never showed up.
-	let rWS := player.GetParentWorldspace
-	if eval IsFormValid rWS
-		let rPC := GetWorldspacePersistentCell rWS
-		if eval IsFormValid rPC
-			let aPers := player.GetRefsInCell rPC 0 0 0 fRad
-			if eval aPers != Ar_Null
-				foreach aEntry <- aPers
-					let rRef := aEntry["value"]
-					Ar_Append aRefs rRef
-				loop
-			endif
-		endif
-	endif
 	let rAlways := BuildRef (GetModIndex "SmartLoot.esp") 2052	; SLAlwaysTake
 	let aLoose := Ar_Construct "array"
 	let aBoxes := Ar_Construct "array"
