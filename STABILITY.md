@@ -54,16 +54,13 @@ updated 2026-11-14. Nexus links are `nexusmods.com/newvegas/mods/<id>`.
 
 ## Settings changed
 
-- **NVTF.ini**: `iReplaceTextureCreationLocks = 0` (Gopher's INI ships 2). Lowered to 1 on 2026-11-14
-  after a background-loader crash, then to 0 the same day after two more crashes at the same
-  instruction in the game's background loader (a queued model, then a queued texture during fast
-  travel). 0 keeps the game's own locking.
-- **NVTF.ini**: `iReplaceGeometryPrecacheLocks = 0` (Gopher's INI ships 1, "makes geometry loading
-  multithreaded"). Changed 2026-11-14 after a crash while the main thread finished a background model
-  load.
-- **NVTF.ini**: `bTweakMiscCriticalSections = 0` (Gopher's INI ships 1). Changed 2026-11-14 after a
-  fifth crash at the same loader instruction (FalloutNV 0xA61A74), which came after both lock tweaks
-  above were already 0 and with or without DXVK. Turning it off only costs a little loading speed.
+- **NVTF.ini**: `iReplaceTextureCreationLocks = 1` (Gopher's INI ships 2, which "can (rarely) cause
+  crashes"). Keep `iReplaceGeometryPrecacheLocks = 1` and `bTweakMiscCriticalSections = 1` as shipped.
+  **Do not set the lock tweaks to 0 to "play it safe".** The game's own loader locking has a known
+  race (FalloutNV 0xA61A74, called from 0x43C4E0, in queued model and texture loads; the old NVAC
+  carried a guard for it). On 2026-11-14, turning NVTF's replacements off brought that crash out six
+  times in about 3.5 hours of play, mostly on doors and fast travel. It had not appeared once before
+  they were turned off. They were restored the same night.
 - **ITR NVSE**: `Data\config\itr-nvse.ini` with only `[Tweaks] bSmallDebrisCap=0`; all other ITR
   settings stay at defaults, including every crash fix. SmallDebrisCap (new in ITR 2.3.0) retains,
   culls and releases shell-casing debris, and both casing crashes on 2026-11-14 involved those objects.
