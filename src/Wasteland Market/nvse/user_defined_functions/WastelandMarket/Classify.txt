@@ -1,0 +1,109 @@
+; Wasteland Market: sorts every loaded item into a price category, on every load (base values are
+; never saved, so they are vanilla again on each load and are read fresh here). Items are listed with
+; JIP GetLoadedTypeArray: ammo 41, aid 47, weapons 40, armor 24, misc 31. Each item's category and
+; original value are kept on the item form itself, as temporary aux variables ("*_wmCat" = category
+; + 1, "*_wmV"), and every categorised item in "*_wmItem" (count "*_wmN").
+; Rules, in order: worthless, quest or unplayable items and currency are left out; the Fission
+; Battery is its own category; anything named "pre-war" is a pre-war good; ammo named energy cell,
+; microfusion, electron charge or flamer fuel is an energy cell; aid flagged medicine is medicine,
+; addictive aid is a chem, other aid is food and drink; then weapons, armor, and misc as scrap.
+int iT
+int iK
+int iN
+int iCnt
+int iCat
+int iVal
+int iType
+int iId
+ref rForm
+ref rBatt
+array_var aTypes
+array_var aForms
+array_var aCur
+string_var sName
+
+begin Function {}
+	; currency stays out of the market (caps, NCR $5/$20/$100, Legion Denarius/Aureus/mangled,
+	; pre-war money); marked so the loop can skip it
+	let aCur := Ar_List 15, 1287382, 1287383, 1287384, 1276829, 1287385, 1520182, 213095
+	let iK := 0
+	while iK < Ar_Size aCur
+		let iId := aCur[iK]
+		let rForm := BuildRef 0 iId
+		if eval IsFormValid rForm
+			AuxVarSetFlt "*_wmSkip" 1 0 rForm
+		endif
+		let iK += 1
+	loop
+	let rBatt := BuildRef 0 211910	; Fission Battery (FalloutNV.esm 0x033BC6)
+	let aTypes := Ar_List 41, 47, 40, 24, 31
+	let iN := 0
+	let iT := 0
+	while iT < 5
+		let iType := aTypes[iT]
+		let iT += 1
+		let aForms := GetLoadedTypeArray iType
+		if eval aForms == Ar_Null
+			continue
+		endif
+		let iCnt := Ar_Size aForms
+		let iK := 0
+		while iK < iCnt
+			let rForm := aForms[iK]
+			let iK += 1
+			if eval (IsFormValid rForm) == 0
+				continue
+			endif
+			let iVal := GetValue rForm
+			if iVal < 1
+				continue
+			endif
+			if eval (IsQuestItem rForm) || (IsPlayable rForm) == 0
+				continue
+			endif
+			if eval (AuxVarGetFlt "*_wmSkip" 0 rForm) == 1
+				continue
+			endif
+			let sName := GetName rForm
+			let iCat := -1
+			if eval rForm == rBatt
+				let iCat := 2
+			elseif eval (sv_Find "pre-war" sName) >= 0
+				let iCat := 8
+			elseif iType == 41
+				let iCat := 0
+				if eval (sv_Find "energy cell" sName) >= 0 || (sv_Find "microfusion" sName) >= 0
+					let iCat := 1
+				elseif eval (sv_Find "electron charge" sName) >= 0 || (sv_Find "flamer fuel" sName) >= 0
+					let iCat := 1
+				endif
+			elseif iType == 47
+				let iCat := 4
+				if eval GetIngestibleFlag rForm 4
+					let iCat := 3
+				elseif eval (GetAddictionChance rForm) > 0
+					let iCat := 5
+				endif
+			elseif iType == 40
+				let iCat := 6
+			elseif iType == 24
+				let iCat := 7
+			elseif iType == 31
+				let iCat := 9
+			endif
+			if iCat < 0
+				continue
+			endif
+			player.AuxVarSetRef "*_wmItem" rForm iN
+			let iCat += 1
+			AuxVarSetFlt "*_wmCat" iCat 0 rForm
+			AuxVarSetFlt "*_wmV" iVal 0 rForm
+			let iN += 1
+		loop
+	loop
+	player.AuxVarSetFlt "*_wmN" iN
+	let aTypes := Ar_Null
+	let aForms := Ar_Null
+	let aCur := Ar_Null
+	SetFunctionValue iN
+end

@@ -1,0 +1,18 @@
+; Wasteland Market: the pamphlet was equipped. Takes it off again and opens it.
+int iPlug
+ref rPam
+ref rOpen
+
+begin Function {}
+	let iPlug := GetModIndex "WastelandMarket.esp"
+	let rPam := BuildRef iPlug 2048	; WMPamphlet
+	if eval (player.GetEquipped rPam) == 0
+		return
+	endif
+	player.UnequipItem rPam 0 1
+	if player.GetDead
+		return
+	endif
+	let rOpen := CompileScript "WastelandMarket/Open.txt"
+	call rOpen
+end

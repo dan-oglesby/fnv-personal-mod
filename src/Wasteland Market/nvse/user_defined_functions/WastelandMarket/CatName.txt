@@ -1,0 +1,27 @@
+; Wasteland Market: a category's name.
+int iCat
+string_var sName
+
+begin Function {iCat}
+	let sName := "Scrap and junk"
+	if iCat == 0
+		let sName := "Ammo"
+	elseif iCat == 1
+		let sName := "Energy cells"
+	elseif iCat == 2
+		let sName := "Fission batteries"
+	elseif iCat == 3
+		let sName := "Medicine"
+	elseif iCat == 4
+		let sName := "Food and drink"
+	elseif iCat == 5
+		let sName := "Chems"
+	elseif iCat == 6
+		let sName := "Weapons"
+	elseif iCat == 7
+		let sName := "Armor"
+	elseif iCat == 8
+		let sName := "Pre-war goods"
+	endif
+	SetFunctionValue sName
+end

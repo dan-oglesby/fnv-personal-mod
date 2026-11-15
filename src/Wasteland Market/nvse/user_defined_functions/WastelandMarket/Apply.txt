@@ -1,0 +1,46 @@
+; Wasteland Market: sets every categorised item's value to its original value times its
+; category's price multiplier (JIP SetBaseItemValue, at least 1 cap). That changes buying and
+; selling prices everywhere at once. Run after loading and whenever prices change.
+int iN
+int iIdx
+int iCat
+int iNew
+float fV
+float fP
+ref rForm
+array_var aP
+
+begin Function {}
+	let aP := Ar_Construct "array"
+	let iIdx := 0
+	while iIdx < 10
+		let fP := player.AuxVarGetFlt "_wmP" iIdx
+		if fP <= 0
+			let fP := 1
+		endif
+		Ar_Append aP fP
+		let iIdx += 1
+	loop
+	let iN := player.AuxVarGetFlt "*_wmN"
+	let iIdx := 0
+	while iIdx < iN
+		let rForm := player.AuxVarGetRef "*_wmItem" iIdx
+		let iIdx += 1
+		if eval (IsFormValid rForm) == 0
+			continue
+		endif
+		let iCat := AuxVarGetFlt "*_wmCat" 0 rForm
+		let iCat -= 1
+		if iCat < 0 || iCat > 9
+			continue
+		endif
+		let fV := AuxVarGetFlt "*_wmV" 0 rForm
+		let fP := aP[iCat]
+		let iNew := Floor (fV * fP + 0.5)
+		if iNew < 1
+			let iNew := 1
+		endif
+		SetBaseItemValue rForm iNew
+	loop
+	let aP := Ar_Null
+end

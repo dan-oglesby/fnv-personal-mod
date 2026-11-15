@@ -1,0 +1,45 @@
+; Wasteland Market: moves a category's price after you trade fVol caps' worth of it (at original
+; value; positive = you bought, negative = you sold). Each category has a depth: the caps of net
+; trade that move its price 10 percent (ammo 600, energy cells 400, fission batteries 300, medicine
+; 400, food and drink 300, chems 400, weapons 1500, armor 1500, pre-war goods 500, scrap 400).
+; Prices stay within the set range (default 50 percent either way). For scarce goods (energy cells,
+; fission batteries, medicine, pre-war goods) a quarter of every rise also raises the level the
+; price settles back to (at most 25 percent): they keep a premium.
+int iCat
+float fVol
+float fDepth
+float fMove
+float fP
+float fA
+float fRange
+array_var aDepth
+
+begin Function {iCat, fVol}
+	let aDepth := Ar_List 600, 400, 300, 400, 300, 400, 1500, 1500, 500, 400
+	let fDepth := aDepth[iCat]
+	let aDepth := Ar_Null
+	let fMove := fVol / fDepth * 0.1
+	let fP := player.AuxVarGetFlt "_wmP" iCat
+	let fP += fMove
+	let fRange := player.AuxVarGetFlt "_wmRange"
+	let fRange /= 100
+	if fP > 1 + fRange
+		let fP := 1 + fRange
+	elseif fP < 1 - fRange
+		let fP := 1 - fRange
+	endif
+	player.AuxVarSetFlt "_wmP" fP iCat
+	if fVol > 0
+		player.AuxVarSetFlt "_wmWhy" 1 iCat
+		if iCat == 1 || iCat == 2 || iCat == 3 || iCat == 8
+			let fA := player.AuxVarGetFlt "_wmA" iCat
+			let fA += fMove * 0.25
+			if fA > 1.25
+				let fA := 1.25
+			endif
+			player.AuxVarSetFlt "_wmA" fA iCat
+		endif
+	elseif fVol < 0
+		player.AuxVarSetFlt "_wmWhy" 2 iCat
+	endif
+end

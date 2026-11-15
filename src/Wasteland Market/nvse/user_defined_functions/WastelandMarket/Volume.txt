@@ -1,0 +1,45 @@
+; Wasteland Market: how much of each category you carry, in caps at original value, into
+; "*_wmS" (iWhich 0, when a barter opens) or "*_wmE" (iWhich 1, when it closes). The difference is
+; what you bought (positive) or sold (negative).
+int iWhich
+int iNum
+int iIdx
+int iCat
+int iCnt
+float fV
+ref rItem
+array_var aSum
+
+begin Function {iWhich}
+	let aSum := Ar_List 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	let iNum := player.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := player.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		let iCat := AuxVarGetFlt "*_wmCat" 0 rItem
+		let iCat -= 1
+		if iCat < 0 || iCat > 9
+			continue
+		endif
+		let iCnt := player.GetItemCount rItem
+		let fV := AuxVarGetFlt "*_wmV" 0 rItem
+		let fV *= iCnt
+		let fV += aSum[iCat]
+		let aSum[iCat] := fV
+	loop
+	let iIdx := 0
+	while iIdx < 10
+		let fV := aSum[iIdx]
+		if iWhich == 0
+			player.AuxVarSetFlt "*_wmS" fV iIdx
+		else
+			player.AuxVarSetFlt "*_wmE" fV iIdx
+		endif
+		let iIdx += 1
+	loop
+	let aSum := Ar_Null
+end

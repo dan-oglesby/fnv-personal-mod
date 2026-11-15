@@ -1,0 +1,33 @@
+; Wasteland Market: JIP menu-close handler for the barter menu (1053). What you carry now against
+; what you carried when it opened, per category, is what you bought or sold: Push.txt moves the
+; prices, then Apply.txt sets them.
+int iMenu
+int iC
+int iMoved
+float fDelta
+ref rFn
+ref rPush
+
+begin Function {iMenu}
+	if iMenu != 1053
+		return
+	endif
+	let rFn := CompileScript "WastelandMarket/Volume.txt"
+	call rFn 1
+	let rPush := CompileScript "WastelandMarket/Push.txt"
+	let iMoved := 0
+	let iC := 0
+	while iC < 10
+		let fDelta := player.AuxVarGetFlt "*_wmE" iC
+		let fDelta -= player.AuxVarGetFlt "*_wmS" iC
+		if fDelta >= 1 || fDelta <= -1
+			call rPush iC fDelta
+			let iMoved := 1
+		endif
+		let iC += 1
+	loop
+	if iMoved == 1
+		let rFn := CompileScript "WastelandMarket/Apply.txt"
+		call rFn
+	endif
+end

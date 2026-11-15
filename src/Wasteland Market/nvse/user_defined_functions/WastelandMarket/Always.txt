@@ -1,0 +1,4 @@
+; Wasteland Market: condition for the regular check (always run; xNVSE clears it on load).
+begin Function {}
+	SetFunctionValue 1
+end

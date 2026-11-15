@@ -1,0 +1,85 @@
+; Wasteland Market: traders chasing a premium. If a category sells for at least 10 percent above
+; the level it settles at, each merchant you have traded with has a chance (the premium, so +40
+; percent = 40 percent) to bring in stock of it: a random item of that category, added to their
+; stock container. Ammo comes 20 to 40 at a time, fission batteries 1 or 2, aid 1 to 3, weapons and
+; armor one each. Every delivery eases the price 2 percent (never below the settling level).
+; Merchants restock to their own lists every few days, so deliveries keep coming only while the
+; premium lasts.
+int iCat
+int iN
+int iK
+int iTry
+int iItems
+int iIdx
+int iHas
+int iAmt
+int iWant
+float fP
+float fA
+float fPrem
+float fRoll
+ref rCont
+ref rForm
+
+begin Function {iCat}
+	let fP := player.AuxVarGetFlt "_wmP" iCat
+	let fA := player.AuxVarGetFlt "_wmA" iCat
+	let fPrem := fP - fA
+	if fPrem < 0.1
+		return
+	endif
+	let iItems := player.AuxVarGetFlt "*_wmN"
+	if iItems < 1
+		return
+	endif
+	let iWant := iCat + 1
+	let iN := player.AuxVarGetFlt "_wmMerN"
+	let iK := 0
+	while iK < iN
+		let rCont := player.AuxVarGetRef "_wmMer" iK
+		let iK += 1
+		if eval (IsFormValid rCont) == 0
+			continue
+		endif
+		let fRoll := Rand 0 1
+		if fRoll >= fPrem
+			continue
+		endif
+		; a random item of this category (up to 60 tries)
+		let rForm := 0
+		let iTry := 0
+		while iTry < 60
+			let iIdx := Floor (Rand 0 iItems)
+			if iIdx >= iItems
+				let iIdx := iItems - 1
+			endif
+			let rForm := player.AuxVarGetRef "*_wmItem" iIdx
+			let iHas := AuxVarGetFlt "*_wmCat" 0 rForm
+			if iHas == iWant
+				break
+			endif
+			let rForm := 0
+			let iTry += 1
+		loop
+		if eval (IsFormValid rForm) == 0
+			continue
+		endif
+		let iAmt := 1
+		if iCat <= 1
+			let iAmt := Floor (Rand 20 41)
+		elseif iCat == 2
+			let iAmt := Floor (Rand 1 3)
+		elseif iCat <= 5
+			let iAmt := Floor (Rand 1 4)
+		elseif iCat >= 8
+			let iAmt := Floor (Rand 1 3)
+		endif
+		rCont.AddItem rForm iAmt 1
+		let fP -= 0.02
+		if fP < fA
+			let fP := fA
+		endif
+		player.AuxVarSetFlt "_wmWhy" 5 iCat
+	loop
+	player.AuxVarSetFlt "_wmP" fP iCat
+end

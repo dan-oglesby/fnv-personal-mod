@@ -1,0 +1,122 @@
+; Wasteland Market (Dan, 2026-11-15): a living Mojave economy. Prices move by category with your
+; trading (buying pushes a category up, selling pushes it down, at most 50 percent either way),
+; drift back about halfway in a week, and scarce goods (energy cells, fission batteries, medicine,
+; pre-war goods) keep part of any rise. Traders you deal with bring in stock of anything selling
+; well above normal, so buying fission batteries gets more merchants carrying them. Now and then a
+; scavenger's big haul floods a category or a shortage drives it up. The Mojave Market Pamphlet
+; (equip it from the Pip-Boy) shows what's moving and why.
+;
+; How: every load, each item is sorted into a category and its original value noted (Classify.txt);
+; prices are applied with JIP SetBaseItemValue (Apply.txt), so they change everywhere at once.
+; Trades are measured from what you carry when a barter opens and closes (menu 1053). Run by JIP LN
+; NVSE's script runner (ln_: new game and every load). Needs xNVSE and JIP LN.
+
+if eval IsModLoaded "WastelandMarket.esp"
+	; Every function a timer or event handler calls must have compiled (2026-11-13). The market
+	; itself is required; the pamphlet is optional, so a broken page can't stop the market.
+	let int iBad := 0
+	let int iMenuBad := 0
+	let ref rChk := 0
+	let rChk := CompileScript "WastelandMarket/Always.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/Apply.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/Classify.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/Daily.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/Init.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/OnMenuClose.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/OnMenuOpen.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/Push.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/Supply.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/Tick.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/Volume.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/CatName.txt"
+	if eval (IsFormValid rChk) == 0
+		let iMenuBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/WhyName.txt"
+	if eval (IsFormValid rChk) == 0
+		let iMenuBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/Open.txt"
+	if eval (IsFormValid rChk) == 0
+		let iMenuBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/OpenBtn.txt"
+	if eval (IsFormValid rChk) == 0
+		let iMenuBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/OnEquip.txt"
+	if eval (IsFormValid rChk) == 0
+		let iMenuBad += 1
+	endif
+	let rChk := CompileScript "WastelandMarket/UseItem.txt"
+	if eval (IsFormValid rChk) == 0
+		let iMenuBad += 1
+	endif
+	if iBad > 0
+		print "Wasteland Market: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
+		MessageEx "Wasteland Market is switched off: a script failed to compile"
+	else
+		let ref rInit := CompileScript "WastelandMarket/Init.txt"
+		call rInit
+		let ref rClass := CompileScript "WastelandMarket/Classify.txt"
+		let int iItems := call rClass
+		print "Wasteland Market: " + $iItems + " items priced by category"
+		let ref rApply := CompileScript "WastelandMarket/Apply.txt"
+		call rApply
+		let ref rOpenH := CompileScript "WastelandMarket/OnMenuOpen.txt"
+		let ref rCloseH := CompileScript "WastelandMarket/OnMenuClose.txt"
+		SetOnMenuOpenEventHandler rOpenH 1 1053
+		SetOnMenuCloseEventHandler rCloseH 1 1053
+		; once every 5 s of play: flags 4 + 16 = not in menus, not while paused
+		let ref rTick := CompileScript "WastelandMarket/Tick.txt"
+		let ref rTrue := CompileScript "WastelandMarket/Always.txt"
+		CallWhilePerSeconds 5 rTick rTrue 20
+		if iMenuBad == 0
+			let int iWM := GetModIndex "WastelandMarket.esp"
+			let ref rPam := BuildRef iWM 2048	; WMPamphlet 0x000800
+			if eval (player.GetItemCount rPam) == 0
+				player.AddItem rPam 1 1
+			endif
+			let ref rOnEquip := CompileScript "WastelandMarket/OnEquip.txt"
+			RemoveEventHandler "OnActorEquip" rOnEquip
+			; Filtered to the pamphlet ("second" = the equipped item): an unfiltered equip handler
+			; feeds xNVSE's unlocked event queue during cell loads (2026-11-14).
+			SetEventHandler "OnActorEquip" rOnEquip "second"::rPam
+		else
+			print "Wasteland Market: the pamphlet is unavailable because a page failed to compile. The market still runs."
+		endif
+	endif
+endif

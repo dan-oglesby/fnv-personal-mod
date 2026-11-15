@@ -29,6 +29,7 @@ it. The old hotkeys (K and L) are still in the `ln_` files, commented out.
 | Scan Null Fix | Fixes a crash in xNVSE itself: scripts that scan the objects around you (`GetFirstRef`/`GetNextRef`, used by Auto Loot Enhanced, Increased Wasteland Spawns, Alternative Start and others) crash on an object whose base item is gone, such as an item just picked up. Skips those objects instead. | xNVSE **6.4.9** exactly (does nothing on any other version, and says so in `ScanNullFix.log`) | Built and tested offline against the real xNVSE DLL 2026-11-13 |
 | Fission Power | Power armor runs on fission batteries. Walking drains the one in the suit; when it's spent it's ejected at your feet as a Depleted Fission Battery and the next goes in. Out of batteries, the suit is dead weight (Agility -2, no Strength bonus, like NCR Salvaged Power Armor, and 25% slower: the dead servos drag) until you find one. PWR meter via Needs Meters; Smart Loot keeps a few batteries. | xNVSE 6.4+, JIP LN. Enable `FissionPower.esp` | Built 2026-11-15, untested in play |
 | Perk Bank | Finish the level-up menu without taking a perk and save the perk for later. Done stays clickable on the perk page, so you're never stuck when every perk you qualify for is taken. Banked perks come back at your next perk level: after you take that level's perk, the menu opens again once per banked perk. No plugin. | xNVSE, JIP LN | Built 2026-11-15, untested in play |
+| Wasteland Market | A living Mojave economy. Prices move by category with your trading (buy and they rise, sell and they fall, up to 50% either way), drift back about halfway in a week, and scarce goods (energy cells, fission batteries, medicine, pre-war goods) keep part of any rise. Traders you deal with bring in stock of whatever is selling well above normal. Now and then a scavenger's haul floods a category or a shortage drives it up. Equip the **Mojave Market Pamphlet** to see what's moving and why. | xNVSE, JIP LN. Enable `WastelandMarket.esp` | Built 2026-11-15, untested in play |
 | Needs Meters | Thirst, hunger, sleep (Hardcore), radiation and power armor charge (with Fission Power) as small segmented meters on the HUD, in the vanilla HUD style. Replaces Primary Needs HUD without replacing the game's HUD file. No plugin. | xNVSE 6.2.8+, JIP LN 56.95+, UI Organizer | Built 2026-11-14, untested in play. Disable Primary Needs HUD |
 | Smart Loot | Auto-loot that takes what is useful to you now: ammo for the weapons you carry (up to a cap), weapons with more Pip-Boy DPS than your best, spares for repairs, weapon mods that fit, a few of each aid item, keys, notes, anything weightless with value, and anything else worth enough caps a pound. From loose items, corpses and unowned containers (unlocked with your skill when that's no crime). Never steals. Also eats, drinks and patches you up (replaces Hardcore Helper). Settings: equip the **Scavenger's Duffel (Smart Loot)**. | xNVSE 6.4+, JIP LN, JohnnyGuitar NVSE, ITR NVSE (auto-consume). Enable `SmartLoot.esp` | Built 2026-11-14, untested in play. Disable Auto Loot Enhanced / Ultimate and Hardcore Helper |
 | Survival Start Kit | Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) at the start of a new game, or on the next load of an existing save, once, the same way the DLC does. No plugin. | Lonesome Road, xNVSE 6.1+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
@@ -140,6 +141,47 @@ watches the menu every frame and holds `_MaxPoints` equal to `_CurrPoints`, so D
   `ShowLevelUpMenuEx 0`), once per banked perk. Close one of those without picking and the bank stays
   as it was. If nothing is offered, the bank waits.
 - **Check the bank:** in the console, `print player.AuxVarGetFlt "_pbBank"` shows how many are banked.
+
+## How Wasteland Market works
+
+**Categories.** On every load, each loaded item (ammo, aid, weapons, armor, misc; JIP
+`GetLoadedTypeArray`) is sorted into a category, and its original value is noted. Worthless, quest
+and unplayable items and currency are left out.
+
+| # | Category | How an item gets there | Market depth (caps of net trade per 10%) |
+|---|---|---|---|
+| 0 | Ammo | any other ammo | 600 |
+| 1 | Energy cells | ammo named energy cell, microfusion, electron charge or flamer fuel | 400, scarce |
+| 2 | Fission batteries | the Fission Battery | 300, scarce |
+| 3 | Medicine | aid flagged as medicine | 400, scarce |
+| 4 | Food and drink | other aid | 300 |
+| 5 | Chems | addictive aid | 400 |
+| 6 | Weapons | weapons | 1500 |
+| 7 | Armor | armor | 1500 |
+| 8 | Pre-war goods | anything named "pre-war" | 500, scarce |
+| 9 | Scrap and junk | other misc items | 400 |
+
+**Prices.** Each category has a multiplier, 1 = normal, and every item's value is set to its
+original value times that multiplier (JIP `SetBaseItemValue`). Buying and selling prices change
+everywhere at once, and so does Smart Loot's "worth taking" rule.
+
+- **Your trading:** what you carry when a barter opens and closes (menu 1053) gives your net
+  purchase per category, in caps at original value. Buying pushes the price up and selling pushes it
+  down, by 10% per "depth" of caps. The limit is 50% either way.
+- **Scarce goods keep a premium:** a quarter of any rise also raises the level a scarce category
+  settles back to (at most +25%), and that extra fades only very slowly.
+- **Settling:** every game day, prices drift 10% of the way back, so about halfway in a week.
+- **Supply follows price:** each merchant you've traded with is remembered, up to 30. While a category
+  sells at least 10% above its settling level, each of them has a daily chance equal to the premium
+  (+40% gives a 40% chance) to bring in stock: a random item of that category in their stock
+  container. Each delivery eases the price 2%. So buying fission batteries gets more of your traders
+  carrying them.
+- **Market events:** an 8% daily chance, which can be switched off in the pamphlet. A scavenger's big
+  haul floods a random category (down 20-40%), or a shortage drives it up (20-40%).
+
+**The pamphlet.** The Mojave Market Pamphlet, in Apparel, lists every category at least 3% off normal
+(up or down, by how much, and why: your buying, your selling, a haul, a shortage, or traders bringing
+stock), the latest news, and how many traders you deal with.
 
 ## How Needs Meters works
 

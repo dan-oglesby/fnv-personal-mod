@@ -1,0 +1,13 @@
+; Wasteland Market: pamphlet buttons. 0 market events on or off, 1 close.
+int iBtn
+float fVal
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 0
+		let fVal := 1 - (player.AuxVarGetFlt "_wmEvents")
+		player.AuxVarSetFlt "_wmEvents" fVal
+		let rNext := CompileScript "WastelandMarket/Open.txt"
+		call rNext
+	endif
+end

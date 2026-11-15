@@ -1,0 +1,77 @@
+; Wasteland Market: once per game day. Prices drift back toward the level they settle at (10
+; percent of the gap a day, so about half the way in a week). Scarce goods' raised settling level
+; fades very slowly (half a percent of the extra a day). Then, if events are on, an 8 percent chance
+; of a market event in a random category: a scavenger's big haul floods it (price down 20 to 40
+; percent) or a shortage (up 20 to 40 percent). Then traders bring stock where there's a premium
+; (Supply.txt), and the new prices are set (Apply.txt).
+int iC
+int iKind
+float fP
+float fA
+float fRange
+float fSize
+float fDay
+float fRoll
+float fGap
+ref rFn
+
+begin Function {}
+	let fRange := player.AuxVarGetFlt "_wmRange"
+	let fRange /= 100
+	let iC := 0
+	while iC < 10
+		let fP := player.AuxVarGetFlt "_wmP" iC
+		let fA := player.AuxVarGetFlt "_wmA" iC
+		if fA > 1
+			let fA := 1 + (fA - 1) * 0.995
+			player.AuxVarSetFlt "_wmA" fA iC
+		endif
+		let fP := fA + (fP - fA) * 0.9
+		let fGap := fP - fA
+		if fGap < 0.02 && fGap > -0.02
+			player.AuxVarSetFlt "_wmWhy" 0 iC
+		endif
+		player.AuxVarSetFlt "_wmP" fP iC
+		let iC += 1
+	loop
+	if eval (player.AuxVarGetFlt "_wmEvents") == 1
+		let fRoll := Rand 0 100
+		if fRoll < 8
+			let iC := Floor (Rand 0 10)
+			if iC > 9
+				let iC := 9
+			endif
+			let iKind := Floor (Rand 0 2)
+			if iKind > 1
+				let iKind := 1
+			endif
+			let fSize := Rand 0.2 0.4
+			let fP := player.AuxVarGetFlt "_wmP" iC
+			if iKind == 0
+				let fP -= fSize
+				player.AuxVarSetFlt "_wmWhy" 3 iC
+			else
+				let fP += fSize
+				player.AuxVarSetFlt "_wmWhy" 4 iC
+			endif
+			if fP > 1 + fRange
+				let fP := 1 + fRange
+			elseif fP < 1 - fRange
+				let fP := 1 - fRange
+			endif
+			player.AuxVarSetFlt "_wmP" fP iC
+			let fDay := GameDaysPassed
+			player.AuxVarSetFlt "_wmEvC" iC
+			player.AuxVarSetFlt "_wmEvK" iKind
+			player.AuxVarSetFlt "_wmEvD" fDay
+		endif
+	endif
+	let rFn := CompileScript "WastelandMarket/Supply.txt"
+	let iC := 0
+	while iC < 10
+		call rFn iC
+		let iC += 1
+	loop
+	let rFn := CompileScript "WastelandMarket/Apply.txt"
+	call rFn
+end

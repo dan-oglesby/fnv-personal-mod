@@ -1,0 +1,19 @@
+; Wasteland Market: why a category's price last moved.
+int iWhy
+string_var sName
+
+begin Function {iWhy}
+	let sName := "settling"
+	if iWhy == 1
+		let sName := "your buying"
+	elseif iWhy == 2
+		let sName := "your selling"
+	elseif iWhy == 3
+		let sName := "a scavenger's big haul flooded the market"
+	elseif iWhy == 4
+		let sName := "a shortage"
+	elseif iWhy == 5
+		let sName := "traders are bringing in stock"
+	endif
+	SetFunctionValue sName
+end

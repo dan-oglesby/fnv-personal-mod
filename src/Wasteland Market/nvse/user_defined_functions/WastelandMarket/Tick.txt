@@ -1,0 +1,26 @@
+; Wasteland Market: every 5 s of play. Runs Daily.txt once for each game day that has passed since
+; the last run (at most 7, so a long sleep or fast travel catches up without stalling).
+int iDays
+float fNow
+float fLast
+ref rFn
+
+begin Function {}
+	let fNow := GameDaysPassed
+	let fNow := Floor fNow
+	let fLast := player.AuxVarGetFlt "_wmDay"
+	let fLast := Floor fLast
+	if fNow <= fLast
+		return
+	endif
+	let iDays := fNow - fLast
+	if iDays > 7
+		let iDays := 7
+	endif
+	player.AuxVarSetFlt "_wmDay" fNow
+	let rFn := CompileScript "WastelandMarket/Daily.txt"
+	while iDays > 0
+		call rFn
+		let iDays -= 1
+	loop
+end

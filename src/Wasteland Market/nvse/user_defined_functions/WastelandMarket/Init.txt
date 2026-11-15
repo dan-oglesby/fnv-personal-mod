@@ -1,0 +1,29 @@
+; Wasteland Market: settings and market state, set once per save (JIP auxiliary variables on the
+; player, kept with the save). Categories (index): 0 ammo, 1 energy cells, 2 fission batteries,
+; 3 medicine, 4 food and drink, 5 chems, 6 weapons, 7 armor, 8 pre-war goods, 9 scrap and junk.
+;   "_wmP" i   price multiplier (1 = normal, 0.5 to 1.5)
+;   "_wmA" i   the level it settles back to (1, or higher for scarce goods you've driven up)
+;   "_wmWhy" i why it last moved: 0 settled, 1 your buying, 2 your selling, 3 a scavenger's haul,
+;              4 a shortage, 5 traders brought in stock
+int iC
+float fDay
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_wmInit") >= 1
+		return
+	endif
+	player.AuxVarSetFlt "_wmInit" 1
+	let iC := 0
+	while iC < 10
+		player.AuxVarSetFlt "_wmP" 1 iC
+		player.AuxVarSetFlt "_wmA" 1 iC
+		player.AuxVarSetFlt "_wmWhy" 0 iC
+		let iC += 1
+	loop
+	let fDay := GameDaysPassed
+	player.AuxVarSetFlt "_wmDay" fDay
+	player.AuxVarSetFlt "_wmRange" 50	; prices move at most 50 percent either way
+	player.AuxVarSetFlt "_wmEvents" 1	; random market events (hauls and shortages)
+	player.AuxVarSetFlt "_wmEvC" -1		; no market event yet
+	player.AuxVarSetFlt "_wmMerN" 0		; merchants you have traded with (their stock containers)
+end

@@ -1,0 +1,19 @@
+; Wasteland Market: xNVSE OnActorEquip handler (filtered to the pamphlet). Equipping the Mojave
+; Market Pamphlet in the Pip-Boy opens it once the Pip-Boy is closed.
+ref rActor
+ref rItem
+int iPlug
+ref rPam
+ref rUse
+ref rPlayer
+
+begin Function {rActor, rItem}
+	let iPlug := GetModIndex "WastelandMarket.esp"
+	let rPam := BuildRef iPlug 2048	; WMPamphlet
+	let rPlayer := BuildRef 0 20	; 0x14 = the player
+	if eval (rItem != rPam) || (rActor != rPlayer)
+		return
+	endif
+	let rUse := CompileScript "WastelandMarket/UseItem.txt"
+	CallAfterSeconds 0.2 rUse	; runs in gameplay only, so after the Pip-Boy closes
+end

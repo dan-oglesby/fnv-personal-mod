@@ -1,0 +1,46 @@
+; Wasteland Market: JIP menu-open handler for the barter menu (1053). Notes what you carry, and
+; remembers the merchant (the barter menu's merchant, or the dialogue partner) by their stock container, so traders
+; you deal with can bring in stock later (Supply.txt). Up to 30 merchants are remembered.
+int iMenu
+int iN
+int iK
+int iFound
+ref rWho
+ref rCont
+ref rHave
+ref rFn
+
+begin Function {iMenu}
+	if iMenu != 1053
+		return
+	endif
+	let rFn := CompileScript "WastelandMarket/Volume.txt"
+	call rFn 0
+	let rWho := GetMenuTargetRef 1053	; the barter menu's merchant (JIP: BarterMenu->merchantRef)
+	if eval (IsFormValid rWho) == 0
+		let rWho := GetMenuTargetRef 1009	; or the dialogue partner
+	endif
+	if eval (IsFormValid rWho) == 0
+		return
+	endif
+	let rCont := rWho.GetMerchantContainer
+	if eval (IsFormValid rCont) == 0
+		return
+	endif
+	let iN := player.AuxVarGetFlt "_wmMerN"
+	let iFound := 0
+	let iK := 0
+	while iK < iN
+		let rHave := player.AuxVarGetRef "_wmMer" iK
+		if eval rHave == rCont
+			let iFound := 1
+			break
+		endif
+		let iK += 1
+	loop
+	if iFound == 0 && iN < 30
+		player.AuxVarSetRef "_wmMer" rCont iN
+		let iN += 1
+		player.AuxVarSetFlt "_wmMerN" iN
+	endif
+end

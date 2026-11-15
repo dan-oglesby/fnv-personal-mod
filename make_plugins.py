@@ -29,6 +29,10 @@ ITEMS = [
      r"Clutter\Junk\CigarettePack01.NIF",
      r"smoking_edisleado\icons\cigarette_pack.dds",                 # Light Up and Smoke's icon
      None),
+    ("WastelandMarket.esp", "Wasteland Market", "WMPamphlet", "Mojave Market Pamphlet",
+     r"clutter\junk\militarypamphlet01.nif",
+     r"interface\icons\pipboyimages\items\items_skill_mags_barter.dds",      # the barter magazine's icon
+     None),
     ("SmartLoot.esp", "Smart Loot", "SLDuffel", "Scavenger's Duffel (Smart Loot)",
      r"clutter\junk\dufflebag.nif",
      r"interface\icons\pipboyimages\items\items_briefcase.dds",
