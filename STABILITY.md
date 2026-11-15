@@ -54,9 +54,10 @@ updated 2026-11-14. Nexus links are `nexusmods.com/newvegas/mods/<id>`.
 
 ## Settings changed
 
-- **NVTF.ini**: `iReplaceTextureCreationLocks = 1`, not 2 as Gopher's INI ships it. NVTF's own
-  comment says mode 2 "can (rarely) cause crashes", and two background-loader crashes stopped
-  after the change.
+- **NVTF.ini**: `iReplaceTextureCreationLocks = 0` (Gopher's INI ships 2). Lowered to 1 on 2026-11-14
+  after a background-loader crash, then to 0 the same day after two more crashes at the same
+  instruction in the game's background loader (a queued model, then a queued texture during fast
+  travel). 0 keeps the game's own locking.
 - **NVTF.ini**: `iReplaceGeometryPrecacheLocks = 0` (Gopher's INI ships 1, "makes geometry loading
   multithreaded"). Changed 2026-11-14 after a crash while the main thread finished a background model
   load.
