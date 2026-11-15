@@ -1,5 +1,5 @@
 ; Auto Smoke: the only place that touches the Hardcore sleep-deprivation value (actor value
-; SleepDeprivation, code 75; higher = more tired, stages at 200/400/600/800/1000). Kept alone so
+; SleepDeprevation, spelled that way in the game's own name table (code 75); higher = more tired, stages at 200/400/600/800/1000). Kept alone so
 ; that if it ever fails to compile, only nicotine alertness switches off (ln_auto_smoke.txt checks
 ; it separately), not the whole of Auto Smoke.
 ; iOp 0: returns the current value. iOp 1: changes it by fAmt (never below 0), returns the change.
@@ -9,7 +9,7 @@ float fCur
 float fDelta
 
 begin Function {iOp, fAmt}
-	let fCur := player.GetAV SleepDeprivation
+	let fCur := player.GetAV SleepDeprevation
 	if iOp == 0
 		SetFunctionValue fCur
 		return
@@ -19,10 +19,10 @@ begin Function {iOp, fAmt}
 		let fDelta := 0 - fCur
 	endif
 	if fDelta != 0
-		player.ModAV SleepDeprivation fDelta
+		player.ModAV SleepDeprevation fDelta
 		; report the change that actually happened, so the console line after a smoke shows
 		; whether it took effect
-		let fDelta := player.GetAV SleepDeprivation
+		let fDelta := player.GetAV SleepDeprevation
 		let fDelta -= fCur
 	endif
 	SetFunctionValue fDelta
