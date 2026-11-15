@@ -1,7 +1,9 @@
 ; Fission Power: once a second of play (registered by ln_fission_power.txt; not in menus or paused).
 ; While you wear power armor (upper body slot, flagged as power armor; NCR Salvaged Power Armor has
 ; no servos and isn't), the distance you cover drains its battery: one step = 52.5 game units (0.75 m),
-; one battery = "_fpLife" steps (default 10,000, about 7.5 km). Doors and fast travel don't count:
+; one battery = "_fpLife" steps (default 10,000, about 7.5 km). Just having the suit online also
+; draws power: "_fpIdle" steps' worth per second of play (default 1), so a battery lasts about 2.8
+; hours standing still, against about half an hour running. Doors and fast travel don't count:
 ; a change of cell (or worldspace, outside) or a jump of more than 1,000 units in a second is skipped.
 ; When the battery runs out the spent one is ejected (dropped at your feet as a Depleted Fission
 ; Battery) and a fresh one from your inventory goes in. With none left, the suit is dead weight
@@ -63,6 +65,9 @@ begin Function {}
 	endif
 	let fLeft := player.AuxVarGetFlt "_fpLeft"
 	let fLeft -= fDist / 52.5
+	if fLeft > 0
+		let fLeft -= player.AuxVarGetFlt "_fpIdle"	; standby draw, once a second
+	endif
 	let rBatt := BuildRef 0 211910	; Fission Battery (FalloutNV.esm 0x033BC6)
 	let iSpare := player.GetItemCount rBatt
 	if fLeft <= 0

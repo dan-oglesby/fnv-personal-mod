@@ -155,7 +155,10 @@ was injected.
 
 Once a second, while you wear power armor, it measures how far you have moved and turns that into
 steps (52.5 game units, 0.75 m, per step). One fission battery powers a suit for 10,000 steps, about
-7.5 km. That is roughly half an hour of nonstop running, and longer in normal play. Doors, fast
+7.5 km. That is roughly half an hour of nonstop running. Just having the suit online also draws
+power, more slowly: by default 1 step's worth per second of play, so a battery lasts about 2.8 hours
+standing still. Time skipped by waiting or sleeping doesn't count, since the check only runs during
+play. Doors, fast
 travel and other jumps (a change of cell, or of worldspace outside, or more than 1,000 units in one
 second) don't count. Only armor the game flags as power armor needs power. NCR Salvaged Power Armor
 has had its servos stripped, and the game doesn't flag it, so it runs on nothing.
@@ -183,6 +186,7 @@ a full battery.
 - `player.AuxVarSetFlt "_fpLife" 20000` sets the steps per battery.
 - `player.AuxVarSetFlt "_fpPen" 0` turns off the dead-suit penalty.
 - `player.AuxVarSetFlt "_fpSlow" 40` sets how much slower a dead suit makes you, in percent.
+- `player.AuxVarSetFlt "_fpIdle" 2` sets the standby draw, in steps per second worn (0 = none).
 - `player.AuxVarSetFlt "_slBatt" 6` sets the batteries Smart Loot keeps.
 
 Take power armor off before uninstalling, or a dead-suit penalty that is active at the time stays.
