@@ -64,8 +64,16 @@ updated 2026-11-14. Nexus links are `nexusmods.com/newvegas/mods/<id>`.
 - **ITR NVSE**: `Data\config\itr-nvse.ini` with only `[Tweaks] bSmallDebrisCap=0`; all other ITR
   settings stay at defaults, including every crash fix. SmallDebrisCap (new in ITR 2.3.0) retains,
   culls and releases shell-casing debris, and both casing crashes on 2026-11-14 involved those objects.
-- **Permanent Weapon Shells**: use **Light** (`iDebrisMaxCount` 1250, casings last 10 min), not Very
-  Heavy (10000 for a day).
+- **Lasting shells, through Wasteland Tweaks instead of Permanent Weapon Shells** (2026-11-15).
+  Wasteland Tweaks sets the two game settings that mod used, separately, on every load: casings last
+  1 hour (`fGunShellLifetime` 3600) and at most 1,500 exist at once (`iDebrisMaxCount`). Past that,
+  the game removes the oldest itself. Keep ITR's SmallDebrisCap off. Permanent Weapon Shells "Very
+  Heavy" (10000 for a day) with SmallDebrisCap on was behind two casing crashes. Raise the numbers
+  a step at a time and watch for casing crashes.
+- **Fallout.ini `bUseThreadedTempEffects=0`** (2026-11-15). Casings and decals then update on the main
+  thread instead of a worker thread, which removes the kind of thread overlap behind the casing crash
+  on an AI thread. It costs a little performance, and no source confirms it as a fix; it is inferred
+  from the crash.
 - **dxvk.conf** (game folder): defaults. NVTF's `bUseFlipModel = 0` and
   `bUseDefaultPoolForTextures = 1` work as they are with DXVK.
 - **NVIDIA "DXGI interop"** for DXVK (NVIDIA Profile Inspector): *not* set. It's optional on

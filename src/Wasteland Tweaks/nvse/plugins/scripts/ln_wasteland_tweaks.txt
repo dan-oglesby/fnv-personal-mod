@@ -1,0 +1,27 @@
+; Wasteland Tweaks (Dan, 2026-11-15): small adjustments that don't need a mod of their own. No
+; plugin. Run by JIP LN NVSE's script runner (ln_: new game and every load); game settings are not
+; saved, so they are set again on every load. Needs xNVSE.
+;
+; 1. Lasting shells: spent casings stay on the ground for a long time, the way Permanent Weapon
+;    Shells did, but with the two numbers apart: how long a casing lasts (fGunShellLifetime, real
+;    seconds) and how many can exist at once (iDebrisMaxCount; past it the game removes the oldest
+;    itself). Defaults: 1 hour, 1,500 casings. Permanent Weapon Shells "Very Heavy" (a day, 10,000)
+;    plus ITR's SmallDebrisCap (keep it off: bSmallDebrisCap=0) were behind two casing crashes on
+;    2026-11-14. Change them from the console, then reload:
+;      player.AuxVarSetFlt "_twShellLife" 7200     seconds a casing lasts (0 = leave the game's own)
+;      player.AuxVarSetFlt "_twShellMax" 2500      casings at once (0 = leave the game's own)
+;    Don't run Permanent Weapon Shells alongside: it sets the same two settings.
+
+if eval (player.AuxVarGetFlt "_twInit") < 1
+	player.AuxVarSetFlt "_twInit" 1
+	player.AuxVarSetFlt "_twShellLife" 3600
+	player.AuxVarSetFlt "_twShellMax" 1500
+endif
+let float fTwLife := player.AuxVarGetFlt "_twShellLife"
+let float fTwMax := player.AuxVarGetFlt "_twShellMax"
+if fTwLife > 0
+	SetNumericGameSetting "fGunShellLifetime" fTwLife
+endif
+if fTwMax > 0
+	SetNumericGameSetting "iDebrisMaxCount" fTwMax
+endif
