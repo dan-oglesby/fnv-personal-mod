@@ -35,6 +35,18 @@ begin Function {rItem, iHave}
 	if eval (IsPlayable rItem) == 0
 		return
 	endif
+	; always taken, even though the game flags them as quest items: NCR dogtags (FalloutNV.esm
+	; NCRDogtag 0x123054, IrradiatedNCRDogtag 0x13FE77)
+	let rList := BuildRef 0 1191988
+	if eval rItem == rList
+		SetFunctionValue iHave
+		return
+	endif
+	let rList := BuildRef 0 1310327
+	if eval rItem == rList
+		SetFunctionValue iHave
+		return
+	endif
 	if eval (IsQuestItem rItem) && (player.AuxVarGetFlt "_slQuest") == 0
 		return
 	endif
