@@ -61,6 +61,9 @@ updated 2026-11-14. Nexus links are `nexusmods.com/newvegas/mods/<id>`.
 - **NVTF.ini**: `iReplaceGeometryPrecacheLocks = 0` (Gopher's INI ships 1, "makes geometry loading
   multithreaded"). Changed 2026-11-14 after a crash while the main thread finished a background model
   load.
+- **NVTF.ini**: `bTweakMiscCriticalSections = 0` (Gopher's INI ships 1). Changed 2026-11-14 after a
+  fifth crash at the same loader instruction (FalloutNV 0xA61A74), which came after both lock tweaks
+  above were already 0 and with or without DXVK. Turning it off only costs a little loading speed.
 - **ITR NVSE**: `Data\config\itr-nvse.ini` with only `[Tweaks] bSmallDebrisCap=0`; all other ITR
   settings stay at defaults, including every crash fix. SmallDebrisCap (new in ITR 2.3.0) retains,
   culls and releases shell-casing debris, and both casing crashes on 2026-11-14 involved those objects.
