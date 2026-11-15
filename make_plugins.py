@@ -25,7 +25,8 @@ ITEMS = [
      r"clutter\holodisk\passcardblue.nif",
      r"interface\icons\pipboyimages\items\item_passcard .dds",      # vanilla's own name, with space
      r"interface\icons\pipboyimages_small\items_small\glow_items_passcard.dds"),
-    ("AutoSmoke.esp", "Auto Smoke", "ASCigaretteCase", "Cigarette Case (Auto Smoke)",
+    ("AutoSmoke.esp", "Wasteland Tweaks",     # Auto Smoke, part of Wasteland Tweaks since 2026-11-15
+     "ASCigaretteCase", "Cigarette Case (Auto Smoke)",
      r"Clutter\Junk\CigarettePack01.NIF",
      r"smoking_edisleado\icons\cigarette_pack.dds",                 # Light Up and Smoke's icon
      None),

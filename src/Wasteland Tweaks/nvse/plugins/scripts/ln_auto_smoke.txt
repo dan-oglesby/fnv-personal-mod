@@ -1,6 +1,7 @@
-; Auto Smoke (Dan, 2026-11-11): an add-on for "Light Up and Smoke Those Cigarettes" (edisleado,
+; Auto Smoke (Dan, 2026-11-11; part of Wasteland Tweaks since 2026-11-15): an add-on for "Light Up and Smoke Those Cigarettes" (edisleado,
 ; Nexus 49677). Lights your next smoke for you, the same as using it from the Pip-Boy, so the
-; mod's own lighting, effects, addiction and butts all apply.
+; mod's own lighting, effects, addiction and butts all apply. Butts and empty packs and cartons are
+; dropped where you stand (Litter.txt), like a real smoker.
 ;
 ; Settings: equip the Cigarette Case (Auto Smoke) from the Pip-Boy's Apparel tab; the menu opens
 ; when you close the Pip-Boy, the same way as the Wasteland Bank Card. The case is given on the
@@ -57,6 +58,10 @@ if eval IsModLoaded "LightUpAndSmokeThoseCigarettes_edisleado.esp"
 		let iBad += 1
 	endif
 	let rChk := CompileScript "AutoSmoke/UseCase.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/Litter.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
 	endif

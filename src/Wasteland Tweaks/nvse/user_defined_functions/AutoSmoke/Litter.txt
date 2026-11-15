@@ -1,0 +1,36 @@
+; Auto Smoke: drops cigarette, cigar and cigarillo butts and empty packs and cartons where you stand,
+; the way a smoker would. Light Up and Smoke Those Cigarettes puts them in your inventory when you
+; finish a smoke or open a pack (its author left the matching player.Drop lines commented out).
+; All five are worth nothing and weigh nothing, so Smart Loot leaves them on the ground.
+; Runs from Tick.txt every 5 s, whether auto-smoke is on or not, so hand-lit smokes litter too.
+; Setting "_asNoLitter" (1 = keep them in your inventory instead).
+; Light Up and Smoke's own forms, in decimal: CigarettePackEmpty 0x00D3DE, CigaretteButt 0x00D3DF,
+; CigaretteCartonEmpty 0x00D3E0, CigarButt 0x00E818, CigarilloButt 0x00E819.
+int iPlug
+int iIdx
+int iId
+int iCnt
+ref rItem
+array_var aIds
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_asNoLitter") == 1
+		return
+	endif
+	let iPlug := GetModIndex "LightUpAndSmokeThoseCigarettes_edisleado.esp"
+	let aIds := Ar_List 54238, 54239, 54240, 59416, 59417
+	let iIdx := 0
+	while iIdx < 5
+		let iId := aIds[iIdx]
+		let iIdx += 1
+		let rItem := BuildRef iPlug iId
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		let iCnt := player.GetItemCount rItem
+		if iCnt > 0
+			player.Drop rItem iCnt
+		endif
+	loop
+	let aIds := Ar_Null
+end

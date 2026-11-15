@@ -33,6 +33,10 @@ begin Function {}
 		call rFn
 	endif
 
+	; butts and empties go on the ground (Litter.txt), auto-smoke on or not
+	let rFn := CompileScript "AutoSmoke/Litter.txt"
+	call rFn
+
 	if eval (player.AuxVarGetFlt "_asOn") == 0
 		return
 	endif
