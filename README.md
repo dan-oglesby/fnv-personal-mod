@@ -27,7 +27,7 @@ it. The old hotkeys (K and L) are still in the `ln_` files, commented out.
 | Monocyte Limb Regen | With the Monocyte Breeder implant (New Vegas Medical Clinic), crippled limbs heal on their own at the implant's own health rate, 0.1 a second, so a fully crippled limb heals in about 17 minutes of play. | xNVSE 6.2.8+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 | Auto Smoke | An add-on for Light Up and Smoke Those Cigarettes (edisleado, Nexus 49677). Lights your next cigarette for you, as if you'd used it from the Pip-Boy: keep one lit, light up 1 to 20 minutes after the last one goes out, or only when you have nicotine withdrawal. Opens a pack or carton when you run out of loose ones. Settings: equip the **Cigarette Case (Auto Smoke)** from the Pip-Boy's Apparel tab. | Light Up and Smoke Those Cigarettes, xNVSE 6.2.8+, JIP LN 56.95+. Enable `AutoSmoke.esp` | Built 2026-11-11, untested in play |
 | Scan Null Fix | Fixes a crash in xNVSE itself: scripts that scan the objects around you (`GetFirstRef`/`GetNextRef`, used by Auto Loot Enhanced, Increased Wasteland Spawns, Alternative Start and others) crash on an object whose base item is gone, such as an item just picked up. Skips those objects instead. | xNVSE **6.4.9** exactly (does nothing on any other version, and says so in `ScanNullFix.log`) | Built and tested offline against the real xNVSE DLL 2026-11-13 |
-| Fission Power | Power armor runs on fission batteries. Walking drains the one in the suit; when it's spent it's ejected at your feet as a Depleted Fission Battery and the next goes in. Out of batteries, the suit is dead weight (Agility -2, no Strength bonus, like NCR Salvaged Power Armor) until you find one. PWR meter via Needs Meters; Smart Loot keeps a few batteries. | xNVSE 6.4+, JIP LN. Enable `FissionPower.esp` | Built 2026-11-15, untested in play |
+| Fission Power | Power armor runs on fission batteries. Walking drains the one in the suit; when it's spent it's ejected at your feet as a Depleted Fission Battery and the next goes in. Out of batteries, the suit is dead weight (Agility -2, no Strength bonus, like NCR Salvaged Power Armor, and 25% slower: the dead servos drag) until you find one. PWR meter via Needs Meters; Smart Loot keeps a few batteries. | xNVSE 6.4+, JIP LN. Enable `FissionPower.esp` | Built 2026-11-15, untested in play |
 | Needs Meters | Thirst, hunger, sleep (Hardcore), radiation and power armor charge (with Fission Power) as small segmented meters on the HUD, in the vanilla HUD style. Replaces Primary Needs HUD without replacing the game's HUD file. No plugin. | xNVSE 6.2.8+, JIP LN 56.95+, UI Organizer | Built 2026-11-14, untested in play. Disable Primary Needs HUD |
 | Smart Loot | Auto-loot that takes what is useful to you now: ammo for the weapons you carry (up to a cap), weapons with more Pip-Boy DPS than your best, spares for repairs, weapon mods that fit, a few of each aid item, keys, notes, anything weightless with value, and anything else worth enough caps a pound. From loose items, corpses and unowned containers (unlocked with your skill when that's no crime). Never steals. Also eats, drinks and patches you up (replaces Hardcore Helper). Settings: equip the **Scavenger's Duffel (Smart Loot)**. | xNVSE 6.4+, JIP LN, JohnnyGuitar NVSE, ITR NVSE (auto-consume). Enable `SmartLoot.esp` | Built 2026-11-14, untested in play. Disable Auto Loot Enhanced / Ultimate and Hardcore Helper |
 | Survival Start Kit | Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) at the start of a new game, or on the next load of an existing save, once, the same way the DLC does. No plugin. | Lonesome Road, xNVSE 6.1+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
@@ -165,8 +165,11 @@ has had its servos stripped, and the game doesn't flag it, so it runs on nothing
   from your inventory goes in, and a message says how many spares are left.
 - **No batteries left:** the suit is dead weight. Like NCR Salvaged Power Armor, the stripped-servo
   suit, you get Agility -2, and the suit's own Strength bonus is cancelled (read from its
-  enchantment). Vanilla salvaged armor has no movement penalty, so this doesn't either. All of it
-  comes back as soon as you load a battery or take the suit off.
+  enchantment). On top of that, the dead servos drag against every move, so you are **25% slower**.
+  Vanilla salvaged armor has no speed penalty, but its servos are gone rather than seized. Speed is
+  the SpeedMult actor value. The game caches movement speed, so JIP's `SetSpeedMult` refreshes it
+  and the change applies at once. All of it comes back as soon as you load a battery or take the
+  suit off.
 - **Low power:** a warning at 10% when you have no spares.
 - **On the HUD:** Needs Meters shows a **PWR** meter (five segments, alternate colour at 20%, blinking
   at 10%) and your spare count, only while you wear power armor.
@@ -179,6 +182,7 @@ a full battery.
 **Settings (console):**
 - `player.AuxVarSetFlt "_fpLife" 20000` sets the steps per battery.
 - `player.AuxVarSetFlt "_fpPen" 0` turns off the dead-suit penalty.
+- `player.AuxVarSetFlt "_fpSlow" 40` sets how much slower a dead suit makes you, in percent.
 - `player.AuxVarSetFlt "_slBatt" 6` sets the batteries Smart Loot keeps.
 
 Take power armor off before uninstalling, or a dead-suit penalty that is active at the time stays.

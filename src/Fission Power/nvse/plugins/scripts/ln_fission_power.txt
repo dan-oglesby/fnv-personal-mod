@@ -1,9 +1,11 @@
 ; Fission Power (Dan, 2026-11-15): power armor runs on fission batteries. Walking drains the one in
 ; the suit; when it runs out the spent battery is ejected at your feet and the next goes in. With none
-; left the suit is dead weight (Agility -2, no Strength bonus) until you find another. Batteries are
+; left the suit is dead weight (Agility -2, no Strength bonus, 25 percent slower) until you find
+; another. Batteries are
 ; the only fuel. Settings (console):
 ;   player.AuxVarSetFlt "_fpLife" 20000    steps per battery (default 10000, about 7.5 km)
 ;   player.AuxVarSetFlt "_fpPen" 0         no dead-suit penalty (1 = on)
+;   player.AuxVarSetFlt "_fpSlow" 40       a dead suit slows you 40 percent (default 25)
 ; Shows on the HUD through Needs Meters (PWR). Smart Loot keeps a few batteries while you own power
 ; armor. FissionPower.esp holds one item, the Depleted Fission Battery.
 ;

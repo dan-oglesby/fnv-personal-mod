@@ -1,13 +1,18 @@
 ; Fission Power: puts the dead-suit penalty on or takes it off. iOn 1 = the suit rSuit is out of
 ; power. Like NCR Salvaged Power Armor (servos stripped, Agility -2, no Strength bonus): the dead
-; servos cost Agility 2 and cancel the suit's own Strength bonus (read from its enchantment).
-; Applied amounts are kept in "_fpAgi" / "_fpStr", so this only ever changes the difference, and
+; servos cost Agility 2 and cancel the suit's own Strength bonus (read from its enchantment), and
+; they drag against you: movement speed down by "_fpSlow" percent (default 25). Speed is the
+; SpeedMult actor value; the game caches movement speed, so after changing it JIP's SetSpeedMult
+; (with no value) clears that cache and the new speed applies at once.
+; Applied amounts are kept in "_fpAgi" / "_fpStr" / "_fpSpd", so this only ever changes the
+; difference, and
 ; taking the suit off or powering it gives everything back. (Before uninstalling, take power armor
 ; off, or the penalty stays.)
 int iOn
 ref rSuit
 int iAgi
 int iStr
+int iSpd
 int iNum
 int iK
 float fDelta
@@ -18,8 +23,10 @@ ref rStrEff
 begin Function {iOn, rSuit}
 	let iAgi := 0
 	let iStr := 0
+	let iSpd := 0
 	if eval iOn == 1 && (player.AuxVarGetFlt "_fpPen") == 1
 		let iAgi := 2
+		let iSpd := player.AuxVarGetFlt "_fpSlow"
 		let rEnch := GetObjectEffect rSuit
 		if eval IsFormValid rEnch
 			let rStrEff := BuildRef 0 86364	; IncreaseStrength (FalloutNV.esm 0x01515C)
@@ -45,5 +52,12 @@ begin Function {iOn, rSuit}
 	if fDelta != 0
 		player.ModAV Strength fDelta
 		player.AuxVarSetFlt "_fpStr" iStr
+	endif
+	let fDelta := player.AuxVarGetFlt "_fpSpd"
+	let fDelta -= iSpd
+	if fDelta != 0
+		player.ModAV SpeedMult fDelta
+		player.AuxVarSetFlt "_fpSpd" iSpd
+		player.SetSpeedMult	; JIP: no value = only refresh the cached movement speed
 	endif
 end
