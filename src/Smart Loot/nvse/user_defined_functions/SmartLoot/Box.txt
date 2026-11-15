@@ -1,0 +1,94 @@
+; Smart Loot: loots one container or corpse (rRef), moving at most iBudget stacks. Returns how many
+; stacks it moved. Containers that are owned, or in an owned cell, are never touched.
+; A locked, unowned container is unlocked first if the setting allows: with its key, or with your
+; Lockpick skill if the lock is no harder than your skill (and, if set, a bobby pin), for the same
+; XP as Auto Loot Ultimate gives (20, plus 10 per lock level). "Requires key" locks need the key.
+; Items keep their condition and mods: RemoveItemTarget (JIP) moves them whole.
+int iType
+int iLock
+int iSet
+int iPins
+int iNum
+int iIdx
+int iHave
+int iTake
+int iMoved
+int iXP
+float fSkill
+ref rFn
+ref rItem
+ref rPin
+ref rSnd
+ref rRef
+int iBudget
+
+begin Function {rRef, iBudget}
+	SetFunctionValue 0
+	if eval (IsFormValid rRef) == 0
+		return
+	endif
+	let iType := GetType (rRef.GetBaseObject)
+	if iType == 27
+		let rFn := CompileScript "SmartLoot/Owned.txt"
+		if eval (call rFn rRef) == 1
+			return
+		endif
+	endif
+	if eval rRef.GetLocked
+		let iSet := player.AuxVarGetFlt "_slLock"
+		if iSet == 0
+			return
+		endif
+		let iLock := rRef.GetLockLevel
+		if eval rRef.PlayerHasKey
+			rRef.Unlock
+		elseif iLock <= 100
+			let fSkill := player.GetAV Lockpick
+			if fSkill < iLock
+				return
+			endif
+			if iSet == 2
+				let rPin := BuildRef 0 10	; Bobby Pin (FalloutNV.esm 0x0000000A, editor ID Lockpick)
+				let iPins := player.GetItemCount rPin
+				if iPins < 1
+					return
+				endif
+				player.RemoveItem rPin 1 1
+			endif
+			rRef.Unlock
+			let iXP := 20 + (Floor (iLock / 25)) * 10
+			player.RewardXP iXP
+			if eval (player.AuxVarGetFlt "_slMsg") >= 1
+				MessageEx "Smart Loot: unlocked %n (lock %.0f)" rRef iLock
+			endif
+		else
+			return
+		endif
+	endif
+
+	let rFn := CompileScript "SmartLoot/Judge.txt"
+	let iMoved := 0
+	let iNum := rRef.GetNumItems
+	let iIdx := iNum - 1
+	while iIdx >= 0
+		if iMoved >= iBudget
+			break
+		endif
+		let rItem := rRef.GetInventoryObject iIdx
+		let iIdx -= 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		let iHave := rRef.GetItemCount rItem
+		let iTake := call rFn rItem iHave
+		if iTake > 0
+			rRef.RemoveItemTarget rItem player iTake
+			let rSnd := CompileScript "SmartLoot/Sound.txt"
+			call rSnd rItem
+			let rSnd := CompileScript "SmartLoot/Note.txt"
+			call rSnd rItem
+			let iMoved += 1
+		endif
+	loop
+	SetFunctionValue iMoved
+end

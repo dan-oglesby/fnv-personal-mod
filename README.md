@@ -28,6 +28,7 @@ it. The old hotkeys (K and L) are still in the `ln_` files, commented out.
 | Auto Smoke | An add-on for Light Up and Smoke Those Cigarettes (edisleado, Nexus 49677). Lights your next cigarette for you, as if you'd used it from the Pip-Boy: keep one lit, light up 1 to 20 minutes after the last one goes out, or only when you have nicotine withdrawal. Opens a pack or carton when you run out of loose ones. Settings: equip the **Cigarette Case (Auto Smoke)** from the Pip-Boy's Apparel tab. | Light Up and Smoke Those Cigarettes, xNVSE 6.2.8+, JIP LN 56.95+. Enable `AutoSmoke.esp` | Built 2026-11-11, untested in play |
 | Scan Null Fix | Fixes a crash in xNVSE itself: scripts that scan the objects around you (`GetFirstRef`/`GetNextRef`, used by Auto Loot Enhanced, Increased Wasteland Spawns, Alternative Start and others) crash on an object whose base item is gone, such as an item just picked up. Skips those objects instead. | xNVSE **6.4.9** exactly (does nothing on any other version, and says so in `ScanNullFix.log`) | Built and tested offline against the real xNVSE DLL 2026-11-13 |
 | Needs Meters | Thirst, hunger, sleep (Hardcore) and radiation as four small segmented meters on the HUD, in the vanilla HUD style. Replaces Primary Needs HUD without replacing the game's HUD file. No plugin. | xNVSE 6.2.8+, JIP LN 56.95+, UI Organizer | Built 2026-11-14, untested in play. Disable Primary Needs HUD |
+| Smart Loot | Auto-loot that takes what is useful to you now: ammo for the weapons you carry (up to a cap), weapons with more Pip-Boy DPS than your best, spares for repairs, weapon mods that fit, a few of each aid item, keys, notes, anything weightless with value, and anything else worth enough caps a pound. From loose items, corpses and unowned containers (unlocked with your skill when that's no crime). Never steals. Settings: equip the **Scavenger's Duffel (Smart Loot)**. | xNVSE 6.4+, JIP LN, JohnnyGuitar NVSE. Enable `SmartLoot.esp` | Built 2026-11-14, untested in play. Disable Auto Loot Enhanced / Ultimate |
 | Survival Start Kit | Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) at the start of a new game, or on the next load of an existing save, once, the same way the DLC does. No plugin. | Lonesome Road, xNVSE 6.1+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 
 ## How the Survival Start Kit works
@@ -148,6 +149,51 @@ Settings are saved with the game.
 **Check it worked:** in Hardcore, the three meters show on the HUD and shorten as time passes, and
 RAD appears after drinking irradiated water. If nothing shows, the console says whether the HUD file
 was injected.
+
+## How Smart Loot works
+
+Every 1.5 seconds of play (never in menus, and by default not in combat), Smart Loot scans
+everything within reach once. It sorts what it finds into loose items and containers or corpses, and
+only then picks things up, at most 10 stacks per check. Picking up in the middle of a scan is what
+crashed Auto Loot Enhanced. Loose items are activated for you, as if you had pressed E, so their
+scripts run and the game adds them as usual. Items from containers and corpses move whole
+(JIP's `RemoveItemTarget`), keeping their condition and mods. Each pickup plays the item's own
+pickup sound, unless that sound is already playing.
+
+**What it takes**, in order:
+
+| Rule | Default | Choices |
+|---|---|---|
+| Keys and notes | always | |
+| No weight but some value (caps, money, stimpaks, magazines) | always | |
+| Ammo that a weapon you carry can fire (including its special ammo) | up to 300 per calibre | 100, 200, 300, 500, no cap |
+| Weapons with more DPS than your best of the same skill (or your best overall, if you carry none of that skill). DPS is the Pip-Boy's own figure for you, from JohnnyGuitar's `GetCalculatedWeaponDPS`. | 10% better | off, any better, 10%, 25% |
+| ...except ones whose Strength requirement you don't meet | left | take or leave |
+| Spares of your equipped weapon, for repairs | when it is under 60% condition | off, 40%, 60%, 80% |
+| Weapon mods that fit a weapon you carry | if you don't have one | |
+| Food, drink and other aid with weight | up to 5 of each | off, 3, 5, 10, 20 |
+| Anything else | worth at least 10 caps a pound | off, 5, 10, 20, 50 |
+| Quest items | left | take or leave |
+
+**Carry weight:** weighted items never use your last 25 lb of carry weight (0, 10, 25 or 50).
+
+**Containers and corpses:** corpses are always fair game. A container is only touched if neither it
+nor its cell has an owner, so it never steals, and it never empties your own containers at home. A
+locked container is unlocked if your Lockpick skill is at least the lock's level, or with its key.
+It gives the same XP as Auto Loot Ultimate (20, plus 10 per lock level). Optionally it also uses up
+a bobby pin. "Requires key" locks need the key.
+
+**Other settings:** reach (150, 200, 300 or 450 units), messages (off, upgrades and unlocks, or every
+pickup), pickup sounds, and looting in combat.
+
+**How it decides what you want:** every few seconds, or as soon as what you carry changes, it reads
+your inventory and builds its lists. These are the ammo types your weapons fire, the mods that fit
+them, your best DPS for each weapon skill, and your equipped weapon if it needs repair. The lists are
+empty form lists in `SmartLoot.esp`, filled at run time.
+
+**Check it worked:** after enabling, a Scavenger's Duffel appears in Apparel. Walk over some ammo
+for a gun you carry and it is picked up with its usual sound. Ammo for guns you don't carry stays
+where it is.
 
 ## How Scan Null Fix works
 

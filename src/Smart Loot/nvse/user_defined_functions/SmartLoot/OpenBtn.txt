@@ -1,0 +1,92 @@
+; Smart Loot: page 1 buttons. 0 on/off; 1 reach 150 > 200 > 300 > 450; 2 caps a pound
+; off > 5 > 10 > 20 > 50; 3 ammo cap 100 > 200 > 300 > 500 > none; 4 weapon upgrades off > any >
+; 10 > 25 percent; 5 too weak: take or leave; 6 repair spares off > 40 > 60 > 80 percent;
+; 7 page 2; 8 close.
+int iBtn
+float fVal
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 8
+		return
+	endif
+	if iBtn == 7
+		let rNext := CompileScript "SmartLoot/Open2.txt"
+		call rNext
+		return
+	endif
+	if iBtn == 0
+		let fVal := 1 - (player.AuxVarGetFlt "_slOn")
+		player.AuxVarSetFlt "_slOn" fVal
+	elseif iBtn == 1
+		let fVal := player.AuxVarGetFlt "_slRad"
+		if fVal < 200
+			let fVal := 200
+		elseif fVal < 300
+			let fVal := 300
+		elseif fVal < 450
+			let fVal := 450
+		else
+			let fVal := 150
+		endif
+		player.AuxVarSetFlt "_slRad" fVal
+	elseif iBtn == 2
+		let fVal := player.AuxVarGetFlt "_slRatio"
+		if fVal <= 0
+			let fVal := 5
+		elseif fVal < 10
+			let fVal := 10
+		elseif fVal < 20
+			let fVal := 20
+		elseif fVal < 50
+			let fVal := 50
+		else
+			let fVal := 0
+		endif
+		player.AuxVarSetFlt "_slRatio" fVal
+	elseif iBtn == 3
+		let fVal := player.AuxVarGetFlt "_slAmmo"
+		if fVal <= 0
+			let fVal := 100
+		elseif fVal < 200
+			let fVal := 200
+		elseif fVal < 300
+			let fVal := 300
+		elseif fVal < 500
+			let fVal := 500
+		else
+			let fVal := 0
+		endif
+		player.AuxVarSetFlt "_slAmmo" fVal
+	elseif iBtn == 4
+		let fVal := player.AuxVarGetFlt "_slWeap"
+		if fVal < 0
+			let fVal := 0
+		elseif fVal < 10
+			let fVal := 10
+		elseif fVal < 25
+			let fVal := 25
+		else
+			let fVal := -1
+		endif
+		player.AuxVarSetFlt "_slWeap" fVal
+	elseif iBtn == 5
+		let fVal := 1 - (player.AuxVarGetFlt "_slWeak")
+		player.AuxVarSetFlt "_slWeak" fVal
+	elseif iBtn == 6
+		let fVal := player.AuxVarGetFlt "_slRep"
+		if fVal <= 0
+			let fVal := 40
+		elseif fVal < 60
+			let fVal := 60
+		elseif fVal < 80
+			let fVal := 80
+		else
+			let fVal := 0
+		endif
+		player.AuxVarSetFlt "_slRep" fVal
+		player.AuxVarSetFlt "*_slT" 99	; rebuild the want-lists on the next check
+	endif
+	let rNext := CompileScript "SmartLoot/Open.txt"
+	call rNext
+end

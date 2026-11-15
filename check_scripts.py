@@ -6,8 +6,9 @@
    then has no function for that file, and timers or event handlers that call it fail. On
    2026-11-13 a variable named iMod (the short name of the console command ApplyImageSpaceModifier,
    "imod") stopped five Auto Smoke functions compiling and New Vegas crashed in nvse_1_4.dll.
-   Command names come from nvse.log (every command xNVSE and its plugins register) plus a list of
-   vanilla console short names, which nvse.log doesn't record.
+   Command names come from nvse.log (every command xNVSE's plugins register), tools/xnvse_commands.txt
+   (xNVSE's own commands, which nvse.log doesn't list; taken from its CommandTable.cpp) and a list of
+   vanilla console short names.
 2. if/endif, while/loop and foreach/loop balance.
 3. Menu XML files are well-formed (the game's parser is lenient, so a bad tag can silently break a
    HUD element instead of failing).
@@ -33,6 +34,9 @@ DECL = re.compile(r"^\s*(?:let\s+)?(?:int|short|long|float|ref|reference|string_
 
 def command_names():
     names = {n.lower() for n in VANILLA}
+    core = ROOT / "tools" / "xnvse_commands.txt"
+    if core.exists():
+        names |= {n.strip().lower() for n in core.read_text().split() if n.strip()}
     if NVSE_LOG.exists():
         log = NVSE_LOG.read_text(encoding="latin1", errors="replace")
         for m in re.finditer(r"Reg\w*Command\s+\[\w+\]\s+(\w+)(?:\s+\((\w+)\))?", log):

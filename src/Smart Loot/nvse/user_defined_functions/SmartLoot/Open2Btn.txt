@@ -1,0 +1,69 @@
+; Smart Loot: page 2 buttons. 0 aid to keep off > 3 > 5 > 10 > 20; 1 carry weight free
+; 0 > 10 > 25 > 50 lb; 2 unlocking off > with skill > skill and a bobby pin; 3 messages off >
+; upgrades and unlocks > everything; 4 sounds; 5 combat; 6 quest items; 7 back to page 1; 8 close.
+int iBtn
+float fVal
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 8
+		return
+	endif
+	if iBtn == 7
+		let rNext := CompileScript "SmartLoot/Open.txt"
+		call rNext
+		return
+	endif
+	if iBtn == 0
+		let fVal := player.AuxVarGetFlt "_slAid"
+		if fVal <= 0
+			let fVal := 3
+		elseif fVal < 5
+			let fVal := 5
+		elseif fVal < 10
+			let fVal := 10
+		elseif fVal < 20
+			let fVal := 20
+		else
+			let fVal := 0
+		endif
+		player.AuxVarSetFlt "_slAid" fVal
+	elseif iBtn == 1
+		let fVal := player.AuxVarGetFlt "_slRes"
+		if fVal < 10
+			let fVal := 10
+		elseif fVal < 25
+			let fVal := 25
+		elseif fVal < 50
+			let fVal := 50
+		else
+			let fVal := 0
+		endif
+		player.AuxVarSetFlt "_slRes" fVal
+	elseif iBtn == 2
+		let fVal := player.AuxVarGetFlt "_slLock"
+		let fVal += 1
+		if fVal > 2
+			let fVal := 0
+		endif
+		player.AuxVarSetFlt "_slLock" fVal
+	elseif iBtn == 3
+		let fVal := player.AuxVarGetFlt "_slMsg"
+		let fVal += 1
+		if fVal > 2
+			let fVal := 0
+		endif
+		player.AuxVarSetFlt "_slMsg" fVal
+	elseif iBtn == 4
+		let fVal := 1 - (player.AuxVarGetFlt "_slSnd")
+		player.AuxVarSetFlt "_slSnd" fVal
+	elseif iBtn == 5
+		let fVal := 1 - (player.AuxVarGetFlt "_slFight")
+		player.AuxVarSetFlt "_slFight" fVal
+	elseif iBtn == 6
+		let fVal := 1 - (player.AuxVarGetFlt "_slQuest")
+		player.AuxVarSetFlt "_slQuest" fVal
+	endif
+	let rNext := CompileScript "SmartLoot/Open2.txt"
+	call rNext
+end

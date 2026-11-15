@@ -1,0 +1,143 @@
+; Smart Loot: the regular check (every 1.5 s of play; registered by ln_smart_loot.txt, never in
+; menus or while paused). Skipped while dead or, unless set otherwise, in combat.
+; 1. Rebuilds the want-lists (Want.txt) when the number of stacks you carry changes, or every 8th
+;    check.
+; 2. One scan of references within reach (xNVSE GetRefs with type 0, which skips the typed matcher
+;    that crashes on a reference with no base item), sorted into loose items and containers or
+;    corpses. Nothing is picked up during the scan: picking up mid-scan is what crashed Auto Loot
+;    Enhanced.
+; 3. Then up to 10 pickups: loose items by activating them for you (the same as pressing E: their
+;    scripts run and the game adds them as usual), then containers and corpses (Box.txt).
+int iInv
+int iT
+int iActs
+int iType
+int iHave
+int iTake
+int iMsg
+int iLeft
+float fRad
+array_var aRefs
+array_var aEntry
+array_var aLoose
+array_var aBoxes
+ref rRef
+ref rBase
+ref rFn
+ref rJudge
+ref rOwned
+ref rSnd
+ref rNote
+
+begin Function {}
+	if player.GetDead
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_slOn") == 0
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_slFight") == 0
+		if player.IsInCombat
+			return
+		endif
+	endif
+
+	let iInv := player.GetNumItems
+	let iT := player.AuxVarGetFlt "*_slT"
+	let iT += 1
+	if eval (iInv != (player.AuxVarGetFlt "*_slInv")) || iT >= 8
+		let rFn := CompileScript "SmartLoot/Want.txt"
+		call rFn
+		player.AuxVarSetFlt "*_slInv" iInv
+		let iT := 0
+	endif
+	player.AuxVarSetFlt "*_slT" iT
+	player.AuxVarSetFlt "*_slSndN" 0
+
+	let fRad := player.AuxVarGetFlt "_slRad"
+	let aRefs := player.GetRefs 0 1 0 fRad
+	if eval aRefs == Ar_Null
+		return
+	endif
+	let aLoose := Ar_Construct "array"
+	let aBoxes := Ar_Construct "array"
+	foreach aEntry <- aRefs
+		let rRef := aEntry["value"]
+		if eval (IsFormValid rRef) == 0 || rRef == player
+			continue
+		endif
+		let rBase := rRef.GetBaseObject
+		if eval (IsFormValid rBase) == 0 || rRef.GetDisabled
+			continue
+		endif
+		if eval (player.GetDistance rRef) > fRad
+			continue
+		endif
+		let iType := GetType rBase
+		if iType == 27
+			Ar_Append aBoxes rRef
+		elseif iType == 42 || iType == 43
+			if eval rRef.GetDead && (rRef.GetPlayerTeammate == 0)
+				Ar_Append aBoxes rRef
+			endif
+		elseif iType == 24 || iType == 25 || iType == 31 || iType == 40 || iType == 41
+			Ar_Append aLoose rRef
+		elseif iType == 46 || iType == 47 || iType == 49 || iType == 103 || iType == 116
+			Ar_Append aLoose rRef
+		endif
+	loop
+
+	let rJudge := CompileScript "SmartLoot/Judge.txt"
+	let rOwned := CompileScript "SmartLoot/Owned.txt"
+	let rSnd := CompileScript "SmartLoot/Sound.txt"
+	let rNote := CompileScript "SmartLoot/Note.txt"
+	let iActs := 0
+	foreach aEntry <- aLoose
+		if iActs >= 10
+			break
+		endif
+		let rRef := aEntry["value"]
+		if eval (IsFormValid rRef) == 0 || rRef.GetDisabled
+			continue
+		endif
+		let rBase := rRef.GetBaseObject
+		if eval (IsFormValid rBase) == 0
+			continue
+		endif
+		if eval (call rOwned rRef) == 1
+			continue
+		endif
+		let iHave := rRef.GetRefCount
+		if iHave < 1
+			let iHave := 1
+		endif
+		let iTake := call rJudge rBase iHave
+		; a loose stack is picked up whole: only if all of it is wanted (ammo: any room under the cap)
+		if eval iTake >= iHave || (iTake > 0 && (GetType rBase) == 41)
+			rRef.Activate player 1
+			call rSnd rBase
+			call rNote rBase
+			let iActs += 1
+		endif
+	loop
+
+	let rFn := CompileScript "SmartLoot/Box.txt"
+	foreach aEntry <- aBoxes
+		if iActs >= 10
+			break
+		endif
+		let rRef := aEntry["value"]
+		let iLeft := 10 - iActs
+		let iTake := call rFn rRef iLeft
+		let iActs += iTake
+	loop
+
+	let iMsg := player.AuxVarGetFlt "_slMsg"
+	if iMsg >= 2 && iActs > 0
+		MessageEx "Smart Loot: picked up %.0f item(s)" iActs
+	endif
+	let aRefs := Ar_Null
+	let aLoose := Ar_Null
+	let aBoxes := Ar_Null
+	let aEntry := Ar_Null
+end

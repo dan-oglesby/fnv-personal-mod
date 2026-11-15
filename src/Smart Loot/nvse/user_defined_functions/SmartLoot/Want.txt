@@ -1,0 +1,111 @@
+; Smart Loot: rebuilds what you want from your inventory. Run by Tick.txt when the number of item
+; stacks you carry changes, and every few checks anyway.
+; - SLWantAmmo (SmartLoot.esp 0x801): every ammo type any carried weapon can fire (its ammo, or
+;   each entry of its ammo list, so special ammo such as AP or hollow point counts too).
+; - SLWantMods (0x802): every weapon mod that fits a carried weapon.
+; - SLWantRepair (0x803): your equipped weapon, if its condition is under the repair setting.
+; - "*_slDPS" (temporary): your best DPS per weapon skill, index = the skill's actor value code,
+;   and index 0 = your best DPS overall. DPS is the Pip-Boy's own figure (JohnnyGuitar's
+;   GetCalculatedWeaponDPS: your skills, perks and ammo, at full condition).
+int iPlug
+int iNum
+int iIdx
+int iK
+int iCnt
+int iSkill
+float fDps
+float fBest
+float fCond
+float fMax
+ref rAmmoL
+ref rModL
+ref rRepL
+ref rItem
+ref rAm
+ref rEntry
+ref rIm
+
+begin Function {}
+	let iPlug := GetModIndex "SmartLoot.esp"
+	let rAmmoL := BuildRef iPlug 2049
+	let rModL := BuildRef iPlug 2050
+	let rRepL := BuildRef iPlug 2051
+	ListClear rAmmoL
+	ListClear rModL
+	ListClear rRepL
+	; indexed aux arrays must be filled in order: zero every slot first
+	let iIdx := 0
+	while iIdx < 80
+		player.AuxVarSetFlt "*_slDPS" 0 iIdx
+		let iIdx += 1
+	loop
+
+	let iNum := player.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := player.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		if eval (GetType rItem) != 40
+			continue
+		endif
+		; ammo it can fire
+		let rAm := GetWeaponAmmo rItem
+		if eval IsFormValid rAm
+			if eval (GetType rAm) == 41
+				ListAddForm rAmmoL rAm
+			else
+				let iCnt := ListGetCount rAm
+				let iK := 0
+				while iK < iCnt
+					let rEntry := ListGetNthForm rAm iK
+					if eval IsFormValid rEntry
+						ListAddForm rAmmoL rEntry
+					endif
+					let iK += 1
+				loop
+			endif
+		endif
+		; mods that fit it (slots 1 to 3, checked from 0 in case of 0-based numbering)
+		let iK := 0
+		while iK < 4
+			let rIm := GetWeaponItemMod iK rItem
+			if eval IsFormValid rIm
+				ListAddForm rModL rIm
+			endif
+			let iK += 1
+		loop
+		; best DPS for its skill, and overall
+		let fDps := GetCalculatedWeaponDPS rItem
+		let iSkill := GetWeaponSkill rItem
+		if (iSkill > 0) && (iSkill < 80)
+			let fBest := player.AuxVarGetFlt "*_slDPS" iSkill
+			if fDps > fBest
+				player.AuxVarSetFlt "*_slDPS" fDps iSkill
+			endif
+		endif
+		let fBest := player.AuxVarGetFlt "*_slDPS" 0
+		if fDps > fBest
+			player.AuxVarSetFlt "*_slDPS" fDps 0
+		endif
+	loop
+
+	; repair copies: the equipped weapon (slot 5) under the set condition
+	if eval (player.AuxVarGetFlt "_slRep") > 0
+		let rItem := player.GetEquippedObject 5
+		if eval IsFormValid rItem
+			if eval (GetType rItem) == 40
+				let fCond := player.GetEquippedCurrentHealth 5
+				let fMax := GetHealth rItem
+				if fMax > 0
+					let fCond := fCond * 100 / fMax
+					if eval fCond < (player.AuxVarGetFlt "_slRep")
+						ListAddForm rRepL rItem
+					endif
+				endif
+			endif
+		endif
+	endif
+end

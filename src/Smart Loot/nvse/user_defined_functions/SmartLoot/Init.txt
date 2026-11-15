@@ -1,0 +1,22 @@
+; Smart Loot: default settings, set once per save (JIP auxiliary variables on the player, kept in
+; JIP's co-save). The settings menu (Open.txt / Open2.txt) changes them.
+begin Function {}
+	if eval (player.AuxVarGetFlt "_slInit") == 1
+		return
+	endif
+	player.AuxVarSetFlt "_slInit" 1
+	player.AuxVarSetFlt "_slOn" 1		; auto-loot on
+	player.AuxVarSetFlt "_slRad" 200	; reach, in game units (about 3 m)
+	player.AuxVarSetFlt "_slRatio" 10	; take items worth at least 10 caps a pound (0 = off)
+	player.AuxVarSetFlt "_slAmmo" 300	; ammo for carried weapons, up to 300 per calibre (0 = no cap)
+	player.AuxVarSetFlt "_slWeap" 10	; weapons at least 10% more DPS than your best (-1 = off)
+	player.AuxVarSetFlt "_slWeak" 1		; skip weapons whose Strength requirement you don't meet
+	player.AuxVarSetFlt "_slRep" 60		; copies of your weapon when it is under 60% condition (0 = off)
+	player.AuxVarSetFlt "_slAid" 5		; food, drink and other aid with weight: up to 5 of each (0 = off)
+	player.AuxVarSetFlt "_slRes" 25		; never fill the last 25 lb of carry weight
+	player.AuxVarSetFlt "_slLock" 1		; unlock unowned containers: 0 off, 1 with skill, 2 skill + a bobby pin
+	player.AuxVarSetFlt "_slMsg" 1		; messages: 0 off, 1 upgrades and unlocks, 2 also every batch
+	player.AuxVarSetFlt "_slSnd" 1		; play each item's pickup sound
+	player.AuxVarSetFlt "_slFight" 0	; don't loot during combat
+	player.AuxVarSetFlt "_slQuest" 0	; leave quest items
+end

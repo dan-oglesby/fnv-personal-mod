@@ -1,0 +1,57 @@
+; Smart Loot: settings, page 1 (what to take). The text is built in pieces (a script line can be at
+; most 512 characters). Percent signs are spelled out: the menu text goes through format strings.
+float fVal
+string_var sOn
+string_var sOnBtn
+string_var sRatio
+string_var sAmmo
+string_var sWeap
+string_var sWeak
+string_var sRep
+string_var sBody
+ref rCb
+
+begin Function {}
+	let sOn := "off"
+	let sOnBtn := "Turn auto-loot on"
+	if eval (player.AuxVarGetFlt "_slOn") == 1
+		let sOn := "on"
+		let sOnBtn := "Turn auto-loot off"
+	endif
+	let fVal := player.AuxVarGetFlt "_slRatio"
+	let sRatio := "off"
+	if fVal > 0
+		let sRatio := sv_Construct "anything worth at least %.0f caps a pound" fVal
+	endif
+	let fVal := player.AuxVarGetFlt "_slAmmo"
+	let sAmmo := "no cap"
+	if fVal > 0
+		let sAmmo := sv_Construct "up to %.0f per calibre" fVal
+	endif
+	let fVal := player.AuxVarGetFlt "_slWeap"
+	let sWeap := "off"
+	if fVal == 0
+		let sWeap := "any with more DPS than your best"
+	elseif fVal > 0
+		let sWeap := sv_Construct "%.0f percent more DPS than your best" fVal
+	endif
+	let sWeak := "taken anyway"
+	if eval (player.AuxVarGetFlt "_slWeak") == 1
+		let sWeak := "left"
+	endif
+	let fVal := player.AuxVarGetFlt "_slRep"
+	let sRep := "off"
+	if fVal > 0
+		let sRep := sv_Construct "when your equipped weapon is under %.0f percent condition" fVal
+	endif
+
+	let fVal := player.AuxVarGetFlt "_slRad"
+	let sBody := sv_Construct "Auto-loot: %z. Reach: %.0f units.%r" sOn fVal
+	let sBody := sBody + (sv_Construct "Always taken: keys, notes, and anything with no weight but some value (caps, money, stimpaks, magazines).%r")
+	let sBody := sBody + (sv_Construct "Ammo for any weapon you carry: %z.%r" sAmmo)
+	let sBody := sBody + (sv_Construct "Weapons: %z (the Pip-Boy DPS, with your skills). Ones you are too weak for: %z.%r" sWeap sWeak)
+	let sBody := sBody + (sv_Construct "Spare copies for repairs: %z.%r" sRep)
+	let sBody := sBody + (sv_Construct "Everything else: %z." sRatio)
+	let rCb := CompileScript "SmartLoot/OpenBtn.txt"
+	MessageBoxExAlt rCb "^Smart Loot^%z|%z|Change reach|Change value per pound|Change ammo cap|Change weapon upgrades|Too weak: take or leave|Change repair spares|More settings|Close" sBody sOnBtn
+end

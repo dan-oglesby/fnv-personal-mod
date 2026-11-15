@@ -1,0 +1,54 @@
+; Smart Loot: settings, page 2 (supplies, locks and behaviour).
+float fVal
+string_var sAid
+string_var sLock
+string_var sMsg
+string_var sSnd
+string_var sFight
+string_var sQuest
+string_var sBody
+ref rCb
+
+begin Function {}
+	let fVal := player.AuxVarGetFlt "_slAid"
+	let sAid := "off"
+	if fVal > 0
+		let sAid := sv_Construct "up to %.0f of each" fVal
+	endif
+	let fVal := player.AuxVarGetFlt "_slLock"
+	let sLock := "off"
+	if fVal == 1
+		let sLock := "yes, if your Lockpick skill is high enough"
+	elseif fVal == 2
+		let sLock := "yes, with enough Lockpick skill and a bobby pin"
+	endif
+	let fVal := player.AuxVarGetFlt "_slMsg"
+	let sMsg := "off"
+	if fVal == 1
+		let sMsg := "weapon upgrades and unlocks"
+	elseif fVal == 2
+		let sMsg := "weapon upgrades, unlocks and every pickup"
+	endif
+	let sSnd := "off"
+	if eval (player.AuxVarGetFlt "_slSnd") == 1
+		let sSnd := "on"
+	endif
+	let sFight := "no"
+	if eval (player.AuxVarGetFlt "_slFight") == 1
+		let sFight := "yes"
+	endif
+	let sQuest := "left where they are"
+	if eval (player.AuxVarGetFlt "_slQuest") == 1
+		let sQuest := "taken"
+	endif
+
+	let fVal := player.AuxVarGetFlt "_slRes"
+	let sBody := sv_Construct "Food, drink and other aid with weight: %z.%r" sAid
+	let sBody := sBody + (sv_Construct "Keeps %.0f lb of carry weight free.%r" fVal)
+	let sBody := sBody + (sv_Construct "Unlocks containers nobody owns: %z.%r" sLock)
+	let sBody := sBody + (sv_Construct "Messages: %z. Pickup sounds: %z.%r" sMsg sSnd)
+	let sBody := sBody + (sv_Construct "Loots during combat: %z. Quest items: %z.%r" sFight sQuest)
+	let sBody := sBody + (sv_Construct "Never takes anything owned or from an owned place, so it never steals.")
+	let rCb := CompileScript "SmartLoot/Open2Btn.txt"
+	MessageBoxExAlt rCb "^Smart Loot^%z|Change aid to keep|Change carry weight kept free|Change unlocking|Change messages|Pickup sounds on or off|Loot in combat on or off|Quest items on or off|Back|Close" sBody
+end

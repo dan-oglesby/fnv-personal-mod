@@ -1,0 +1,132 @@
+; Smart Loot: how many of an item to take (0 = leave it). rItem is the base item, iHave how many
+; are there. Rules, in order:
+;   quest items: left unless the setting says otherwise. Unplayable items (creature parts,
+;     NPC-only gear): always left.
+;   keys and notes: all.
+;   no weight but some value (caps, money, stimpaks, magazines...): all.
+;   ammo: only types a carried weapon fires, up to the cap per calibre.
+;   weapons: a copy of your worn-down equipped weapon (repair setting), or one whose DPS beats your
+;     best of the same skill (or your best overall if you carry none of that skill) by the margin.
+;   weapon mods: ones that fit a carried weapon, if you don't have one already.
+;   aid with weight (food, drink...): up to the set number of each.
+;   anything else: if it is worth at least the set caps per pound.
+; Weighted items are then limited so the carry-weight reserve is never used.
+int iType
+int iTake
+int iOwn
+int iCap
+int iSkill
+int iPlug
+float fWt
+float fVal
+float fSet
+float fDps
+float fBest
+float fRoom
+ref rList
+ref rItem
+int iHave
+
+begin Function {rItem, iHave}
+	SetFunctionValue 0
+	if eval (IsFormValid rItem) == 0 || iHave < 1
+		return
+	endif
+	if eval (IsPlayable rItem) == 0
+		return
+	endif
+	if eval (IsQuestItem rItem) && (player.AuxVarGetFlt "_slQuest") == 0
+		return
+	endif
+	let iType := GetType rItem
+	if iType == 46 || iType == 49
+		SetFunctionValue iHave
+		return
+	endif
+	let fWt := GetWeight rItem
+	let fVal := GetValue rItem
+	if fWt <= 0
+		if fVal > 0
+			SetFunctionValue iHave
+		endif
+		return
+	endif
+
+	let iTake := 0
+	let iOwn := player.GetItemCount rItem
+	let iPlug := GetModIndex "SmartLoot.esp"
+	if iType == 41
+		let rList := BuildRef iPlug 2049
+		if eval (ListGetFormIndex rList rItem) >= 0
+			let iCap := player.AuxVarGetFlt "_slAmmo"
+			let iTake := iHave
+			if iCap > 0
+				let iTake := iCap - iOwn
+				if iTake > iHave
+					let iTake := iHave
+				endif
+			endif
+		endif
+	elseif iType == 40
+		let rList := BuildRef iPlug 2051
+		if eval (ListGetFormIndex rList rItem) >= 0
+			let iTake := 1
+		elseif eval (player.AuxVarGetFlt "_slWeap") >= 0
+			let fDps := GetCalculatedWeaponDPS rItem
+			let iSkill := GetWeaponSkill rItem
+			let fBest := 0
+			if (iSkill > 0) && (iSkill < 80)
+				let fBest := player.AuxVarGetFlt "*_slDPS" iSkill
+			endif
+			if fBest <= 0
+				let fBest := player.AuxVarGetFlt "*_slDPS" 0
+			endif
+			let fSet := player.AuxVarGetFlt "_slWeap"
+			let fBest := fBest * (100 + fSet) / 100
+			if fDps > fBest
+				let iTake := iHave
+				if eval (player.AuxVarGetFlt "_slWeak") == 1
+					if eval (GetWeaponRequiredStrength rItem) > (player.GetAV Strength)
+						let iTake := 0
+					endif
+				endif
+			endif
+		endif
+	elseif iType == 103
+		let rList := BuildRef iPlug 2050
+		if eval (ListGetFormIndex rList rItem) >= 0 && iOwn == 0
+			let iTake := 1
+		endif
+	elseif iType == 47
+		let iCap := player.AuxVarGetFlt "_slAid"
+		if iCap > iOwn
+			let iTake := iCap - iOwn
+			if iTake > iHave
+				let iTake := iHave
+			endif
+		endif
+	endif
+	; anything not already wanted: worth enough per pound?
+	if iTake < 1
+		let fSet := player.AuxVarGetFlt "_slRatio"
+		if fSet > 0
+			if fVal >= fSet * fWt
+				let iTake := iHave
+			endif
+		endif
+	endif
+	if iTake < 1
+		return
+	endif
+	; the carry-weight reserve
+	let fRoom := player.GetAV CarryWeight
+	let fRoom -= player.AuxVarGetFlt "_slRes"
+	let fRoom -= player.GetAV InventoryWeight
+	if fRoom < fWt
+		return
+	endif
+	if iTake * fWt > fRoom
+		let iTake := Floor (fRoom / fWt)
+	endif
+	SetFunctionValue iTake
+end

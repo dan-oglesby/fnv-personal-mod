@@ -1,0 +1,19 @@
+; Smart Loot: xNVSE OnActorEquip handler (filtered to the duffel). When the player equips the
+; Scavenger's Duffel in the Pip-Boy, opens the settings once the Pip-Boy is closed.
+ref rActor
+ref rItem
+int iPlug
+ref rBag
+ref rUse
+ref rPlayer
+
+begin Function {rActor, rItem}
+	let iPlug := GetModIndex "SmartLoot.esp"
+	let rBag := BuildRef iPlug 2048	; SLDuffel
+	let rPlayer := BuildRef 0 20	; 0x14 = the player
+	if eval (rItem != rBag) || (rActor != rPlayer)
+		return
+	endif
+	let rUse := CompileScript "SmartLoot/UseDuffel.txt"
+	CallAfterSeconds 0.2 rUse	; runs in gameplay only, so after the Pip-Boy closes
+end

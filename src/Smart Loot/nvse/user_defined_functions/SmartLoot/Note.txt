@@ -1,0 +1,35 @@
+; Smart Loot: after a weapon is picked up, says why (if messages are on): a spare for repairing your
+; equipped weapon, or an upgrade, with its DPS against your best so far.
+int iType
+int iSkill
+int iPlug
+float fDps
+float fBest
+ref rList
+ref rItem
+
+begin Function {rItem}
+	if eval (player.AuxVarGetFlt "_slMsg") < 1
+		return
+	endif
+	let iType := GetType rItem
+	if iType != 40
+		return
+	endif
+	let iPlug := GetModIndex "SmartLoot.esp"
+	let rList := BuildRef iPlug 2051
+	if eval (ListGetFormIndex rList rItem) >= 0
+		MessageEx "Smart Loot: %n, a spare for repairs" rItem
+		return
+	endif
+	let fDps := GetCalculatedWeaponDPS rItem
+	let iSkill := GetWeaponSkill rItem
+	let fBest := 0
+	if (iSkill > 0) && (iSkill < 80)
+		let fBest := player.AuxVarGetFlt "*_slDPS" iSkill
+	endif
+	if fBest <= 0
+		let fBest := player.AuxVarGetFlt "*_slDPS" 0
+	endif
+	MessageEx "Smart Loot: %n, %.0f DPS (your best: %.0f)" rItem fDps fBest
+end

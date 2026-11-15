@@ -1,0 +1,19 @@
+; Smart Loot: the duffel was equipped. Takes it off again and opens the settings. Checking that it
+; is still worn means a double equip opens the menu only once.
+int iPlug
+ref rBag
+ref rOpen
+
+begin Function {}
+	let iPlug := GetModIndex "SmartLoot.esp"
+	let rBag := BuildRef iPlug 2048	; SLDuffel
+	if eval (player.GetEquipped rBag) == 0
+		return
+	endif
+	player.UnequipItem rBag 0 1
+	if player.GetDead
+		return
+	endif
+	let rOpen := CompileScript "SmartLoot/Open.txt"
+	call rOpen
+end

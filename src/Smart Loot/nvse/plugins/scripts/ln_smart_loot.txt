@@ -1,0 +1,110 @@
+; Smart Loot (Dan, 2026-11-14): auto-loot that takes what is useful to you now instead of whole
+; categories. Ammo for the weapons you carry (up to a cap), weapons with more DPS than your best,
+; spares for repairs, weapon mods that fit, a few of each aid item, keys, notes, anything weightless
+; with value, and anything else worth enough caps per pound. Loose items, unowned containers (unlocked
+; with your skill when that's no crime) and corpses, within reach, never stealing.
+;
+; Settings: equip the Scavenger's Duffel (Smart Loot) from the Pip-Boy's Apparel tab; the menu opens
+; when you close the Pip-Boy. The duffel is given on the first load and again if it is ever lost.
+; It lives in SmartLoot.esp (one item and three empty form lists, made by make_plugins.py).
+;
+; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.4+, JIP LN
+; and JohnnyGuitar NVSE (for the Pip-Boy DPS). Re-registering on every load is safe: xNVSE clears
+; repeating calls on load and new game, and the equip handler is removed before it is added again.
+
+if eval IsModLoaded "SmartLoot.esp"
+	; Every function must have compiled: a timer or event handler that calls a function that failed
+	; to compile can crash xNVSE (2026-11-13). If one failed, register nothing and say so.
+	let int iBad := 0
+	let ref rChk := CompileScript "SmartLoot/Always.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Box.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Init.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Judge.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Note.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/OnEquip.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Open.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Open2.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Open2Btn.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/OpenBtn.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Owned.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Sound.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Tick.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/UseDuffel.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "SmartLoot/Want.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	if iBad > 0
+		print "Smart Loot: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
+		MessageEx "Smart Loot is switched off: a script failed to compile"
+	else
+		if eval IsModLoaded "AutoLootEnhanced.esp"
+			print "Smart Loot: Auto Loot Enhanced is also enabled. Disable one of them, or both will loot."
+			MessageEx "Smart Loot: disable Auto Loot Enhanced, or both will loot"
+		endif
+		if eval IsModLoaded "Auto Loot Ultimate.esp"
+			print "Smart Loot: Auto Loot Ultimate is also enabled. Disable one of them, or both will loot."
+			MessageEx "Smart Loot: disable Auto Loot Ultimate, or both will loot"
+		endif
+		let ref rInit := CompileScript "SmartLoot/Init.txt"
+		call rInit
+		let int iSL := GetModIndex "SmartLoot.esp"
+		let ref rBag := BuildRef iSL 2048	; SLDuffel 0x000800
+		if eval (player.GetItemCount rBag) == 0
+			player.AddItem rBag 1 1
+		endif
+		let ref rOnEquip := CompileScript "SmartLoot/OnEquip.txt"
+		RemoveEventHandler "OnActorEquip" rOnEquip
+		; Filtered to the duffel ("second" = the equipped item): an unfiltered equip handler sends
+		; every NPC equip during cell loads into xNVSE's unlocked event queue (2026-11-14).
+		SetEventHandler "OnActorEquip" rOnEquip "second"::rBag
+		; want-lists are rebuilt on the first check
+		player.AuxVarSetFlt "*_slT" 99
+		; every 1.5 s of play: flags 4 + 16 = not in menus, not while paused
+		let ref rTick := CompileScript "SmartLoot/Tick.txt"
+		let ref rTrue := CompileScript "SmartLoot/Always.txt"
+		CallWhilePerSeconds 1.5 rTick rTrue 20
+	endif
+endif

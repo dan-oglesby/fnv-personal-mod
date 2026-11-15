@@ -9,6 +9,9 @@ GECK); the mod's xNVSE scripts watch for the item being equipped (OnActorEquip) 
 the plugin's load-order index and the object ID below (BuildRef <index> 2048).
 
 The only master is FalloutNV.esm, so a plugin never pulls in another mod.
+
+A plugin can also carry empty form lists (LISTS below) that its scripts fill at run time, at
+object IDs 0x801, 0x802 and so on (BuildRef <index> 2049, 2050...).
 """
 import struct
 from pathlib import Path
@@ -26,7 +29,16 @@ ITEMS = [
      r"Clutter\Junk\CigarettePack01.NIF",
      r"smoking_edisleado\icons\cigarette_pack.dds",                 # Light Up and Smoke's icon
      None),
+    ("SmartLoot.esp", "Smart Loot", "SLDuffel", "Scavenger's Duffel (Smart Loot)",
+     r"clutter\junk\dufflebag.nif",
+     r"interface\icons\pipboyimages\items\items_briefcase.dds",
+     None),
 ]
+
+# plugin file -> editor IDs of empty form lists, in object-ID order from 0x801
+LISTS = {
+    "SmartLoot.esp": ["SLWantAmmo", "SLWantMods", "SLWantRepair"],
+}
 
 
 def sub(tag: str, data: bytes) -> bytes:
@@ -46,7 +58,7 @@ def group(label: str, body: bytes) -> bytes:
     return b"GRUP" + struct.pack("<I", 24 + len(body)) + label.encode() + struct.pack("<iHHHH", 0, 0, 0, 0, 0) + body
 
 
-def plugin(edid, name, model, icon, small_icon) -> bytes:
+def plugin(edid, name, model, icon, small_icon, lists=()) -> bytes:
     body = (sub("EDID", z(edid))
             + sub("OBND", bytes(12))
             + sub("FULL", z(name))
@@ -60,18 +72,20 @@ def plugin(edid, name, model, icon, small_icon) -> bytes:
             + sub("BNAM", bytes(4)))
     # record flag 0x400 as on the Bank Card
     armo = record("ARMO", 0x400, 0x01000000 | OBJECT_ID, body)
+    flsts = b"".join(record("FLST", 0, 0x01000000 | (OBJECT_ID + 1 + i), sub("EDID", z(e)))
+                     for i, e in enumerate(lists))
     header = record("TES4", 0, 0,
-                    sub("HEDR", struct.pack("<fiI", 1.34, 1, OBJECT_ID + 1))
+                    sub("HEDR", struct.pack("<fiI", 1.34, 1 + len(lists), OBJECT_ID + 1 + len(lists)))
                     + sub("CNAM", z("fnv-personal-mod"))
                     + sub("MAST", z("FalloutNV.esm"))
                     + sub("DATA", bytes(8)))
-    return header + group("ARMO", armo)
+    return header + group("ARMO", armo) + (group("FLST", flsts) if lists else b"")
 
 
 def main():
     for fname, mod, edid, name, model, icon, small in ITEMS:
         out = ROOT / "src" / mod / fname
-        data = plugin(edid, name, model, icon, small)
+        data = plugin(edid, name, model, icon, small, LISTS.get(fname, ()))
         if not out.exists() or out.read_bytes() != data:
             out.write_bytes(data)
             print("wrote", out.relative_to(ROOT))

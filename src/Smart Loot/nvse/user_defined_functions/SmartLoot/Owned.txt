@@ -1,0 +1,22 @@
+; Smart Loot: 1 if taking from (or unlocking) this reference could be a crime or isn't yours to
+; take: it has an owner, or its cell has one. Anything you own counts too, so your own containers
+; and the things you put down at home are never looted. Corpses are not checked (looting the dead
+; is never a crime).
+ref rOwner
+ref rRef
+
+begin Function {rRef}
+	SetFunctionValue 1
+	if eval (IsFormValid rRef) == 0
+		return
+	endif
+	let rOwner := rRef.GetOwner
+	if eval IsFormValid rOwner
+		return
+	endif
+	let rOwner := rRef.GetParentCellOwner
+	if eval IsFormValid rOwner
+		return
+	endif
+	SetFunctionValue 0
+end

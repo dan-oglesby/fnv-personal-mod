@@ -1,0 +1,27 @@
+; Smart Loot: plays an item's own pickup sound (the one the game plays when you pick it up by hand),
+; unless that sound is already playing, so a pickup the game sounds itself isn't doubled and a pile
+; of the same thing doesn't stack up into noise. At most 4 sounds per check ("*_slSndN", reset by
+; Tick.txt).
+ref rSnd
+ref rItem
+int iN
+
+begin Function {rItem}
+	if eval (player.AuxVarGetFlt "_slSnd") == 0
+		return
+	endif
+	let iN := player.AuxVarGetFlt "*_slSndN"
+	if iN >= 4
+		return
+	endif
+	let rSnd := GetPickupSound rItem
+	if eval (IsFormValid rSnd) == 0
+		return
+	endif
+	if eval IsSoundPlaying rSnd
+		return
+	endif
+	PlaySound rSnd
+	let iN += 1
+	player.AuxVarSetFlt "*_slSndN" iN
+end
