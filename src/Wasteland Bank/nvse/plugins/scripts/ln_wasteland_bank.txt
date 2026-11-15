@@ -243,7 +243,11 @@ else
 		endif
 		let ref rOnEquip := CompileScript "WastelandBank/OnEquip.txt"
 		RemoveEventHandler "OnActorEquip" rOnEquip
-		SetEventHandler "OnActorEquip" rOnEquip
+		; Filtered to the bank card ("second" = the equipped item): xNVSE queues equip events that fire on a
+		; background thread onto an unlocked list the main thread clears every frame, and an unfiltered
+		; handler sends every NPC equip during cell loads there. That race corrupted memory and crashed
+		; the game's loaders (2026-11-14). A filtered handler never sees other items.
+		SetEventHandler "OnActorEquip" rOnEquip "second"::rCard
 	else
 		print "Wasteland Bank: WastelandBank.esp is not enabled, so there is no bank card to open the bank with"
 	endif

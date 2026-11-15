@@ -84,6 +84,12 @@ def compile_traps(text):
             out.append("line %d: array element outside an NVSE expression (copy it into a variable first)" % n)
         if re.search(r'AuxVarSetStr\s+"[^"]*"\s+(""|\$)', code, re.I):
             out.append("line %d: AuxVarSetStr from \"\" or a $variable" % n)
+        # High-traffic game events must be filtered: xNVSE queues events fired on background threads
+        # (NPCs equipping gear during cell loads) onto an unlocked list, a race that crashed the
+        # loaders on 2026-11-14. A filter (e.g. "second"::yourItem) drops other events first.
+        m = re.match(r'SetEventHandler\s+"(OnActorEquip|OnActorUnequip|OnAdd|OnDrop|OnHit|OnHitWith)"', code, re.I)
+        if m and "::" not in code:
+            out.append("line %d: unfiltered %s handler (add a filter such as \"second\"::item)" % (n, m.group(1)))
     return out
 
 
