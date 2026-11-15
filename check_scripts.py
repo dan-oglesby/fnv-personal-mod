@@ -67,6 +67,11 @@ def balance(text):
     return None
 
 
+# Functions that act on a reference and silently read 0 when called without one inside a function file.
+REF_ONLY = ["IsHardcore", "GetAV", "GetActorValue", "GetItemCount", "IsInCombat", "GetDead",
+            "GetHealthPercentage", "GetEquippedObject", "GetEquippedCurrentHealth", "HasMagicEffect",
+            "GetRadiationLevel", "GetNumItems", "GetInventoryObject", "IsSneaking"]
+
 EXPR_START = re.compile(r"^(let|while|foreach|return|setfunctionvalue|(else)?if\s+eval|call)\b", re.I)
 
 
@@ -105,6 +110,12 @@ def compile_traps(text):
         for s in re.findall(r'"([^"]*)"', code.split(";")[0]):
             if "\\" in s:
                 out.append("line %d: backslash inside a string (use / in paths)" % n)
+        # Reference functions need a reference: a user-defined function has no calling reference, so
+        # a bare call reads 0. On 2026-11-15 a bare "if IsHardcore" in Needs Meters hid the needs
+        # rows for good. Write player.IsHardcore (or rSomething.X).
+        for fn in REF_ONLY:
+            if re.search(r"(?<![\w.])%s\b" % fn, bare, re.I):
+                out.append("line %d: %s without a reference (write player.%s)" % (n, fn, fn))
         # A form ID written in decimal must match the hex in its comment: on 2026-11-15 a hand
         # conversion put 1191988 for 0x123054 (1192020), so the item was never matched.
         b = re.search(r"BuildRef\s+\S+\s+(\d+)", line)

@@ -20,7 +20,7 @@ begin Function {}
 	SetUIFloat "HUDMainMenu/_NMFood" fFod
 	SetUIFloat "HUDMainMenu/_NMSleep" fSlp
 	SetUIFloat "HUDMainMenu/_NMRads" fRad
-	if IsHardcore
+	if player.IsHardcore	; a reference function: bare, a function file has no calling reference and it reads 0
 		SetUIFloat "HUDMainMenu/_NMHardcore" 1
 	else
 		SetUIFloat "HUDMainMenu/_NMHardcore" 0
