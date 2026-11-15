@@ -85,6 +85,21 @@ JIP's co-save. Console: `call (CompileScript "WastelandBank/Open.txt")`.
 
 ## How Auto Smoke works
 
+**Nicotine alertness (Hardcore, on by default, toggle in the case's menu).** A smoke that's just
+been lit, by hand or automatically, lowers sleep deprivation by 20 (cigarette), 25 (cigarillo) or
+35 (cigar). The stages are at 200/400/600/800/1000, so that's about a tenth of a stage. Each smoke
+in the last 6 game hours halves the next one's effect, so chain-smoking can't replace sleep.
+- **Bedtime:** a smoke within 1 game hour of sleeping takes away Well Rested. A JIP handler flags
+  it when the Sleep/Wait menu opens, and Well Rested is removed when you wake.
+- **Withdrawal:** while you have Nicotine Withdrawal, sleep deprivation builds 25% faster. This is
+  measured from its own rise, so it follows the game's real rate.
+- **"When tired" mode:** a new auto-smoke setting that lights up at Tired (200+), but only while
+  another smoke would still give at least half its effect.
+- **Safety:** all sleep-deprivation access goes through `NicSleep.txt`. It is optional in the load
+  check, so if it ever fails to compile only this feature turns off. After each smoke the console
+  shows the actual change.
+
+
 Light Up and Smoke Those Cigarettes makes smokes aid items: using one from the Pip-Boy runs its
 script, which wears a lit cigarette (cigarillo, cigar) in the mouth slot, applies the tobacco
 effects and addiction chance, and turns it into a butt about 2 minutes later. Auto Smoke uses the

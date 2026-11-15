@@ -1,13 +1,13 @@
 ; Auto Smoke: menu buttons (0 toggle auto-smoke; 1 cycle when to light up:
-; keep lit > 1 > 3 > 5 > 10 > 20 min > only when craving > keep lit; 2 toggle opening packs;
-; 3 smoke one now; 4 close).
+; keep lit > 1 > 3 > 5 > 10 > 20 min > only when craving > when tired > keep lit; 2 toggle opening
+; packs; 3 toggle nicotine alertness; 4 smoke one now; 5 close).
 int iBtn
 int iGap
 int iRes
 ref rNext
 
 begin Function {iBtn}
-	if iBtn == 4
+	if iBtn == 5
 		return
 	endif
 	if iBtn == 0
@@ -20,8 +20,10 @@ begin Function {iBtn}
 		endif
 	elseif iBtn == 1
 		let iGap := player.AuxVarGetFlt "_asGap"
-		if iGap < 0
+		if iGap == -2
 			let iGap := 0
+		elseif iGap == -1
+			let iGap := -2
 		elseif iGap == 0
 			let iGap := 1
 		elseif iGap == 1
@@ -43,6 +45,12 @@ begin Function {iBtn}
 			player.AuxVarSetFlt "_asPacks" 1
 		endif
 	elseif iBtn == 3
+		if eval (player.AuxVarGetFlt "_asNic") == 1
+			player.AuxVarSetFlt "_asNic" 0
+		else
+			player.AuxVarSetFlt "_asNic" 1
+		endif
+	elseif iBtn == 4
 		let rNext := CompileScript "AutoSmoke/IsLit.txt"
 		if eval (call rNext) == 1
 			MessageEx "You're already smoking."

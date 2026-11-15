@@ -1,0 +1,55 @@
+; Auto Smoke: nicotine's costs, checked every 5 s of play (Hardcore only, if nicotine alertness is on).
+; Withdrawal: while you have Nicotine Withdrawal, sleep deprivation builds 25% faster (measured
+; from its own rise since the last check, so it follows the game's real rate; big jumps such as
+; waiting are ignored).
+; Bedtime: if you lit up within 1 game hour of sleeping (NicMenu.txt flags it when the Sleep/Wait
+; menu opens), Well Rested is taken away when you wake.
+float fCur
+float fPrev
+float fD
+float fAdd
+int iTicks
+ref rSleep
+ref rEff
+ref rSpell
+ref rPerk
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_asNic") == 0
+		return
+	endif
+	if eval (player.IsHardcore) == 0
+		return
+	endif
+	let rSleep := CompileScript "AutoSmoke/NicSleep.txt"
+	let fCur := call rSleep 0 0
+	let fPrev := player.AuxVarGetFlt "_asSlpPrev"
+	let rEff := BuildRef 0 1026831	; AddictRedAGTobacco 0x0FAB0F, part of Nicotine Withdrawal
+	if eval (player.HasMagicEffect rEff) == 1
+		let fD := fCur - fPrev
+		if (fD > 0) && (fD < 50)
+			let fAdd := fD * 0.25
+			call rSleep 1 fAdd
+			let fCur += fAdd
+		endif
+	endif
+	player.AuxVarSetFlt "_asSlpPrev" fCur
+
+	if eval (player.AuxVarGetFlt "_asNoRest") == 1
+		let rPerk := BuildRef 0 399394	; WellRestedPerk 0x061822
+		let rSpell := BuildRef 0 403095	; WellRestedSpell 0x062697
+		if player.HasPerk rPerk
+			player.Dispel rSpell
+			player.RemovePerk rPerk
+			MessageEx "You slept poorly after that late smoke: no Well Rested."
+			player.AuxVarSetFlt "_asNoRest" 0
+		else
+			let iTicks := player.AuxVarGetFlt "_asNoRestTicks"
+			let iTicks += 1
+			player.AuxVarSetFlt "_asNoRestTicks" iTicks
+			if iTicks >= 6
+				player.AuxVarSetFlt "_asNoRest" 0
+			endif
+		endif
+	endif
+end

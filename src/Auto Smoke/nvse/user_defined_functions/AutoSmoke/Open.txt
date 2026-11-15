@@ -1,4 +1,5 @@
-; Auto Smoke: the settings menu. Counts are read live when it opens.
+; Auto Smoke: the settings menu. Counts are read live when it opens. The text is built in pieces
+; (a script line can be at most 512 characters).
 int iPlugin
 int iCigs
 int iRillos
@@ -11,6 +12,9 @@ string_var sOnBtn
 string_var sWhen
 string_var sPacks
 string_var sPacksBtn
+string_var sNic
+string_var sNicBtn
+string_var sBody
 ref rForm
 ref rCb
 
@@ -34,8 +38,10 @@ begin Function {}
 		let sOnBtn := "Turn auto-smoke off"
 	endif
 	let iGap := player.AuxVarGetFlt "_asGap"
-	if iGap < 0
+	if iGap == -1
 		let sWhen := "only when you have nicotine withdrawal"
+	elseif iGap == -2
+		let sWhen := "when you're Tired (Hardcore), if another smoke would still help"
 	elseif iGap == 0
 		let sWhen := "keep one lit (the next as soon as the last goes out)"
 	elseif iGap == 1
@@ -55,6 +61,20 @@ begin Function {}
 		let sPacks := "on"
 		let sPacksBtn := "Open packs: turn off"
 	endif
+	let sNic := "off"
+	let sNicBtn := "Nicotine alertness: turn on"
+	if eval (player.AuxVarGetFlt "_asNic") == 1
+		let sNic := "on"
+		let sNicBtn := "Nicotine alertness: turn off"
+	endif
+	if eval (player.AuxVarGetFlt "_asNicOk") == 0
+		let sNic := "unavailable (its script didn't load, see the console)"
+	endif
+
+	let sBody := sv_Construct "Auto-smoke: %z.%rLights up: %z.%r" sOn sWhen
+	let sBody := sBody + (sv_Construct "Opens a pack or carton when out of loose smokes: %z.%r" sPacks)
+	let sBody := sBody + (sv_Construct "Nicotine alertness (Hardcore): %z. Each smoke eases sleep deprivation a little, less if you've smoked in the last 6 hours. A smoke within an hour of bed costs you Well Rested, and withdrawal tires you faster.%r" sNic)
+	let sBody := sBody + (sv_Construct "Carrying: %.0f cigarettes, %.0f cigarillos, %.0f cigars, %.0f packs, %.0f cartons." iCigs iRillos iCigars iPacks iCartons)
 	let rCb := CompileScript "AutoSmoke/OpenBtn.txt"
-	MessageBoxExAlt rCb "^Auto Smoke^Auto-smoke: %z.%rLights up: %z.%rOpens a pack or carton when out of loose smokes: %z.%rCarrying: %.0f cigarettes, %.0f cigarillos, %.0f cigars, %.0f packs, %.0f cartons.|%z|Change when to light up|%z|Smoke one now|Close" sOn sWhen sPacks iCigs iRillos iCigars iPacks iCartons sOnBtn sPacksBtn
+	MessageBoxExAlt rCb "^Auto Smoke^%z|%z|Change when to light up|%z|%z|Smoke one now|Close" sBody sOnBtn sPacksBtn sNicBtn
 end

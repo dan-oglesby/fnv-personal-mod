@@ -1,0 +1,50 @@
+; Auto Smoke: nicotine alertness for a smoke that was just lit, by hand or automatically
+; (Hardcore only). Lowers sleep deprivation by 20 (cigarette), 25 (cigarillo) or 35 (cigar),
+; a tenth of a stage or so, halved for each smoke in the last 6 game hours (tolerance), so a smoke
+; pushes tiredness back a little but chain-smoking can't replace sleep.
+int iKind
+int iN
+int iK
+int iSN
+int iSlot
+float fAmt
+float fNeg
+float fGot
+float fNow
+ref rCount
+ref rSleep
+
+begin Function {iKind}
+	if eval (player.AuxVarGetFlt "_asNic") == 0
+		return
+	endif
+	if eval (player.IsHardcore) == 0
+		return
+	endif
+	let rCount := CompileScript "AutoSmoke/NicCount.txt"
+	let iN := call rCount
+	let fAmt := 20
+	if iKind == 2
+		let fAmt := 25
+	elseif iKind == 3
+		let fAmt := 35
+	endif
+	let iK := 0
+	while iK < iN
+		let fAmt *= 0.5
+		let iK += 1
+	loop
+	; remember this smoke (the last 4)
+	let fNow := GameDaysPassed * 24
+	let iSN := player.AuxVarGetFlt "_asSmokeN"
+	let iSlot := iSN % 4
+	player.AuxVarSetFlt "_asSmokeT" fNow iSlot
+	let iSN += 1
+	player.AuxVarSetFlt "_asSmokeN" iSN
+	player.AuxVarSetFlt "_asLastSmokeH" fNow
+	let rSleep := CompileScript "AutoSmoke/NicSleep.txt"
+	let fNeg := 0 - fAmt
+	let fGot := call rSleep 1 fNeg
+	let fGot := 0 - fGot
+	print "Auto Smoke: nicotine, sleep deprivation -" + $fGot + " (" + $iN + " other smoke(s) in the last 6 hours)"
+end

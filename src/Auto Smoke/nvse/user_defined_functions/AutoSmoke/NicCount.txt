@@ -1,0 +1,20 @@
+; Auto Smoke: how many smokes you lit in the last 6 game hours (the last 4 are remembered in
+; _asSmokeT, as game hours). Each one halves the next smoke's alertness (tolerance).
+int iK
+int iN
+float fNow
+float fT
+
+begin Function {}
+	let fNow := GameDaysPassed * 24
+	let iN := 0
+	let iK := 0
+	while iK < 4
+		let fT := player.AuxVarGetFlt "_asSmokeT" iK
+		if (fNow - fT) < 6
+			let iN += 1
+		endif
+		let iK += 1
+	loop
+	SetFunctionValue iN
+end

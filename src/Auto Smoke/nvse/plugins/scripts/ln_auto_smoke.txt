@@ -60,6 +60,35 @@ if eval IsModLoaded "LightUpAndSmokeThoseCigarettes_edisleado.esp"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
 	endif
+	let rChk := CompileScript "AutoSmoke/LitKind.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/NicCount.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/NicSmoke.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/NicTick.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "AutoSmoke/NicMenu.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	; NicSleep is the only script that names the sleep-deprivation actor value. It is optional: if it
+	; failed to compile, only nicotine alertness switches off (_asNicOk 0), not Auto Smoke.
+	let rChk := CompileScript "AutoSmoke/NicSleep.txt"
+	if eval (IsFormValid rChk) == 0
+		player.AuxVarSetFlt "_asNicOk" 0
+		print "Auto Smoke: nicotine alertness is off because NicSleep.txt failed to compile (see nvse.log)"
+	else
+		player.AuxVarSetFlt "_asNicOk" 1
+	endif
 	if iBad > 0
 		print "Auto Smoke: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
 		MessageEx "Auto Smoke is switched off: a script failed to compile"
@@ -81,6 +110,14 @@ if eval IsModLoaded "LightUpAndSmokeThoseCigarettes_edisleado.esp"
 		; Optional hotkey as well (L = DirectInput 38): remove the ; from the next two lines.
 		;let ref rKey := CompileScript "AutoSmoke/OnKey.txt"
 		;SetOnKeyDownEventHandler rKey 1 38
+		; nicotine alertness: notice the Sleep/Wait menu (1012) for the bedtime rule (JIP keeps
+		; handlers in a set, so re-adding on every load doesn't stack), and record what is already lit
+		; so a smoke carried over a load isn't counted as a new one
+		let ref rMenu := CompileScript "AutoSmoke/NicMenu.txt"
+		SetOnMenuOpenEventHandler rMenu 1 1012
+		let ref rKind := CompileScript "AutoSmoke/LitKind.txt"
+		let int iKindNow := call rKind
+		player.AuxVarSetFlt "_asWasLit" iKindNow
 		; check every 5 s of play: flags 4 + 16 = not in menus, not while paused
 		let ref rTick := CompileScript "AutoSmoke/Tick.txt"
 		let ref rTrue := CompileScript "AutoSmoke/Always.txt"

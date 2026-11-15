@@ -1,0 +1,29 @@
+; Auto Smoke: what you are smoking right now. 0 nothing, 1 cigarette (including Lucky), 2 cigarillo,
+; 3 cigar. The smoking mod wears a lit smoke as apparel (see IsLit.txt for the form IDs).
+int iPlugin
+ref rLit
+
+begin Function {}
+	let iPlugin := GetModIndex "LightUpAndSmokeThoseCigarettes_edisleado.esp"
+	let rLit := BuildRef iPlugin 56454	; ArmorCigar 0x00DC86
+	if eval (player.GetItemCount rLit) > 0
+		SetFunctionValue 3
+		return
+	endif
+	let rLit := BuildRef iPlugin 56453	; ArmorCigarillo 0x00DC85
+	if eval (player.GetItemCount rLit) > 0
+		SetFunctionValue 2
+		return
+	endif
+	let rLit := BuildRef iPlugin 56456	; ArmorCigarette 0x00DC88
+	if eval (player.GetItemCount rLit) > 0
+		SetFunctionValue 1
+		return
+	endif
+	let rLit := BuildRef iPlugin 56457	; ArmorCigaretteLucky 0x00DC89
+	if eval (player.GetItemCount rLit) > 0
+		SetFunctionValue 1
+		return
+	endif
+	SetFunctionValue 0
+end

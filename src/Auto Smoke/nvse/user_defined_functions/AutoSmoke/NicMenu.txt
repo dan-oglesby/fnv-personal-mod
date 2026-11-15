@@ -1,0 +1,24 @@
+; Auto Smoke: JIP menu-open handler for the Sleep/Wait menu (1012). If you lit up within the last
+; game hour, flags the coming sleep so NicTick takes away Well Rested when you wake. (Waiting never
+; gives Well Rested, so the flag simply clears.)
+int iMenu
+float fNow
+float fLast
+
+begin Function {iMenu}
+	if iMenu != 1012
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_asNic") == 0
+		return
+	endif
+	if eval (player.IsHardcore) == 0
+		return
+	endif
+	let fNow := GameDaysPassed * 24
+	let fLast := player.AuxVarGetFlt "_asLastSmokeH"
+	if (fNow - fLast) < 1
+		player.AuxVarSetFlt "_asNoRest" 1
+		player.AuxVarSetFlt "_asNoRestTicks" 0
+	endif
+end
