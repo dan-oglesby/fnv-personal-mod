@@ -144,6 +144,8 @@ is no plugin, so it needs no load-order slot. It needs xNVSE, JIP LN NVSE and UI
 **Settings (console):**
 - `player.AuxVarSetFlt "_nmOff" 1` hides the meters, and 0 shows them again.
 - `player.AuxVarSetFlt "_nmX" -40` moves them 40 left, and `"_nmY" 30` moves them 30 down.
+- `player.AuxVarSetFlt "_nmGap" 16` sets the space between rows. The default is 10. Rows are spaced by
+  the label's real height plus this gap, and the bars are centred on the labels.
 
 Settings are saved with the game.
 

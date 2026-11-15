@@ -3,7 +3,8 @@
 ; blink beat and the player's saved settings. Actor value names are the game's own, including its
 ; spelling of SleepDeprevation (checked against the game's name table, 2026-11-14).
 ; Settings (JIP auxiliary variables on the player, kept in JIP's co-save):
-;   _nmOff 1 hides the meters; _nmX / _nmY move them (HUD units, + is right / down).
+;   _nmOff 1 hides the meters; _nmX / _nmY move them (HUD units, + is right / down); _nmGap sets the
+;   space between rows (default 10).
 float fWat
 float fFod
 float fSlp
@@ -36,4 +37,8 @@ begin Function {}
 	SetUIFloat "HUDMainMenu/_NMX" fBeat
 	let fBeat := player.AuxVarGetFlt "_nmY"
 	SetUIFloat "HUDMainMenu/_NMY" fBeat
+	let fBeat := player.AuxVarGetFlt "_nmGap"
+	if fBeat > 0
+		SetUIFloat "HUDMainMenu/_NMGap" fBeat
+	endif
 end

@@ -29,9 +29,8 @@ SEGS = 5          # one per Hardcore stage: 200 points each
 SEG_W = 22
 GAP = 3
 BAR_X = 44        # labels are right-justified to x = 36
-BAR_Y = 8
 BAR_H = 8
-ROW_H = 22
+ROW_H = 40           # used only for the block height estimate; rows are spaced by their labels
 BAR_W = SEGS * SEG_W + (SEGS - 1) * GAP
 BLOCK_W = BAR_X + BAR_W
 
@@ -58,7 +57,11 @@ def segment(i, warn):
 			<systemcolor> {colour} </systemcolor>
 			<depth> 3 </depth>
 			<x> {BAR_X + i * (SEG_W + GAP)} </x>
-			<y> {BAR_Y} </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> {BAR_H} </sub>
+				<div> 2 </div>
+			</y>
 			<height> {BAR_H} </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -111,7 +114,11 @@ def row(n, name, label, trait, mode, warn_at, crit_at):
 			<filename> Interface\\Shared\\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> {BAR_X + i * (SEG_W + GAP)} </x>
-			<y> {BAR_Y} </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> {BAR_H} </sub>
+				<div> 2 </div>
+			</y>
 			<width> {SEG_W} </width>
 			<height> {BAR_H} </height>
 			<alpha> 48 </alpha>
@@ -122,9 +129,14 @@ def row(n, name, label, trait, mode, warn_at, crit_at):
 	<rect name="{name}">
 		<locus> &true; </locus>
 		<x> 0 </x>
-		<y> {n * ROW_H} </y>
+		<_lblh><copy src="child(lbl)" trait="height"/></_lblh>
+		<y>
+			<copy src="me()" trait="_lblh"/>
+			<add src="io()" trait="_NMGap"/>
+			<mul> {n} </mul>
+		</y>
 		<width> {BLOCK_W} </width>
-		<height> {ROW_H} </height>
+		<height><copy src="me()" trait="_lblh"/></height>
 		<visible>
 			{shown}
 		</visible>
@@ -175,6 +187,7 @@ def main():
 <!-- Settings, also set by Tick.txt from the player's saved settings: -->
 <_NMOn> 1 </_NMOn>
 <_NMX> 0 </_NMX>
+<_NMGap> 10 </_NMGap>
 <_NMY> 0 </_NMY>
 
 <rect name="NeedsMeters">
@@ -196,7 +209,7 @@ def main():
 	<y>
 		<copy src="screen()" trait="height"/>
 		<div> 1.3 </div>
-		<sub> 190 </sub>
+		<sub> 230 </sub>
 		<add src="io()" trait="_NMY"/>
 	</y>
 {rows}</rect>

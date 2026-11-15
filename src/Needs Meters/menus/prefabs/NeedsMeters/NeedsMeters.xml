@@ -12,6 +12,7 @@
 <!-- Settings, also set by Tick.txt from the player's saved settings: -->
 <_NMOn> 1 </_NMOn>
 <_NMX> 0 </_NMX>
+<_NMGap> 10 </_NMGap>
 <_NMY> 0 </_NMY>
 
 <rect name="NeedsMeters">
@@ -23,7 +24,7 @@
 		<and src="ActionPoints" trait="visible"/>
 	</visible>
 	<width> 166 </width>
-	<height> 110 </height>
+	<height> 200 </height>
 	<x>
 		<copy src="screen()" trait="width"/>
 		<sub> 50 </sub>
@@ -33,16 +34,21 @@
 	<y>
 		<copy src="screen()" trait="height"/>
 		<div> 1.3 </div>
-		<sub> 190 </sub>
+		<sub> 230 </sub>
 		<add src="io()" trait="_NMY"/>
 	</y>
 	<!-- H2O -->
 	<rect name="NMWater">
 		<locus> &true; </locus>
 		<x> 0 </x>
-		<y> 0 </y>
+		<_lblh><copy src="child(lbl)" trait="height"/></_lblh>
+		<y>
+			<copy src="me()" trait="_lblh"/>
+			<add src="io()" trait="_NMGap"/>
+			<mul> 0 </mul>
+		</y>
 		<width> 166 </width>
-		<height> 22 </height>
+		<height><copy src="me()" trait="_lblh"/></height>
 		<visible>
 			<copy src="io()" trait="_NMHardcore"/>
 		</visible>
@@ -78,7 +84,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -87,7 +97,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -96,7 +110,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -105,7 +123,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -114,7 +136,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -124,7 +150,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -152,7 +182,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -180,7 +214,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -208,7 +246,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -236,7 +278,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -264,7 +310,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -292,7 +342,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -320,7 +374,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -348,7 +406,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -376,7 +438,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -404,9 +470,14 @@
 	<rect name="NMFood">
 		<locus> &true; </locus>
 		<x> 0 </x>
-		<y> 22 </y>
+		<_lblh><copy src="child(lbl)" trait="height"/></_lblh>
+		<y>
+			<copy src="me()" trait="_lblh"/>
+			<add src="io()" trait="_NMGap"/>
+			<mul> 1 </mul>
+		</y>
 		<width> 166 </width>
-		<height> 22 </height>
+		<height><copy src="me()" trait="_lblh"/></height>
 		<visible>
 			<copy src="io()" trait="_NMHardcore"/>
 		</visible>
@@ -442,7 +513,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -451,7 +526,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -460,7 +539,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -469,7 +552,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -478,7 +565,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -488,7 +579,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -516,7 +611,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -544,7 +643,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -572,7 +675,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -600,7 +707,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -628,7 +739,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -656,7 +771,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -684,7 +803,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -712,7 +835,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -740,7 +867,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -768,9 +899,14 @@
 	<rect name="NMSleep">
 		<locus> &true; </locus>
 		<x> 0 </x>
-		<y> 44 </y>
+		<_lblh><copy src="child(lbl)" trait="height"/></_lblh>
+		<y>
+			<copy src="me()" trait="_lblh"/>
+			<add src="io()" trait="_NMGap"/>
+			<mul> 2 </mul>
+		</y>
 		<width> 166 </width>
-		<height> 22 </height>
+		<height><copy src="me()" trait="_lblh"/></height>
 		<visible>
 			<copy src="io()" trait="_NMHardcore"/>
 		</visible>
@@ -806,7 +942,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -815,7 +955,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -824,7 +968,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -833,7 +981,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -842,7 +994,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -852,7 +1008,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -880,7 +1040,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -908,7 +1072,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -936,7 +1104,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -964,7 +1136,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -992,7 +1168,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1020,7 +1200,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1048,7 +1232,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1076,7 +1264,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1104,7 +1296,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1132,9 +1328,14 @@
 	<rect name="NMRads">
 		<locus> &true; </locus>
 		<x> 0 </x>
-		<y> 66 </y>
+		<_lblh><copy src="child(lbl)" trait="height"/></_lblh>
+		<y>
+			<copy src="me()" trait="_lblh"/>
+			<add src="io()" trait="_NMGap"/>
+			<mul> 3 </mul>
+		</y>
 		<width> 166 </width>
-		<height> 22 </height>
+		<height><copy src="me()" trait="_lblh"/></height>
 		<visible>
 			<copy src="io()" trait="_NMRads"/>
 			<gt> 0 </gt>
@@ -1170,7 +1371,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -1179,7 +1384,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -1188,7 +1397,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -1197,7 +1410,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -1206,7 +1423,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -1216,7 +1437,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1244,7 +1469,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1272,7 +1501,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1300,7 +1533,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1328,7 +1565,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1356,7 +1597,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1384,7 +1629,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1412,7 +1661,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1440,7 +1693,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1468,7 +1725,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1496,9 +1757,14 @@
 	<rect name="NMPower">
 		<locus> &true; </locus>
 		<x> 0 </x>
-		<y> 88 </y>
+		<_lblh><copy src="child(lbl)" trait="height"/></_lblh>
+		<y>
+			<copy src="me()" trait="_lblh"/>
+			<add src="io()" trait="_NMGap"/>
+			<mul> 4 </mul>
+		</y>
 		<width> 166 </width>
-		<height> 22 </height>
+		<height><copy src="me()" trait="_lblh"/></height>
 		<visible>
 			<copy src="io()" trait="_NMPower"/>
 			<gte> 0 </gte>
@@ -1534,7 +1800,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -1543,7 +1813,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -1552,7 +1826,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -1561,7 +1839,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -1570,7 +1852,11 @@
 			<filename> Interface\Shared\solid.dds </filename>
 			<depth> 2 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
@@ -1580,7 +1866,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1608,7 +1898,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 44 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1636,7 +1930,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1664,7 +1962,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 69 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1692,7 +1994,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1720,7 +2026,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 94 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1748,7 +2058,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1776,7 +2090,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 119 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1804,7 +2122,11 @@
 			<systemcolor> &hudmain; </systemcolor>
 			<depth> 3 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>
@@ -1832,7 +2154,11 @@
 			<systemcolor> &hudalt; </systemcolor>
 			<depth> 3 </depth>
 			<x> 144 </x>
-			<y> 8 </y>
+			<y>
+				<copy src="parent()" trait="_lblh"/>
+				<sub> 8 </sub>
+				<div> 2 </div>
+			</y>
 			<height> 8 </height>
 			<width>
 				<copy src="parent()" trait="_fill"/>

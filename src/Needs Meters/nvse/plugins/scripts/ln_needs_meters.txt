@@ -8,6 +8,7 @@
 ;   player.AuxVarSetFlt "_nmOff" 1      hide the meters (0 shows them again)
 ;   player.AuxVarSetFlt "_nmX" -40      move them left 40 (+ = right)
 ;   player.AuxVarSetFlt "_nmY" 30       move them down 30 (+ = down)
+;   player.AuxVarSetFlt "_nmGap" 16     more space between the rows (default 10)
 ;
 ; Re-registering on every load is safe: xNVSE clears repeating calls on load and new game.
 
