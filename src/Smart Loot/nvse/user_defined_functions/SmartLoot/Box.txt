@@ -22,6 +22,10 @@ ref rPin
 ref rSnd
 ref rRef
 int iBudget
+int iLog
+int iDead
+int iLockd
+string_var sLog
 
 begin Function {rRef, iBudget}
 	SetFunctionValue 0
@@ -29,9 +33,23 @@ begin Function {rRef, iBudget}
 		return
 	endif
 	let iType := GetType (rRef.GetBaseObject)
+	; debug trace (_slDebug 1): each corpse or container once, with every item decision
+	let iLog := 0
+	if eval (player.AuxVarGetFlt "_slDebug") == 1 && (rRef.AuxVarGetFlt "*_slSeen") == 0
+		rRef.AuxVarSetFlt "*_slSeen" 1
+		let iLog := 1
+		let iDead := rRef.GetDead
+		let iLockd := rRef.GetLocked
+		let iNum := rRef.GetNumItems
+		let sLog := sv_Construct "%i %n: type %.0f, dead %.0f, locked %.0f, %.0f item types" rRef rRef iType iDead iLockd iNum
+		PrintF "SmartLoot.log" sLog
+	endif
 	if iType == 27
 		let rFn := CompileScript "SmartLoot/Owned.txt"
 		if eval (call rFn rRef) == 1
+			if iLog == 1
+				PrintF "SmartLoot.log" "  owned (or in an owned place): left alone"
+			endif
 			return
 		endif
 	endif
@@ -82,6 +100,10 @@ begin Function {rRef, iBudget}
 		endif
 		let iHave := rRef.GetItemCount rItem
 		let iTake := call rFn rItem iHave
+		if iLog == 1
+			let sLog := sv_Construct "  %i %n x%.0f: take %.0f" rItem rItem iHave iTake
+			PrintF "SmartLoot.log" sLog
+		endif
 		if iTake > 0
 			rRef.RemoveItemTarget rItem player iTake 1	; 1 = clear the old owner, so nothing arrives marked stolen
 			let rSnd := CompileScript "SmartLoot/Sound.txt"

@@ -16,6 +16,8 @@ int iHave
 int iTake
 int iMsg
 int iLeft
+int iDead
+string_var sLog
 int iOwn
 float fRad
 array_var aRefs
@@ -45,7 +47,17 @@ begin Function {}
 	endif
 	if eval (player.AuxVarGetFlt "_slFight") == 0
 		if player.IsInCombat
+			if eval (player.AuxVarGetFlt "_slDebug") == 1 && (player.AuxVarGetFlt "*_slFightLog") == 0
+				player.AuxVarSetFlt "*_slFightLog" 1
+				PrintF "SmartLoot.log" "paused: you are in combat"
+			endif
 			return
+		endif
+	endif
+	if eval (player.AuxVarGetFlt "*_slFightLog") == 1
+		player.AuxVarSetFlt "*_slFightLog" 0
+		if eval (player.AuxVarGetFlt "_slDebug") == 1
+			PrintF "SmartLoot.log" "resumed: out of combat"
 		endif
 	endif
 
@@ -84,7 +96,14 @@ begin Function {}
 		let iType := GetType rBase
 		if iType == 27
 			Ar_Append aBoxes rRef
-		elseif iType == 42 || iType == 43
+		elseif iType >= 42 && iType <= 45
+			; actors: NPC 42, creature 43, and 44/45 in case a leveled actor reports its leveled list
+			if eval (player.AuxVarGetFlt "_slDebug") == 1 && (rRef.AuxVarGetFlt "*_slSeenA") == 0
+				rRef.AuxVarSetFlt "*_slSeenA" 1
+				let iDead := rRef.GetDead
+				let sLog := sv_Construct "actor %i %n in reach: type %.0f, dead %.0f" rRef rRef iType iDead
+				PrintF "SmartLoot.log" sLog
+			endif
 			if eval rRef.GetDead && (rRef.GetPlayerTeammate == 0)
 				Ar_Append aBoxes rRef
 			endif

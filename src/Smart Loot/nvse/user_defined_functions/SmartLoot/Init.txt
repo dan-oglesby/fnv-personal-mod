@@ -1,27 +1,30 @@
 ; Smart Loot: default settings, set once per save (JIP auxiliary variables on the player, kept in
-; JIP's co-save). The settings menu (Open.txt / Open2.txt) changes them.
+; JIP's co-save). The settings menu (Open.txt / Open2.txt / Open3.txt) changes them. Saves made
+; with an older version get only the settings added since.
 ref rSurv
 
 begin Function {}
-	if eval (player.AuxVarGetFlt "_slInit") >= 4
+	if eval (player.AuxVarGetFlt "_slInit") >= 5
 		return
 	endif
-	if eval (player.AuxVarGetFlt "_slInit") == 3
-		player.AuxVarSetFlt "_slBatt" 4	; added in settings version 4
-		player.AuxVarSetFlt "_slInit" 4
-		return
-	endif
-	if eval (player.AuxVarGetFlt "_slInit") == 1
-		player.AuxVarSetFlt "_slEnemy" 1	; added in settings version 2
-	endif
+	; version 5: the debug trace, on while we find out why corpse currency is missed (2026-11-15)
+	player.AuxVarSetFlt "_slDebug" 1
 	if eval (player.AuxVarGetFlt "_slInit") >= 1
-		let rSurv := CompileScript "SmartLoot/InitSurvival.txt"
-		call rSurv	; added in settings version 3
-		player.AuxVarSetFlt "_slBatt" 4	; added in settings version 4
-		player.AuxVarSetFlt "_slInit" 4
+		if eval (player.AuxVarGetFlt "_slInit") < 4
+			player.AuxVarSetFlt "_slBatt" 4
+		endif
+		if eval (player.AuxVarGetFlt "_slInit") < 3
+			let rSurv := CompileScript "SmartLoot/InitSurvival.txt"
+			call rSurv
+		endif
+		if eval (player.AuxVarGetFlt "_slInit") < 2
+			player.AuxVarSetFlt "_slEnemy" 1
+		endif
+		player.AuxVarSetFlt "_slInit" 5
 		return
 	endif
-	player.AuxVarSetFlt "_slInit" 4
+	; a new save: every setting at its default
+	player.AuxVarSetFlt "_slInit" 5
 	player.AuxVarSetFlt "_slBatt" 4		; fission batteries kept while you own power armor (Fission Power)
 	let rSurv := CompileScript "SmartLoot/InitSurvival.txt"
 	call rSurv
