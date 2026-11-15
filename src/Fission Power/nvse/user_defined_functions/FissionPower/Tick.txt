@@ -3,13 +3,16 @@
 ; no servos and isn't), the distance you cover drains its battery: one step = 52.5 game units (0.75 m),
 ; one battery = "_fpLife" steps (default 10,000, about 7.5 km). Just having the suit online also
 ; draws power: "_fpIdle" steps' worth per second of play (default 1), so a battery lasts about 2.8
-; hours standing still, against about half an hour running. Doors and fast travel don't count:
-; a change of cell (or worldspace, outside) or a jump of more than 1,000 units in a second is skipped.
+; hours standing still, against about half an hour running. Fast travel drains by the distance
+; covered (x1.25, roads wind; setting "_fpFT"). Doors don't count: a change of cell (or worldspace,
+; outside), or a jump of more than 1,000 units that isn't within one outdoor worldspace, is skipped.
 ; When the battery runs out the spent one is ejected (dropped at your feet as a Depleted Fission
 ; Battery, with the battle rifle's clip-spring sound) and a fresh one from your inventory goes in. With none left, the suit is dead weight
 ; (Penalty.txt) until you pick one up. Needs Meters shows the charge (PWR) and your spares.
 int iPlug
 int iSpare
+int iUsed
+int iFT
 int iSnd
 float fX
 float fY
@@ -51,7 +54,15 @@ begin Function {}
 		if eval rLast == rWhere
 			let fDist := ((fX - (player.AuxVarGetFlt "*_fpX")) ^ 2 + (fY - (player.AuxVarGetFlt "*_fpY")) ^ 2) ^ 0.5
 			if fDist > 1000
+				; a jump: fast travel if it stayed in the same outdoor worldspace, otherwise (a door,
+				; an interior move) not counted. Fast travel drains by the distance covered, times
+				; 1.25 because roads wind ("_fpFT" 1, the default; 0 = fast travel is free)
 				let fDist := 0
+				if eval (IsFormValid (player.GetParentWorldspace)) && (player.AuxVarGetFlt "_fpFT") == 1
+					let fDist := ((fX - (player.AuxVarGetFlt "*_fpX")) ^ 2 + (fY - (player.AuxVarGetFlt "*_fpY")) ^ 2) ^ 0.5
+					let fDist *= 1.25
+					let iFT := 1
+				endif
 			endif
 		endif
 	endif
@@ -72,13 +83,22 @@ begin Function {}
 	let rBatt := BuildRef 0 211910	; Fission Battery (FalloutNV.esm 0x033BC6)
 	let iSpare := player.GetItemCount rBatt
 	if fLeft <= 0
-		let fLeft := 0
-		if iSpare > 0
-			; eject the spent battery and load a fresh one
-			let iPlug := GetModIndex "FissionPower.esp"
-			let rSpent := BuildRef iPlug 2048	; Depleted Fission Battery (FPDepletedBattery 0x000800)
+		; eject spent batteries and load fresh ones until the charge is back above 0 (a long fast
+		; travel can use several), or until there are none left
+		let iUsed := 0
+		let iPlug := GetModIndex "FissionPower.esp"
+		let rSpent := BuildRef iPlug 2048	; Depleted Fission Battery (FPDepletedBattery 0x000800)
+		while fLeft <= 0 && iSpare > 0
 			player.RemoveItem rBatt 1 1
 			player.PlaceAtMe rSpent 1
+			let fLeft += fLife
+			let iSpare -= 1
+			let iUsed += 1
+		loop
+		if fLeft < 0
+			let fLeft := 0
+		endif
+		if iUsed > 0
 			; the battle rifle's own reload sound (This Machine): a crisp spring snap by default
 			; (_fpSnd 3 = WPNThisMachineReloadPt3; 1 and 2 are the other parts of its reload)
 			let iSnd := player.AuxVarGetFlt "_fpSnd"
@@ -90,12 +110,15 @@ begin Function {}
 			if eval IsFormValid rSnd
 				PlaySound rSnd
 			endif
-			let fLeft := fLife
-			let iSpare -= 1
 			player.AuxVarSetFlt "_fpDead" 0
 			player.AuxVarSetFlt "_fpWarn" 0
-			MessageEx "Fission battery spent and ejected. %.0f spare(s) left." iSpare
-		elseif eval (player.AuxVarGetFlt "_fpDead") == 0
+			if iUsed == 1
+				MessageEx "Fission battery spent and ejected. %.0f spare(s) left." iSpare
+			else
+				MessageEx "The trip used %.0f fission batteries. %.0f spare(s) left." iUsed iSpare
+			endif
+		endif
+		if eval fLeft <= 0 && (player.AuxVarGetFlt "_fpDead") == 0
 			player.AuxVarSetFlt "_fpDead" 1
 			MessageEx "Your power armor is out of power: the servos are dead weight."
 		endif

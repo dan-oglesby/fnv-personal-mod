@@ -1,12 +1,17 @@
 ; Fission Power: default settings, set once per save (JIP auxiliary variables on the player).
 ; Change them from the console, e.g. player.AuxVarSetFlt "_fpLife" 20000
 begin Function {}
-	if eval (player.AuxVarGetFlt "_fpInit") >= 4
+	if eval (player.AuxVarGetFlt "_fpInit") >= 5
+		return
+	endif
+	player.AuxVarSetFlt "_fpFT" 1	; added in settings version 5: fast travel drains the battery
+	if eval (player.AuxVarGetFlt "_fpInit") == 4
+		player.AuxVarSetFlt "_fpInit" 5
 		return
 	endif
 	if eval (player.AuxVarGetFlt "_fpInit") == 3
 		player.AuxVarSetFlt "_fpSnd" 3		; added in settings version 4
-		player.AuxVarSetFlt "_fpInit" 4
+		player.AuxVarSetFlt "_fpInit" 5
 		return
 	endif
 	if eval (player.AuxVarGetFlt "_fpInit") == 1
@@ -15,10 +20,10 @@ begin Function {}
 	if eval (player.AuxVarGetFlt "_fpInit") >= 1
 		player.AuxVarSetFlt "_fpIdle" 1		; added in settings version 3
 		player.AuxVarSetFlt "_fpSnd" 3		; added in settings version 4
-		player.AuxVarSetFlt "_fpInit" 4
+		player.AuxVarSetFlt "_fpInit" 5
 		return
 	endif
-	player.AuxVarSetFlt "_fpInit" 4
+	player.AuxVarSetFlt "_fpInit" 5
 	player.AuxVarSetFlt "_fpSnd" 3		; eject sound: battle rifle reload part 3 (the spring snap)
 	player.AuxVarSetFlt "_fpLife" 10000	; steps one battery powers a suit for (a step = 52.5 units, 0.75 m)
 	player.AuxVarSetFlt "_fpLeft" 10000	; your first suit comes with a charged battery in it

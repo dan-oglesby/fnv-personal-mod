@@ -227,7 +227,12 @@ steps (52.5 game units, 0.75 m, per step). One fission battery powers a suit for
 7.5 km. That is roughly half an hour of nonstop running. Just having the suit online also draws
 power, more slowly: by default 1 step's worth per second of play, so a battery lasts about 2.8 hours
 standing still. Time skipped by waiting or sleeping doesn't count, since the check only runs during
-play. Doors, fast
+play.
+
+**Fast travel drains it too.** By default, a jump within one outdoor worldspace counts as fast travel and
+uses power for the straight-line distance times 1.25, since roads wind. A long trip can use several
+batteries: they're all ejected where you arrive, and one message says how many. Doors and interiors
+don't count. Turn it off with `player.AuxVarSetFlt "_fpFT" 0`. Doors, fast
 travel and other jumps (a change of cell, or of worldspace outside, or more than 1,000 units in one
 second) don't count. Only armor the game flags as power armor needs power. NCR Salvaged Power Armor
 has had its servos stripped, and the game doesn't flag it, so it runs on nothing.
