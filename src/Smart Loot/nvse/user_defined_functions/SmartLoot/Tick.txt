@@ -16,6 +16,7 @@ int iHave
 int iTake
 int iMsg
 int iLeft
+int iLvl
 int iTickN
 int iDead
 string_var sLog
@@ -85,6 +86,29 @@ begin Function {}
 	if eval aRefs == Ar_Null
 		let aRefs := Ar_Construct "array"
 	endif
+	; Persistent actors (quest-placed, like the Legion assassin squads) live outside the cells GetRefs
+	; walks. Every loaded actor is in the game's process lists, which only the main thread changes,
+	; the thread this runs on; dead ones in reach are added from there (JIP
+	; GetActorsByProcessingLevel 0 to 3). Not the worldspace persistent cell: walking that every check
+	; raced the loader thread and brought back the 0xA61A74 crash (2026-11-15). Actors found both
+	; ways are kept once (Box would otherwise run twice on them).
+	let iLvl := 0
+	while iLvl < 4
+		let aPers := GetActorsByProcessingLevel iLvl
+		let iLvl += 1
+		if eval aPers == Ar_Null
+			continue
+		endif
+		foreach aEntry <- aPers
+			let rRef := aEntry["value"]
+			if eval (IsFormValid rRef) == 0 || rRef == player
+				continue
+			endif
+			if eval rRef.GetDead && (player.GetDistance rRef) <= fRad
+				Ar_Append aRefs rRef
+			endif
+		loop
+	loop
 	let rAlways := BuildRef (GetModIndex "SmartLoot.esp") 2052	; SLAlwaysTake
 	let aLoose := Ar_Construct "array"
 	let aBoxes := Ar_Construct "array"
@@ -105,6 +129,10 @@ begin Function {}
 			Ar_Append aBoxes rRef
 		elseif iType >= 42 && iType <= 45
 			; actors: NPC 42, creature 43, and 44/45 in case a leveled actor reports its leveled list
+			if eval (rRef.AuxVarGetFlt "*_slInT") == iTickN
+				continue	; already listed this check (found by both scans)
+			endif
+			rRef.AuxVarSetFlt "*_slInT" iTickN
 			if eval (player.AuxVarGetFlt "_slDebug") == 1 && (rRef.AuxVarGetFlt "*_slSeenA") == 0
 				rRef.AuxVarSetFlt "*_slSeenA" 1
 				let iDead := rRef.GetDead
