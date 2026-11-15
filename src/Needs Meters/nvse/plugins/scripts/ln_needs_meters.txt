@@ -1,0 +1,37 @@
+; Needs Meters (Dan, 2026-11-14): Hardcore needs and radiation as four small meters on the HUD,
+; drawn like the vanilla HP and AP bars. Replaces Primary Needs HUD, which replaced the game's whole
+; hud_main_menu.xml; this adds one file through UI Organizer instead (Data\uio\public\NeedsMeters.txt
+; -> Data\menus\prefabs\NeedsMeters\NeedsMeters.xml).
+;
+; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.2.8+, JIP LN
+; 56.95+ and UI Organizer. No plugin (.esp) and nothing saved but three optional settings:
+;   player.AuxVarSetFlt "_nmOff" 1      hide the meters (0 shows them again)
+;   player.AuxVarSetFlt "_nmX" -40      move them left 40 (+ = right)
+;   player.AuxVarSetFlt "_nmY" 30       move them down 30 (+ = down)
+;
+; Re-registering on every load is safe: xNVSE clears repeating calls on load and new game.
+
+; Every function must have compiled: a timer that calls a function that failed to compile can
+; crash xNVSE (2026-11-13). If one failed, register nothing and say so.
+let int iBad := 0
+let ref rChk := CompileScript "NeedsMeters/Tick.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "NeedsMeters/Always.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+if iBad > 0
+	print "Needs Meters: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
+	MessageEx "Needs Meters is switched off: a script failed to compile"
+else
+	if eval (IsComponentLoaded "HUDMainMenu/NeedsMeters") == 0
+		print "Needs Meters: the HUD file was not injected (is UI Organizer installed and Data\uio\public\NeedsMeters.txt deployed?)"
+	endif
+	let ref rTick := CompileScript "NeedsMeters/Tick.txt"
+	let ref rTrue := CompileScript "NeedsMeters/Always.txt"
+	call rTick
+	; every second of play: flags 4 + 16 = not in menus, not while paused
+	CallWhilePerSeconds 1 rTick rTrue 20
+endif

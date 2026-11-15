@@ -1,0 +1,4 @@
+; Needs Meters: condition for the once-a-second update (always run; xNVSE clears it on load).
+begin Function {}
+	SetFunctionValue 1
+end

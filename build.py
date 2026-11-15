@@ -25,6 +25,7 @@ import make_plugins
 sys.path.insert(0, str(Path(__file__).resolve().parent / "tools"))
 import exchange_sim  # noqa: E402
 import gen_exchange  # noqa: E402
+import gen_needs_meters  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent
 STAGING = Path(os.environ.get("APPDATA", "")) / "Vortex" / "falloutnv" / "mods"
@@ -72,6 +73,7 @@ def stage(mod: Path) -> str:
 
 def main(argv):
     gen_exchange.main()             # Wasteland Exchange's generated data and event scripts
+    gen_needs_meters.main()         # Needs Meters' HUD file
     if exchange_sim.main():         # the exchange's maths, checked offline
         sys.exit("build stopped: Wasteland Exchange simulation failed")
     if check_scripts.main():        # a script that would not compile in game stops the build

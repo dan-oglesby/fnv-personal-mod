@@ -9,6 +9,8 @@
    Command names come from nvse.log (every command xNVSE and its plugins register) plus a list of
    vanilla console short names, which nvse.log doesn't record.
 2. if/endif, while/loop and foreach/loop balance.
+3. Menu XML files are well-formed (the game's parser is lenient, so a bad tag can silently break a
+   HUD element instead of failing).
 
 Exits 1 if anything is wrong.
 """
@@ -93,9 +95,23 @@ def compile_traps(text):
     return out
 
 
+def xml_problems(text):
+    """Parse a menu XML file with the game's entities (&true; etc.) stubbed out."""
+    import xml.dom.minidom
+    body = re.sub(r"<!--.*?-->", "", re.sub(r"&[A-Za-z_][\w-]*;", "0", text), flags=re.S)
+    try:
+        xml.dom.minidom.parseString("<root>" + body + "</root>")
+    except Exception as e:  # expat's message names the line and column
+        return ["XML not well-formed: %s" % e]
+    return []
+
+
 def main():
     names = command_names()
     problems = []
+    for f in sorted((ROOT / "src").rglob("*.xml")):
+        for p in xml_problems(f.read_text(encoding="utf-8-sig", errors="replace")):
+            problems.append("%s: %s" % (f.relative_to(ROOT), p))
     for f in sorted((ROOT / "src").rglob("*.txt")):
         text = f.read_text(encoding="utf-8", errors="replace")
         rel = f.relative_to(ROOT)

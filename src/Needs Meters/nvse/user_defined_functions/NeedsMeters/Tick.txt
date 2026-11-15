@@ -1,0 +1,39 @@
+; Needs Meters: once a second of play (registered by ln_needs_meters.txt; not in menus or paused).
+; Copies the player's Hardcore needs and radiation to the HUD (NeedsMeters.xml draws them), plus the
+; blink beat and the player's saved settings. Actor value names are the game's own, including its
+; spelling of SleepDeprevation (checked against the game's name table, 2026-11-14).
+; Settings (JIP auxiliary variables on the player, kept in JIP's co-save):
+;   _nmOff 1 hides the meters; _nmX / _nmY move them (HUD units, + is right / down).
+float fWat
+float fFod
+float fSlp
+float fRad
+float fBeat
+
+begin Function {}
+	let fWat := player.GetAV Dehydration
+	let fFod := player.GetAV Hunger
+	let fSlp := player.GetAV SleepDeprevation
+	let fRad := player.GetAV RadiationRads
+	SetUIFloat "HUDMainMenu\_NMWater" fWat
+	SetUIFloat "HUDMainMenu\_NMFood" fFod
+	SetUIFloat "HUDMainMenu\_NMSleep" fSlp
+	SetUIFloat "HUDMainMenu\_NMRads" fRad
+	if IsHardcore
+		SetUIFloat "HUDMainMenu\_NMHardcore" 1
+	else
+		SetUIFloat "HUDMainMenu\_NMHardcore" 0
+	endif
+	let fBeat := GetUIFloat "HUDMainMenu\_NMBlink"
+	let fBeat := 1 - fBeat
+	SetUIFloat "HUDMainMenu\_NMBlink" fBeat
+	if eval (player.AuxVarGetFlt "_nmOff") == 1
+		SetUIFloat "HUDMainMenu\_NMOn" 0
+	else
+		SetUIFloat "HUDMainMenu\_NMOn" 1
+	endif
+	let fBeat := player.AuxVarGetFlt "_nmX"
+	SetUIFloat "HUDMainMenu\_NMX" fBeat
+	let fBeat := player.AuxVarGetFlt "_nmY"
+	SetUIFloat "HUDMainMenu\_NMY" fBeat
+end
