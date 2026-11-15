@@ -98,6 +98,13 @@ def compile_traps(text):
         if re.match(r"(else)?if\b", bare, re.I) and re.search(r"\beval\b", bare, re.I) \
                 and not re.match(r"(else)?if\s+eval\b", bare, re.I):
             out.append("line %d: 'eval' must come right after if/elseif" % n)
+        # No backslashes inside strings: use / in paths (MCM's convention). On 2026-11-15 every
+        # SetUIFloat "HUDMainMenu\_trait" in Needs Meters failed at run time ("failed to evaluate
+        # expression", 5,089 times in one session), most likely because a runtime-compiled string
+        # treats the backslash as an escape.
+        for s in re.findall(r'"([^"]*)"', code.split(";")[0]):
+            if "\\" in s:
+                out.append("line %d: backslash inside a string (use / in paths)" % n)
         # A form ID written in decimal must match the hex in its comment: on 2026-11-15 a hand
         # conversion put 1191988 for 0x123054 (1192020), so the item was never matched.
         b = re.search(r"BuildRef\s+\S+\s+(\d+)", line)

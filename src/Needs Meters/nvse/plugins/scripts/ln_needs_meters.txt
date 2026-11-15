@@ -27,7 +27,7 @@ if iBad > 0
 	MessageEx "Needs Meters is switched off: a script failed to compile"
 else
 	if eval (IsComponentLoaded "HUDMainMenu/NeedsMeters") == 0
-		print "Needs Meters: the HUD file was not injected (is UI Organizer installed and Data\uio\public\NeedsMeters.txt deployed?)"
+		print "Needs Meters: the HUD file was not injected (is UI Organizer installed and Data/uio/public/NeedsMeters.txt deployed?)"
 	endif
 	let ref rTick := CompileScript "NeedsMeters/Tick.txt"
 	let ref rTrue := CompileScript "NeedsMeters/Always.txt"

@@ -31,7 +31,7 @@ begin Function {}
 	let rFn := CompileScript "FissionPower/Penalty.txt"
 	let rSuit := player.GetEquippedObject 2
 	if eval (IsFormValid rSuit) == 0 || (IsPowerArmor rSuit) == 0
-		SetUIFloat "HUDMainMenu\_NMPower" -1
+		SetUIFloat "HUDMainMenu/_NMPower" -1
 		player.AuxVarSetFlt "*_fpHave" 0
 		call rFn 0 rSuit
 		return
@@ -108,6 +108,6 @@ begin Function {}
 		endif
 	endif
 	let fPct *= 1000
-	SetUIFloat "HUDMainMenu\_NMPower" fPct
-	SetUIFloat "HUDMainMenu\_NMBatt" iSpare
+	SetUIFloat "HUDMainMenu/_NMPower" fPct
+	SetUIFloat "HUDMainMenu/_NMBatt" iSpare
 end
