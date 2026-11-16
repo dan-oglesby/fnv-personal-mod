@@ -1,0 +1,75 @@
+; Smart Loot: a light check every 0.25 s that runs the full loot pass (Tick.txt) early when there's
+; a reason, so things are looted as they come into reach instead of on the next 1.5 s check:
+;   - you have moved 96 units (about 1.4 m) since the last pass, or
+;   - your crosshair is on something lootable within reach (a container, a corpse, or a loose item
+;     of a lootable kind) that hasn't triggered a pass yet.
+; Early passes come at most once a second when moving (a full pass scans the nearby cells, so
+; walking doesn't triple how often that happens) and every 0.5 s for the crosshair. Standing still
+; costs nothing extra: no scan happens here, only a position check and the crosshair reference
+; (xNVSE GetCrosshairRef).
+int iFast
+int iLast
+int iType
+int iGo
+float fX
+float fY
+float fD
+float fRad
+ref rX
+ref rB
+ref rTick
+
+begin Function {}
+	if player.GetDead
+		return
+	endif
+	if IsInKillCam
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_slOn") == 0
+		return
+	endif
+	let iFast := player.AuxVarGetFlt "*_slFastN"
+	let iFast += 1
+	player.AuxVarSetFlt "*_slFastN" iFast
+	let iLast := player.AuxVarGetFlt "*_slLastF"
+	if iFast - iLast < 2
+		return
+	endif
+	let iGo := 0
+	let fX := player.GetPos X
+	let fY := player.GetPos Y
+	let fD := ((fX - (player.AuxVarGetFlt "*_slLX")) ^ 2 + (fY - (player.AuxVarGetFlt "*_slLY")) ^ 2) ^ 0.5
+	if fD >= 96 && iFast - iLast >= 4
+		let iGo := 1
+	elseif fD < 96
+		let rX := GetCrosshairRef
+		if eval IsFormValid rX
+			if eval (rX.AuxVarGetFlt "*_slXSeen") == 0
+				let fRad := player.AuxVarGetFlt "_slRad"
+				if eval (player.GetDistance rX) <= fRad
+					let rB := rX.GetBaseObject
+					let iType := GetType rB
+					if iType == 27
+						let iGo := 1
+					elseif iType >= 42 && iType <= 45
+						if rX.GetDead
+							let iGo := 1
+						endif
+					elseif iType == 24 || iType == 25 || iType == 31 || iType == 40 || iType == 41
+						let iGo := 1
+					elseif iType == 46 || iType == 47 || iType == 49 || iType == 103
+						let iGo := 1
+					endif
+					if iGo == 1
+						rX.AuxVarSetFlt "*_slXSeen" 1
+					endif
+				endif
+			endif
+		endif
+	endif
+	if iGo == 1
+		let rTick := CompileScript "SmartLoot/Tick.txt"
+		call rTick
+	endif
+end

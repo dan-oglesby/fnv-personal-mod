@@ -22,6 +22,7 @@ int iDead
 string_var sLog
 int iOwn
 float fRad
+float fX
 array_var aRefs
 array_var aEntry
 array_var aLoose
@@ -85,6 +86,13 @@ begin Function {}
 	let iTickN := player.AuxVarGetFlt "*_slTickN"
 	let iTickN += 1
 	player.AuxVarSetFlt "*_slTickN" iTickN
+	; where and when this pass ran, for FastTick.txt's early passes
+	let fX := player.GetPos X
+	player.AuxVarSetFlt "*_slLX" fX
+	let fX := player.GetPos Y
+	player.AuxVarSetFlt "*_slLY" fX
+	let fX := player.AuxVarGetFlt "*_slFastN"
+	player.AuxVarSetFlt "*_slLastF" fX
 
 	let fRad := player.AuxVarGetFlt "_slRad"
 	let aRefs := player.GetRefs 0 1 0 fRad

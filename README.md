@@ -270,6 +270,11 @@ Take power armor off before uninstalling, or a dead-suit penalty that is active 
 
 ## How Smart Loot works
 
+A light check every 0.25 s also runs a pass early when there's a reason. If you've moved about
+1.4 m since the last pass, it runs one at most once a second. If your crosshair is on a container,
+corpse or item within reach, it runs one straight away. So things are looted as they come into
+reach. Standing still adds nothing.
+
 Every 1.5 seconds of play (never in menus, and by default not in combat), Smart Loot scans
 everything within reach once. It sorts what it finds into loose items and containers or corpses, and
 only then picks things up, at most 10 stacks per check. Picking up in the middle of a scan is what

@@ -82,6 +82,11 @@ if eval IsModLoaded "SmartLoot.esp"
 		let iBad += 1
 		print "Smart Loot: Ajar.txt failed to compile (see nvse.log)"
 	endif
+	let rChk := CompileScript "SmartLoot/FastTick.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+		print "Smart Loot: FastTick.txt failed to compile (see nvse.log)"
+	endif
 	let rChk := CompileScript "SmartLoot/Freeze.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
@@ -194,5 +199,8 @@ if eval IsModLoaded "SmartLoot.esp"
 		let ref rTick := CompileScript "SmartLoot/Tick.txt"
 		let ref rTrue := CompileScript "SmartLoot/Always.txt"
 		CallWhilePerSeconds 1.5 rTick rTrue 20
+		; and the light check every 0.25 s that runs a pass early when you move or look at loot
+		let ref rFast := CompileScript "SmartLoot/FastTick.txt"
+		CallWhilePerSeconds 0.25 rFast rTrue 20
 	endif
 endif
