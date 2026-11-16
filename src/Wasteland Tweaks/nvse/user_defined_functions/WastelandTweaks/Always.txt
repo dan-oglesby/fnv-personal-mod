@@ -1,0 +1,4 @@
+; Wasteland Tweaks: condition for the regular checks (always run; xNVSE clears them on load).
+begin Function {}
+	SetFunctionValue 1
+end

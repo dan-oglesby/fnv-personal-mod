@@ -1,0 +1,27 @@
+; Wasteland Tweaks: VATS watchdog, once a second (registered by ln_wasteland_tweaks.txt; runs
+; outside menus, which VATS playback is). Counts how long the VATS kill camera has run without a
+; break (JIP IsInKillCam: VATS playback with its timer running). A normal VATS sequence lasts a few
+; seconds; after "_twVatsMax" seconds (default 15) the camera is ended (JohnnyGuitar StopVATSCam,
+; the game's own ResetKillCam for VATS). A stuck camera the check can't see can be ended with the
+; rescue key instead (VatsKey.txt).
+int iSec
+int iMax
+
+begin Function {}
+	if IsInKillCam
+		let iSec := player.AuxVarGetFlt "*_twVatsSec"
+		let iSec += 1
+		player.AuxVarSetFlt "*_twVatsSec" iSec
+		let iMax := player.AuxVarGetFlt "_twVatsMax"
+		if iMax < 5
+			let iMax := 15
+		endif
+		if iSec >= iMax
+			player.AuxVarSetFlt "*_twVatsSec" 0
+			StopVATSCam
+			MessageEx "Wasteland Tweaks: the VATS camera was stuck, so it was ended."
+		endif
+	else
+		player.AuxVarSetFlt "*_twVatsSec" 0
+	endif
+end

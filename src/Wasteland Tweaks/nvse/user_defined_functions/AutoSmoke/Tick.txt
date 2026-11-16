@@ -19,6 +19,11 @@ begin Function {}
 	if player.GetDead
 		return
 	endif
+	; nothing during VATS playback (JIP IsInKillCam): using or equipping items mid-VATS can leave the
+	; VATS camera stuck (2026-11-15, a Mysterious Stranger appearance froze while a radscorpion closed in)
+	if IsInKillCam
+		return
+	endif
 	let rFn := CompileScript "AutoSmoke/LitKind.txt"
 	let iKind := call rFn
 	let iWas := player.AuxVarGetFlt "_asWasLit"

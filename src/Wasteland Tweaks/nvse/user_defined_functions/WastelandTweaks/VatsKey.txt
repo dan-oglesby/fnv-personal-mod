@@ -1,0 +1,9 @@
+; Wasteland Tweaks: the VATS rescue key (JIP key-down handler; End by default, setting "_twVatsKey"
+; as a DirectInput scan code). Ends the VATS camera (JohnnyGuitar StopVATSCam). Outside VATS it
+; does nothing harmful.
+int iKey
+
+begin Function {iKey}
+	StopVATSCam
+	player.AuxVarSetFlt "*_twVatsSec" 0
+end

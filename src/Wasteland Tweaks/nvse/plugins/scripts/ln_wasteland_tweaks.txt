@@ -11,6 +11,14 @@
 ;      player.AuxVarSetFlt "_twShellLife" 7200     seconds a casing lasts (0 = leave the game's own)
 ;      player.AuxVarSetFlt "_twShellMax" 2500      casings at once (0 = leave the game's own)
 ;    Don't run Permanent Weapon Shells alongside: it sets the same two settings.
+;
+; 2. VATS rescue: VATS playback sometimes hangs (seen 2026-11-15 when the Mysterious Stranger
+;    appeared). A watchdog ends the VATS camera if it runs 15 s without a break, and the End key ends
+;    it any time. Smart Loot, Auto Smoke, Fission Power and Wasteland Market also stop using items
+;    during VATS playback. Settings (console):
+;      player.AuxVarSetFlt "_twVatsMax" 20        seconds before the watchdog ends it (default 15)
+;      player.AuxVarSetFlt "_twVatsKey" 199       rescue key, DirectInput code (default 207, End;
+;                                                 0 = no key)
 
 if eval (player.AuxVarGetFlt "_twInit") < 1
 	player.AuxVarSetFlt "_twInit" 1
@@ -24,4 +32,24 @@ if fTwLife > 0
 endif
 if fTwMax > 0
 	SetNumericGameSetting "iDebrisMaxCount" fTwMax
+endif
+
+; VATS rescue (needs JIP LN and JohnnyGuitar NVSE; switched off if its scripts fail to compile)
+if eval (player.AuxVarGetFlt "_twInit") < 2
+	player.AuxVarSetFlt "_twInit" 2
+	player.AuxVarSetFlt "_twVatsMax" 15
+	player.AuxVarSetFlt "_twVatsKey" 207
+endif
+let ref rTwWatch := CompileScript "WastelandTweaks/VatsWatch.txt"
+let ref rTwKey := CompileScript "WastelandTweaks/VatsKey.txt"
+let ref rTwTrue := CompileScript "WastelandTweaks/Always.txt"
+if eval (IsFormValid rTwWatch) && (IsFormValid rTwKey) && (IsFormValid rTwTrue)
+	; once a second, outside menus (VATS playback isn't a menu) and not while paused: flags 4 + 16
+	CallWhilePerSeconds 1 rTwWatch rTwTrue 20
+	let int iTwKey := player.AuxVarGetFlt "_twVatsKey"
+	if iTwKey > 0
+		SetOnKeyDownEventHandler rTwKey 1 iTwKey
+	endif
+else
+	print "Wasteland Tweaks: the VATS rescue is off because its scripts failed to compile (see nvse.log)"
 endif

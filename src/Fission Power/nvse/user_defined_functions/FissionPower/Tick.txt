@@ -32,6 +32,11 @@ begin Function {}
 	if player.GetDead
 		return
 	endif
+	; nothing during VATS playback (JIP IsInKillCam): using or equipping items mid-VATS can leave the
+	; VATS camera stuck (2026-11-15, a Mysterious Stranger appearance froze while a radscorpion closed in)
+	if IsInKillCam
+		return
+	endif
 	let rFn := CompileScript "FissionPower/Penalty.txt"
 	let rSuit := player.GetEquippedObject 2
 	if eval (IsFormValid rSuit) == 0 || (IsPowerArmor rSuit) == 0
