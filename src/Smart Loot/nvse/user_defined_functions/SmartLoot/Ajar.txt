@@ -8,6 +8,7 @@ ref rRef
 ref rFreeze
 int iOk
 int iN
+string_var sLog
 
 begin Function {rRef}
 	if eval (player.AuxVarGetFlt "_slAjar") == 0
@@ -19,6 +20,14 @@ begin Function {rRef}
 	rRef.AuxVarSetFlt "_slSearched" 1
 	rRef.SetAnimSequenceFrequency "Open" 1	; undo an earlier freeze so it can play again
 	let iOk := rRef.PlayAnimSequence "Open"
+	if eval (player.AuxVarGetFlt "_slDebug") == 1
+		if iOk == 1
+			let sLog := sv_Construct "  %i %n: left slightly open" rRef rRef
+		else
+			let sLog := sv_Construct "  %i %n: has no Open animation, stays shut" rRef rRef
+		endif
+		PrintF "SmartLoot.log" sLog
+	endif
 	if iOk == 0
 		return
 	endif
