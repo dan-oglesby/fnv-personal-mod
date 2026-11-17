@@ -81,6 +81,26 @@ def compile_traps(text):
     outside an NVSE expression (classic commands and plain 'if' can't take aFoo[i]), and setting a
     JIP aux string from "" or a $variable."""
     out = []
+    # settings versions: blocks like  if eval (player.AuxVarGetFlt "_wbSet") < N  must come in
+    # rising N. A block placed after a higher one never runs once that one has set the version
+    # (Wasteland Bank's version 2 sat last, so its selling cut was never set: 2026-11-17).
+    # Only blocks that set the version count (a chain that tests one saved value and sets it once
+    # at the end, as Smart Loot's does, is fine).
+    last, open_blk = {}, {}
+    for n, line in enumerate(text.splitlines(), 1):
+        code = line.split(";")[0].rstrip()
+        m = re.search(r'AuxVarGetFlt\s+"(_\w+)"\)\s*<\s*(\d+)\s*$', code)
+        if m and line.strip().lower().startswith("if"):
+            var, ver = m.group(1), int(m.group(2))
+            if var in last and ver < last[var]:
+                out.append("line %d: settings version %s < %d comes after a block for < %d that sets it"
+                           " (it would never run)" % (n, var, ver, last[var]))
+            open_blk[var] = ver
+            continue
+        s = re.search(r'AuxVarSetFlt\s+"(_\w+)"', code)
+        if s and s.group(1) in open_blk:
+            var = s.group(1)
+            last[var] = max(open_blk[var], last.get(var, 0))
     for n, line in enumerate(text.splitlines(), 1):
         if len(line) > 500:     # the compiler's hard limit is 512 characters a line
             out.append("line %d: %d characters (script lines are limited to 512)" % (n, len(line)))
