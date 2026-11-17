@@ -1,0 +1,5 @@
+; Target Readout: the condition for the repeating call to Tick.txt. Always true: Tick.txt checks
+; the on/off setting itself, so that it can hide the readout when it is switched off.
+begin Function {}
+	SetFunctionValue 1
+end

@@ -1,0 +1,47 @@
+; Target Readout: the STATUS line's combat and relation part for the living, non-companion actor rX
+; (called by Status.txt): ENGAGED, HOSTILE, ALLY, FRIENDLY or NEUTRAL. iHo is the compass's
+; hostility test from Hostile.txt (1 or 0), or -1 when that isn't available.
+;   ENGAGED   in combat with you as its target (GetCombatTarget)
+;   HOSTILE   iHo 1; or, with no compass test (iHo -1), would attack you on sight (GetShouldAttack)
+;             or its faction counts you an enemy (GetFactionRelation 1)
+;   ALLY      its factions are allied with yours (GetFactionRelation 2)
+;   FRIENDLY  its factions are friends of yours (GetFactionRelation 3)
+; GetFactionRelation reflects faction reactions only (0 neutral, 1 enemy, 2 ally, 3 friend), not
+; reputation or aggression, so it never decides HOSTILE when the compass test is there.
+; Optional: kept in a file of its own because these vanilla commands are used nowhere else in this
+; repo. ln_target_readout.txt sets "*_trRel" to 1 when it compiled, and Status.txt calls it only then.
+ref rX
+ref rT
+int iHo
+int iAtk
+int iRel
+string_var sOut
+
+begin Function {rX, iHo}
+	let sOut := "NEUTRAL"
+	if eval rX.IsInCombat
+		let rT := rX.GetCombatTarget
+		if eval IsFormValid rT
+			if eval rT == player
+				let sOut := "ENGAGED"
+				SetFunctionValue sOut
+				return
+			endif
+		endif
+	endif
+	let iRel := rX.GetFactionRelation player
+	if iHo == -1
+		let iAtk := rX.GetShouldAttack player
+		if iAtk > 0 || iRel == 1
+			let iHo := 1
+		endif
+	endif
+	if iHo == 1
+		let sOut := "HOSTILE"
+	elseif iRel == 2
+		let sOut := "ALLY"
+	elseif iRel == 3
+		let sOut := "FRIENDLY"
+	endif
+	SetFunctionValue sOut
+end

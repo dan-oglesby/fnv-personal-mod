@@ -1,0 +1,30 @@
+; Target Readout: a creature's class for the FACTION line (Faction.txt, when no listed faction
+; matches), from JIP LN's GetCreatureType on the creature's base form rB. Optional like Pick.txt:
+; ln_target_readout.txt sets "*_trCT" to 1 when it compiled; otherwise creatures read CREATURE.
+ref rB
+int iCT
+string_var sOut
+
+begin Function {rB}
+	let iCT := GetCreatureType rB
+	if iCT == 0
+		let sOut := "ANIMAL"
+	elseif iCT == 1
+		let sOut := "MUTATED ANIMAL"
+	elseif iCT == 2
+		let sOut := "MUTATED INSECT"
+	elseif iCT == 3
+		let sOut := "ABOMINATION"
+	elseif iCT == 4
+		let sOut := "SUPER MUTANT"
+	elseif iCT == 5
+		let sOut := "FERAL GHOUL"
+	elseif iCT == 6
+		let sOut := "ROBOT"
+	elseif iCT == 7
+		let sOut := "GIANT"
+	else
+		let sOut := "CREATURE"
+	endif
+	SetFunctionValue sOut
+end

@@ -1,0 +1,92 @@
+; Target Readout: four times a second of play (registered by ln_target_readout.txt; not in menus or
+; paused). Finds the actor under the crosshair (Valid.txt: an NPC or creature within "_trRange"),
+; writes its readout (Readout.txt) to the HUD and shows it (TargetReadout.xml draws it).
+; The crosshair reference: JIP LN's GetCrosshairRefEx when Pick.txt compiled ("*_trEx" 1), which
+; reaches beyond activation distance, else xNVSE's GetCrosshairRef (about activation reach).
+; With no target the last readout is held at full strength for 0.5 s, fades over the next 0.5 s and
+; is then hidden ("*_trMiss" counts the ticks without one; 99 = nothing held).
+; Also hidden while the readout is switched off ("_trOn" 0) and during VATS playback (JIP
+; IsInKillCam). Hide.txt hides it when the VATS menu opens.
+; Settings copied to the HUD each tick: "_trRed" the text colour (1 red, 0 HUD colour, 2 the HUD's
+; alternate colour) and "_trX" / "_trY" an offset from its place above and right of the reticle.
+int iOk
+int iEx
+int iMiss
+float fVal
+float fAlpha
+ref rX
+ref rFn
+ref rValid
+string_var sText
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_trOn") == 0
+		SetUIFloat "HUDMainMenu/_TRVis" 0
+		player.AuxVarSetFlt "*_trMiss" 99
+		return
+	endif
+	if eval IsInKillCam
+		SetUIFloat "HUDMainMenu/_TRVis" 0
+		player.AuxVarSetFlt "*_trMiss" 99
+		return
+	endif
+	; colour: one of three text tiles is visible
+	let fVal := player.AuxVarGetFlt "_trRed"
+	if fVal == 1
+		SetUIFloat "HUDMainMenu/_TRRedOn" 1
+		SetUIFloat "HUDMainMenu/_TRHudOn" 0
+		SetUIFloat "HUDMainMenu/_TRAltOn" 0
+	elseif fVal == 2
+		SetUIFloat "HUDMainMenu/_TRRedOn" 0
+		SetUIFloat "HUDMainMenu/_TRHudOn" 0
+		SetUIFloat "HUDMainMenu/_TRAltOn" 1
+	else
+		SetUIFloat "HUDMainMenu/_TRRedOn" 0
+		SetUIFloat "HUDMainMenu/_TRHudOn" 1
+		SetUIFloat "HUDMainMenu/_TRAltOn" 0
+	endif
+	let fVal := player.AuxVarGetFlt "_trX"
+	SetUIFloat "HUDMainMenu/_TRX" fVal
+	let fVal := player.AuxVarGetFlt "_trY"
+	SetUIFloat "HUDMainMenu/_TRY" fVal
+	; the actor under the crosshair, if any
+	let iOk := 0
+	let rX := 0
+	let rValid := CompileScript "TargetReadout/Valid.txt"
+	let iEx := player.AuxVarGetFlt "*_trEx"
+	if iEx == 1
+		let rFn := CompileScript "TargetReadout/Pick.txt"
+		let rX := call rFn
+		let iOk := call rValid rX
+	endif
+	if iOk == 0
+		let rX := GetCrosshairRef
+		let iOk := call rValid rX
+	endif
+	if iOk == 1
+		let rFn := CompileScript "TargetReadout/Readout.txt"
+		let sText := call rFn rX
+		SetUIStringEx "HUDMainMenu/_TRText" "%z" sText
+		let fAlpha := 255
+		SetUIFloat "HUDMainMenu/_TRAlpha" fAlpha
+		SetUIFloat "HUDMainMenu/_TRVis" 1
+		player.AuxVarSetFlt "*_trMiss" 0
+		return
+	endif
+	; no target: hold the last readout, then fade it out
+	let iMiss := player.AuxVarGetFlt "*_trMiss"
+	if iMiss >= 99
+		return
+	endif
+	let iMiss += 1
+	player.AuxVarSetFlt "*_trMiss" iMiss
+	if iMiss <= 2
+		return
+	elseif iMiss <= 4
+		let fAlpha := 255 - (iMiss - 2) * 85
+		SetUIFloat "HUDMainMenu/_TRAlpha" fAlpha
+	else
+		SetUIFloat "HUDMainMenu/_TRVis" 0
+		player.AuxVarSetFlt "*_trMiss" 99
+	endif
+end

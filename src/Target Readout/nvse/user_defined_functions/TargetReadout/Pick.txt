@@ -1,0 +1,11 @@
+; Target Readout: the reference under the crosshair at any distance, from JIP LN's GetCrosshairRefEx
+; (xNVSE's GetCrosshairRef stops at about activation reach). Optional: kept in a file of its own so
+; that, if this command's form differs from what is written here and the file fails to compile, only
+; the long reach is lost. ln_target_readout.txt sets "*_trEx" to 1 when it compiled, and Tick.txt
+; calls it only then. Returns 0 or a reference (not always an actor: Valid.txt checks).
+ref rX
+
+begin Function {}
+	let rX := GetCrosshairRefEx
+	SetFunctionValue rX
+end

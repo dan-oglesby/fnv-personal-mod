@@ -1,0 +1,48 @@
+; Target Readout: the STATUS line for the actor rX (called by Readout.txt), checked in this order:
+;   TERMINATED  dead
+;   ALLY        your companion (GetPlayerTeammate)
+;   ENGAGED     in combat with you as its target (Rel.txt: GetCombatTarget)
+;   HOSTILE     hostile to you as the compass shows it (Hostile.txt: JohnnyGuitar's
+;               IsCompassHostile), or without that, would attack you on sight (Rel.txt:
+;               GetShouldAttack) or its faction counts you an enemy (GetFactionRelation 1)
+;   ALLY        its factions are allied with yours (Rel.txt: GetFactionRelation 2)
+;   FRIENDLY    its factions are friends of yours (Rel.txt: GetFactionRelation 3)
+;   NEUTRAL     anything else
+; The faction relation alone misses most hostiles: in FalloutNV.esm Raiders, Fiends, Vipers,
+; Scorpions and the Powder Gangers have no reaction to the player's faction at all, NCR and the
+; Legion are neutral, and reputation is not a faction relation. Hostility comes from the compass
+; check, or from GetShouldAttack.
+; Rel.txt and Hostile.txt are optional, each in a file of its own so that if one fails to compile
+; only its part of this line is lost (ln_target_readout.txt sets "*_trRel" and "*_trHo" to 1 when
+; they compiled). With neither, only TERMINATED, ALLY and NEUTRAL are read.
+ref rX
+ref rFn
+int iHo
+string_var sOut
+
+begin Function {rX}
+	let sOut := "NEUTRAL"
+	if eval rX.GetDead
+		let sOut := "TERMINATED"
+		SetFunctionValue sOut
+		return
+	endif
+	if eval rX.GetPlayerTeammate
+		let sOut := "ALLY"
+		SetFunctionValue sOut
+		return
+	endif
+	; the compass's hostility test: 1 or 0, or -1 when it isn't available
+	let iHo := -1
+	if eval (player.AuxVarGetFlt "*_trHo") == 1
+		let rFn := CompileScript "TargetReadout/Hostile.txt"
+		let iHo := call rFn rX
+	endif
+	if eval (player.AuxVarGetFlt "*_trRel") == 1
+		let rFn := CompileScript "TargetReadout/Rel.txt"
+		let sOut := call rFn rX iHo
+	elseif iHo == 1
+		let sOut := "HOSTILE"
+	endif
+	SetFunctionValue sOut
+end

@@ -1,0 +1,112 @@
+; Target Readout (2026-11-17): a Terminator-style readout beside the reticle while the crosshair is
+; on an NPC or creature within range: its name, level and condition (or DECEASED), faction (or a
+; creature's class), status towards you (HOSTILE, ENGAGED, NEUTRAL, FRIENDLY, ALLY) and weapon.
+; Updates four times a second, holds the last target about a second after the crosshair leaves it,
+; and hides in menus, VATS and the kill camera. Added to the HUD through UI Organizer, the same way
+; as Needs Meters (Data/uio/public/TargetReadout.txt -> Data/menus/prefabs/TargetReadout/TargetReadout.xml).
+;
+; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.2.8+, JIP LN
+; 56.95+ and UI Organizer; JohnnyGuitar NVSE is optional (the compass's hostility test for STATUS).
+; No plugin (.esp). Settings (console; saved with the game):
+;   player.AuxVarSetFlt "_trOn" 0         switch the readout off (1 switches it on again)
+;   player.AuxVarSetFlt "_trRange" 5000   read actors up to 5000 units away (default 3000)
+;   player.AuxVarSetFlt "_trRed" 0        text in the HUD colour (1 red, the default; 2 the HUD's
+;                                         alternate colour)
+;   player.AuxVarSetFlt "_trX" -40        move it 40 left (+ = right)
+;   player.AuxVarSetFlt "_trY" 30         move it 30 down (+ = down)
+;
+; Re-registering on every load is safe: xNVSE clears repeating calls on load and new game, and JIP
+; keeps menu handlers in a set.
+
+; Every function must have compiled: a timer that calls a function that failed to compile can
+; crash xNVSE (2026-11-13). If one failed, register nothing and say so.
+let int iBad := 0
+let ref rChk := CompileScript "TargetReadout/Always.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "TargetReadout/Faction.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "TargetReadout/Hide.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "TargetReadout/Init.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "TargetReadout/Readout.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "TargetReadout/Status.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "TargetReadout/Tick.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "TargetReadout/Valid.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "TargetReadout/Weapon.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+if iBad > 0
+	print "Target Readout: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
+	MessageEx "Target Readout is switched off: a script failed to compile"
+else
+	if eval (IsComponentLoaded "HUDMainMenu/TargetReadout") == 0
+		print "Target Readout: the HUD file was not injected (is UI Organizer installed and Data/uio/public/TargetReadout.txt deployed?)"
+	endif
+	; Optional parts, each in a file of its own and called only if it compiled:
+	; Pick.txt, JIP's GetCrosshairRefEx (targets beyond activation reach) ...
+	let rChk := CompileScript "TargetReadout/Pick.txt"
+	if eval (IsFormValid rChk) == 0
+		player.AuxVarSetFlt "*_trEx" 0
+		print "Target Readout: Pick.txt failed to compile, so targets read only within activation reach. Details: nvse.log"
+	else
+		player.AuxVarSetFlt "*_trEx" 1
+	endif
+	; ... CType.txt, JIP's GetCreatureType (a creature's class on the FACTION line)
+	let rChk := CompileScript "TargetReadout/CType.txt"
+	if eval (IsFormValid rChk) == 0
+		player.AuxVarSetFlt "*_trCT" 0
+		print "Target Readout: CType.txt failed to compile, so creatures read CREATURE. Details: nvse.log"
+	else
+		player.AuxVarSetFlt "*_trCT" 1
+	endif
+	; ... Rel.txt, the vanilla combat-target, should-attack and faction-relation checks (STATUS
+	; ENGAGED, HOSTILE, ALLY, FRIENDLY) ...
+	let rChk := CompileScript "TargetReadout/Rel.txt"
+	if eval (IsFormValid rChk) == 0
+		player.AuxVarSetFlt "*_trRel" 0
+		print "Target Readout: Rel.txt failed to compile, so STATUS reads only TERMINATED, ALLY (companion), HOSTILE (compass) and NEUTRAL. Details: nvse.log"
+	else
+		player.AuxVarSetFlt "*_trRel" 1
+	endif
+	; ... and Hostile.txt, JohnnyGuitar's IsCompassHostile (STATUS HOSTILE as the compass shows it)
+	let rChk := CompileScript "TargetReadout/Hostile.txt"
+	if eval (IsFormValid rChk) == 0
+		player.AuxVarSetFlt "*_trHo" 0
+		print "Target Readout: Hostile.txt failed to compile (is JohnnyGuitar NVSE installed?), so HOSTILE comes from GetShouldAttack. Details: nvse.log"
+	else
+		player.AuxVarSetFlt "*_trHo" 1
+	endif
+	let ref rInit := CompileScript "TargetReadout/Init.txt"
+	call rInit
+	player.AuxVarSetFlt "*_trMiss" 99
+	SetUIFloat "HUDMainMenu/_TRVis" 0
+	; the VATS menu opening hides the readout (Tick.txt doesn't run in menus)
+	let ref rHide := CompileScript "TargetReadout/Hide.txt"
+	SetOnMenuOpenEventHandler rHide 1 1056
+	let ref rTick := CompileScript "TargetReadout/Tick.txt"
+	let ref rTrue := CompileScript "TargetReadout/Always.txt"
+	; four times a second of play: flags 4 + 16 = not in menus, not while paused
+	CallWhilePerSeconds 0.25 rTick rTrue 20
+endif

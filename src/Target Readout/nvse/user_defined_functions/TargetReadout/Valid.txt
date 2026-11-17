@@ -1,0 +1,52 @@
+; Target Readout: 1 if rX is something to read out: a reference to an actor (NPC or creature) other
+; than the player, enabled, and within "_trRange" game units of the player. Otherwise 0. Called by
+; Tick.txt for the crosshair reference (rX may be 0 when the crosshair is on nothing).
+; Actor test as in Smart Loot: the base form's type is 42 (NPC) or 43 (creature), or 44/45 in case
+; a leveled actor reports its leveled list. The three vanilla tumbleweed creatures are left out
+; (FalloutNV.esm form IDs, checked against the game file 2026-11-17).
+ref rX
+ref rB
+ref rT
+int iType
+float fD
+float fRange
+
+begin Function {rX}
+	SetFunctionValue 0
+	if eval (IsFormValid rX) == 0
+		return
+	endif
+	if eval (IsReference rX) == 0
+		return
+	endif
+	if eval rX == player
+		return
+	endif
+	let rB := rX.GetBaseObject
+	let iType := GetType rB
+	if iType < 42 || iType > 45
+		return
+	endif
+	; not the tumbleweeds, which are creatures (in Nightkin and Super Mutant factions, among others)
+	let rT := BuildRef 0 1479565	; 0x16938D NVCRTumbleweed, Wind Brahmin
+	if eval rX.GetIsID rT
+		return
+	endif
+	let rT := BuildRef 0 1533263	; 0x17654F NVCRTumbleweedBaby, Wind Brahmin
+	if eval rX.GetIsID rT
+		return
+	endif
+	let rT := BuildRef 0 1457396	; 0x163CF4 NVCRTumbleweedRad, Radioactive Tumbleweed
+	if eval rX.GetIsID rT
+		return
+	endif
+	if eval rX.GetDisabled
+		return
+	endif
+	let fRange := player.AuxVarGetFlt "_trRange"
+	let fD := player.GetDistance rX
+	if fD > fRange
+		return
+	endif
+	SetFunctionValue 1
+end

@@ -1,0 +1,278 @@
+; Target Readout: the FACTION line for the actor rX (called by Readout.txt). The first of these
+; factions the actor is in, most specific first, so that a group whose members are also in a wider
+; faction is named before it (Crimson Caravan before NCR, Fiends before Raiders, Jacobstown before
+; generic Nightkin, Remnants before Jacobstown). All are FalloutNV.esm forms (load-order index
+; 0), checked against the game file by form ID and editor ID (2026-11-17). Factions that only count
+; armor worn, dialogue groups (except the one that marks NCR Rangers) and utility factions are left
+; out on purpose: they would mislabel people. DLC factions are not covered.
+; No match: UNAFFILIATED, or for a creature its class (CType.txt, JIP LN's GetCreatureType).
+ref rX
+ref rF
+ref rB
+ref rFn
+int iType
+string_var sOut
+
+begin Function {rX}
+	let rF := BuildRef 0 1206187	; 0x1267AB Lucky38Faction
+	if eval rX.GetInFaction rF
+		let sOut := "MR. HOUSE"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1166605	; 0x11CD0D VVictorFaction
+	if eval rX.GetInFaction rF
+		let sOut := "MR. HOUSE"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1483291	; 0x16A21B VYesManFaction
+	if eval rX.GetInFaction rF
+		let sOut := "YES MAN"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1554284	; 0x17B76C VTopsBennyFaction
+	if eval rX.GetInFaction rF
+		let sOut := "THE CHAIRMEN"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1144072	; 0x117508 VTopsChairmenFaction
+	if eval rX.GetInFaction rF
+		let sOut := "THE CHAIRMEN"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1099512	; 0x10C6F8 OmertaFaction
+	if eval rX.GetInFaction rF
+		let sOut := "OMERTAS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1142544	; 0x116F10 VWhiteGloveSocietyFaction
+	if eval rX.GetInFaction rF
+		let sOut := "WHITE GLOVE SOCIETY"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1119364	; 0x111484 KingsFaction
+	if eval rX.GetInFaction rF
+		let sOut := "THE KINGS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1474728	; 0x1680A8 RemnantsFaction
+	if eval rX.GetInFaction rF
+		let sOut := "ENCLAVE REMNANTS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 525709	; 0x08058D REPCONBrightBrotherhoodFaction
+	if eval rX.GetInFaction rF
+		let sOut := "BRIGHT BROTHERHOOD"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1308436	; 0x13F714 JacobstownNightkinFaction
+	if eval rX.GetInFaction rF
+		let sOut := "JACOBSTOWN"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1302151	; 0x13DE87 JacobstownFaction
+	if eval rX.GetInFaction rF
+		let sOut := "JACOBSTOWN"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 955520	; 0x0E9480 BlackMountainSuperMutantFaction
+	if eval rX.GetInFaction rF
+		let sOut := "BLACK MOUNTAIN"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 955521	; 0x0E9481 BlackMountainNightkinFaction
+	if eval rX.GetInFaction rF
+		let sOut := "BLACK MOUNTAIN"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1147752	; 0x118368 VanGraffFaction
+	if eval rX.GetInFaction rF
+		let sOut := "VAN GRAFFS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 942160	; 0x0E6050 GunRunnerFactionNV
+	if eval rX.GetInFaction rF
+		let sOut := "GUN RUNNERS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1043741	; 0x0FED1D CrimsonCaravanFactionNV
+	if eval rX.GetInFaction rF
+		let sOut := "CRIMSON CARAVAN"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1146386	; 0x117E12 FollowersOfTheApocalypseFaction
+	if eval rX.GetInFaction rF
+		let sOut := "FOLLOWERS OF THE APOCALYPSE"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1043775	; 0x0FED3F BoomerFaction
+	if eval rX.GetInFaction rF
+		let sOut := "BOOMERS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 948421	; 0x0E78C5 GreatKhansFactionNV
+	if eval rX.GetInFaction rF
+		let sOut := "GREAT KHANS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 119806	; 0x01D3FE BrotherhoodSteelFaction
+	if eval rX.GetInFaction rF
+		let sOut := "BROTHERHOOD OF STEEL"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 979747	; 0x0EF323 FiendsFactionNV
+	if eval rX.GetInFaction rF
+		let sOut := "FIENDS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1438062	; 0x15F16E VWastelandNVBanditViperFaction
+	if eval rX.GetInFaction rF
+		let sOut := "VIPERS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1477010	; 0x168992 VJackalsGangFaction
+	if eval rX.GetInFaction rF
+		let sOut := "JACKALS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 578453	; 0x08D395 NCRCFPowderGangerFaction
+	if eval rX.GetInFaction rF
+		let sOut := "POWDER GANGERS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1056578	; 0x101F42 PowderGangerFactionNV
+	if eval rX.GetInFaction rF
+		let sOut := "POWDER GANGERS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1014350	; 0x0F7A4E ScorpionsGangFactionNV
+	if eval rX.GetInFaction rF
+		let sOut := "SCORPIONS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1023446	; 0x0F9DD6 WestsideFactionNV
+	if eval rX.GetInFaction rF
+		let sOut := "WESTSIDE"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1139721	; 0x116409 FreesideSquatterFaction
+	if eval rX.GetInFaction rF
+		let sOut := "SQUATTERS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1139722	; 0x11640A FreesideLocalFaction
+	if eval rX.GetInFaction rF
+		let sOut := "FREESIDE"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1068142	; 0x104C6E GoodspringsFaction
+	if eval rX.GetInFaction rF
+		let sOut := "GOODSPRINGS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 884566	; 0x0D7F56 PrimmResidentsFaction
+	if eval rX.GetInFaction rF
+		let sOut := "PRIMM"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 768488	; 0x0BB9E8 NovacGenericTownie
+	if eval rX.GetInFaction rF
+		let sOut := "NOVAC"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1308855	; 0x13F8B7 vNCRMilitaryRangerDialogueFaction
+	if eval rX.GetInFaction rF
+		let sOut := "NCR RANGERS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 673511	; 0x0A46E7 NCRFactionNV
+	if eval rX.GetInFaction rF
+		let sOut := "NCR"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 976522	; 0x0EE68A VCaesarsLegionFaction
+	if eval rX.GetInFaction rF
+		let sOut := "CAESAR'S LEGION"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1157620	; 0x11A9F4 VStreetSecuritronFaction
+	if eval rX.GetInFaction rF
+		let sOut := "SECURITRONS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 1410629	; 0x158645 VHDSecuritronFaction
+	if eval rX.GetInFaction rF
+		let sOut := "SECURITRONS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 943960	; 0x0E6758 NightkinFaction
+	if eval rX.GetInFaction rF
+		let sOut := "NIGHTKIN"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 119275	; 0x01D1EB SuperMutantFaction
+	if eval rX.GetInFaction rF
+		let sOut := "SUPER MUTANTS"
+		SetFunctionValue sOut
+		return
+	endif
+	let rF := BuildRef 0 136310	; 0x021476 RaiderFaction
+	if eval rX.GetInFaction rF
+		let sOut := "RAIDERS"
+		SetFunctionValue sOut
+		return
+	endif
+	; no listed faction: a creature shows its class instead
+	let rB := rX.GetBaseObject
+	let iType := GetType rB
+	if iType == 43 || iType == 44
+		let sOut := "CREATURE"
+		if iType == 43
+			if eval (player.AuxVarGetFlt "*_trCT") == 1
+				let rFn := CompileScript "TargetReadout/CType.txt"
+				let sOut := call rFn rB
+			endif
+		endif
+	else
+		let sOut := "UNAFFILIATED"
+	endif
+	SetFunctionValue sOut
+end

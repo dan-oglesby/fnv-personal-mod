@@ -1,0 +1,79 @@
+<!-- TargetReadout.xml: Target Readout (fnv-personal-mod), hand-written. Injected into HUDMainMenu -->
+<!-- by UI Organizer (uio/public/TargetReadout.txt), as Needs Meters' file is. -->
+<!-- Values, set four times a second by TargetReadout/Tick.txt (the traits below become traits of -->
+<!-- HUDMainMenu itself, read here with src="io()"): -->
+<_TRText> NO TARGET </_TRText>
+<_TRVis> 0 </_TRVis>
+<_TRAlpha> 255 </_TRAlpha>
+<!-- Settings, also set by Tick.txt: which one text tile shows (colour), and an offset. -->
+<_TRRedOn> 1 </_TRRedOn>
+<_TRHudOn> 0 </_TRHudOn>
+<_TRAltOn> 0 </_TRAltOn>
+<_TRX> 0 </_TRX>
+<_TRY> 0 </_TRY>
+
+<!-- Up and to the right of the reticle (the screen's centre): the text's bottom line ends 16 units -->
+<!-- above the reticle's line, so it stays clear of the game's activation prompt (name and "E) Talk"), -->
+<!-- which is centred just below the reticle. _trh is the text's real height (font 7 lines are taller -->
+<!-- than they look; Needs Meters measures its labels the same way): the tallest of the three text -->
+<!-- tiles, since only one of them is visible at a time. -->
+<!-- No systemcolor on the rect, so that the red tile's own colour isn't overridden. -->
+<rect name="TargetReadout">
+	<id> &noglow_branch; </id>
+	<locus> &true; </locus>
+	<visible>
+		<copy src="io()" trait="_TRVis"/>
+		<and src="ActionPoints" trait="visible"/>
+	</visible>
+	<width> 420 </width>
+	<height> 200 </height>
+	<_trh><copy src="child(red)" trait="height"/><max src="child(hud)" trait="height"/><max src="child(alt)" trait="height"/></_trh>
+	<x>
+		<copy src="screen()" trait="width"/>
+		<div> 2 </div>
+		<add> 48 </add>
+		<add src="io()" trait="_TRX"/>
+	</x>
+	<y>
+		<copy src="screen()" trait="height"/>
+		<div> 2 </div>
+		<sub src="me()" trait="_trh"/>
+		<sub> 16 </sub>
+		<add src="io()" trait="_TRY"/>
+	</y>
+	<!-- Terminator red (_trRed 1, the default): plain RGB traits, no systemcolor -->
+	<text name="red">
+		<red> 255 </red>
+		<green> 36 </green>
+		<blue> 24 </blue>
+		<x> 0 </x>
+		<y> 0 </y>
+		<font> 7 </font>
+		<justify> &left; </justify>
+		<string><copy src="io()" trait="_TRText"/></string>
+		<alpha><copy src="io()" trait="_TRAlpha"/></alpha>
+		<visible><copy src="io()" trait="_TRRedOn"/></visible>
+	</text>
+	<!-- the HUD colour (_trRed 0) -->
+	<text name="hud">
+		<systemcolor> &hudmain; </systemcolor>
+		<x> 0 </x>
+		<y> 0 </y>
+		<font> 7 </font>
+		<justify> &left; </justify>
+		<string><copy src="io()" trait="_TRText"/></string>
+		<alpha><copy src="io()" trait="_TRAlpha"/></alpha>
+		<visible><copy src="io()" trait="_TRHudOn"/></visible>
+	</text>
+	<!-- the HUD's alternate colour, the one the radiation meter uses (_trRed 2) -->
+	<text name="alt">
+		<systemcolor> &hudalt; </systemcolor>
+		<x> 0 </x>
+		<y> 0 </y>
+		<font> 7 </font>
+		<justify> &left; </justify>
+		<string><copy src="io()" trait="_TRText"/></string>
+		<alpha><copy src="io()" trait="_TRAlpha"/></alpha>
+		<visible><copy src="io()" trait="_TRAltOn"/></visible>
+	</text>
+</rect>

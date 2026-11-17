@@ -1,0 +1,12 @@
+; Target Readout: 1 if the actor rX is hostile to you as the compass shows it (red), else 0, from
+; JohnnyGuitar NVSE's IsCompassHostile, which takes aggression, reputation and disguises into
+; account. Called by Status.txt. Optional like Pick.txt: if JohnnyGuitar NVSE is missing or this
+; command's form differs from what is written here, only this test is lost, and Rel.txt falls back
+; to GetShouldAttack. ln_target_readout.txt sets "*_trHo" to 1 when it compiled.
+ref rX
+int iH
+
+begin Function {rX}
+	let iH := rX.IsCompassHostile
+	SetFunctionValue iH
+end

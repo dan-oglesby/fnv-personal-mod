@@ -1,0 +1,59 @@
+; Target Readout: the WEAPON line for the actor rX (called by Readout.txt): the equipped weapon's
+; name and its class from xNVSE's GetWeaponType, e.g. "HUNTING RIFLE / RIFLE", or UNARMED when
+; nothing is in the weapon slot (slot 5; many creatures have no weapon form at all). A weapon with
+; no name (%n gives an empty string or "<no name>") shows only its class.
+ref rX
+ref rW
+int iWT
+string_var sName
+string_var sCls
+string_var sOut
+
+begin Function {rX}
+	let sOut := "UNARMED"
+	let rW := rX.GetEquippedObject 5
+	if eval (IsFormValid rW) == 0
+		SetFunctionValue sOut
+		return
+	endif
+	if eval (GetType rW) != 40
+		SetFunctionValue sOut
+		return
+	endif
+	let iWT := GetWeaponType rW
+	if iWT == 0
+		let sCls := "UNARMED"
+	elseif iWT == 1 || iWT == 2
+		let sCls := "MELEE"
+	elseif iWT == 3
+		let sCls := "PISTOL"
+	elseif iWT == 4
+		let sCls := "ENERGY PISTOL"
+	elseif iWT == 5
+		let sCls := "RIFLE"
+	elseif iWT == 6
+		let sCls := "AUTOMATIC"
+	elseif iWT == 7
+		let sCls := "ENERGY RIFLE"
+	elseif iWT == 8
+		let sCls := "HEAVY WEAPON"
+	elseif iWT == 9
+		let sCls := "LAUNCHER"
+	elseif iWT == 10
+		let sCls := "GRENADE"
+	elseif iWT == 11 || iWT == 12
+		let sCls := "MINE"
+	elseif iWT == 13
+		let sCls := "THROWN"
+	else
+		let sCls := "WEAPON"
+	endif
+	let sName := sv_Construct "%n" rW
+	if eval (sv_Length sName) == 0 || sName == "<no name>"
+		let sOut := sCls
+	else
+		let sName := sv_ToUpper sName
+		let sOut := sName + " / " + sCls
+	endif
+	SetFunctionValue sOut
+end

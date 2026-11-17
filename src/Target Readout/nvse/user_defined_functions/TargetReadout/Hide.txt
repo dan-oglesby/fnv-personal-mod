@@ -1,0 +1,13 @@
+; Target Readout: JIP menu-open handler for the VATS menu (1056). Tick.txt doesn't run in menus, so
+; this hides the readout as VATS opens instead of leaving the last one on screen, and drops the
+; held target so it doesn't come back afterwards. (VATS playback, the kill camera, is not a menu:
+; Tick.txt hides the readout during it with JIP's IsInKillCam.)
+int iMenu
+
+begin Function {iMenu}
+	if iMenu != 1056
+		return
+	endif
+	SetUIFloat "HUDMainMenu/_TRVis" 0
+	player.AuxVarSetFlt "*_trMiss" 99
+end

@@ -33,6 +33,7 @@ it. The old hotkeys (K and L) are still in the `ln_` files, commented out.
 | Wasteland Market | A living Mojave economy. Prices move by category with your trading (buy and they rise, sell and they fall, up to 50% either way), drift back about halfway in a week, and scarce goods (energy cells, fission batteries, medicine, pre-war goods) keep part of any rise. Traders you deal with bring in stock of whatever is selling well above normal. Now and then a scavenger's haul floods a category or a shortage drives it up. Equip the **Mojave Market Pamphlet** to see what's moving and why. | xNVSE, JIP LN. Enable `WastelandMarket.esp` | Built 2026-11-15, untested in play |
 | Wasteland Tweaks | Small adjustments in one place: lasting shells (spent casings stay an hour and up to 1,500 at once, with the two numbers set separately, instead of Permanent Weapon Shells), a VATS rescue (a watchdog ends a VATS camera stuck for 15 s, and the End key ends it any time), a console log (everything the console shows, including other mods' messages, written to ConsoleLog.txt each launch), a Stewie Tweaks override that turns off `bWeaponDamageStagesFix` (a dropped-weapon crash path through JIP), power armor footsteps (the vanilla sound pointed at a missing folder: silent steps and a flood of log errors), a cheat terminal storage link (with the FNV Cheat Terminal installed, its personal storage boxes count as your inventory and work as a feed: ammo and food over a working amount (four magazines for the weapon in hand, one for each other weapon's ammo, one of each food and drink) go into storage and come back out as you use them, a fission battery comes out when you wear power armor with none, Smart Loot's auto-consume and Auto Smoke draw from them when you carry nothing suitable), and Auto Smoke (below). Its only plugin is `AutoSmoke.esp`, for the Cigarette Case. | xNVSE, JIP LN, JohnnyGuitar NVSE (VATS rescue); Light Up and Smoke Those Cigarettes for Auto Smoke | Built 2026-11-15, untested in play. Disable Permanent Weapon Shells, and remove the old separate Auto Smoke mod in Vortex |
 | Needs Meters | Thirst, hunger, sleep (Hardcore), radiation and power armor charge (with Fission Power) as small segmented meters on the HUD, in the vanilla HUD style. Replaces Primary Needs HUD without replacing the game's HUD file. No plugin. | xNVSE 6.2.8+, JIP LN 56.95+, UI Organizer | Built 2026-11-14, untested in play. Disable Primary Needs HUD |
+| Target Readout | A Terminator-style readout beside the reticle while your crosshair is on an NPC or creature within range (3,000 units, about 43 m): its **name**, **level** and **condition** (or DECEASED), **faction** (the most specific of 41 vanilla factions, so Crimson Caravan before NCR and Fiends before Raiders; a creature's class when it has none), **status** towards you (HOSTILE, ENGAGED, NEUTRAL, FRIENDLY, ALLY) and **weapon** with its class ("HUNTING RIFLE / RIFLE"). Updates four times a second, lingers about a second after the crosshair leaves, and hides in menus, VATS and the kill camera. Red by default, or the HUD colour. No plugin. | xNVSE 6.2.8+, JIP LN 56.95+, UI Organizer; JohnnyGuitar NVSE optional (HOSTILE as the compass shows it) | Built 2026-11-17, untested in play |
 | Smart Loot | Auto-loot that takes what is useful to you now: ammo for the weapons you carry (up to a cap), weapons with more Pip-Boy DPS than your best, spares for repairs, weapon mods that fit, a few of each aid item, keys, notes, anything weightless with value, and anything else worth enough caps a pound. From loose items, corpses and unowned containers (unlocked with your skill when that's no crime). Never steals. Also eats, drinks and patches you up (replaces Hardcore Helper). Settings: equip the **Scavenger's Duffel (Smart Loot)**. | xNVSE 6.4+, JIP LN, JohnnyGuitar NVSE, ITR NVSE (auto-consume). Enable `SmartLoot.esp` | Built 2026-11-14, untested in play. Disable Auto Loot Enhanced / Ultimate and Hardcore Helper |
 | Survival Start Kit | Gives Lonesome Road's Roughin' It! Bedroll Kit (sleep anywhere outdoors) at the start of a new game, or on the next load of an existing save, once, the same way the DLC does. No plugin. | Lonesome Road, xNVSE 6.1+, JIP LN 56.95+ | Built 2026-11-11, untested in play |
 
@@ -220,6 +221,66 @@ Settings are saved with the game.
 **Check it worked:** in Hardcore, the three meters show on the HUD and shorten as time passes, and
 RAD appears after drinking irradiated water. If nothing shows, the console says whether the HUD file
 was injected.
+
+## How Target Readout works
+
+Point the crosshair at an NPC or creature within range and a five-line readout appears above and to
+the right of the reticle, its last line just above the reticle's level, so it stays clear of the
+game's own prompt (the name and "E) Talk") under the reticle:
+
+```
+NAME: BENNY
+LEVEL 12   CONDITION 85%
+FACTION: THE CHAIRMEN
+STATUS: NEUTRAL
+WEAPON: MARIA / PISTOL
+```
+
+- **Faction** is the first of 41 vanilla factions the actor is in, checked most specific first
+  (`TargetReadout/Faction.txt` lists them with their form IDs). Groups whose members are also in a
+  wider faction come first: Crimson Caravan before NCR, Fiends before Raiders, Jacobstown before
+  generic Nightkin. Armor, dialogue and utility factions are left out, because they would mislabel
+  people. With no match an NPC reads UNAFFILIATED and a creature reads its class (ANIMAL, MUTATED
+  INSECT, ROBOT and so on, from JIP's `GetCreatureType`). DLC factions are not covered.
+- **Status**, in this order: TERMINATED (dead), ALLY (your companion), ENGAGED (fighting you),
+  HOSTILE, ALLY or FRIENDLY (faction relation), NEUTRAL. HOSTILE is the compass's own test (red on
+  the compass, from JohnnyGuitar NVSE's `IsCompassHostile`, which counts aggression, reputation and
+  disguises). Without JohnnyGuitar NVSE it is the game's `GetShouldAttack` ("would attack you on
+  sight"), or a faction that counts you an enemy. The faction relation alone would miss most
+  hostiles: in FalloutNV.esm Raiders, Fiends, Vipers, Scorpions and the Powder Gangers have no
+  reaction to the player's faction, and NCR and the Legion are neutral to it whatever your
+  reputation. The combat, relation and compass checks each sit in an optional file
+  (`TargetReadout/Rel.txt`, `TargetReadout/Hostile.txt`): if one fails to compile, the console says
+  so and only that part of the STATUS line is lost.
+- **Weapon** is the equipped weapon and its class from xNVSE's `GetWeaponType`, or UNARMED.
+- Tumbleweeds are left out: the game makes them creatures ("Wind Brahmin"), in the Nightkin and Super
+  Mutant factions among others.
+
+**How it gets onto the HUD:** the same way as Needs Meters. UI Organizer reads
+`uio/public/TargetReadout.txt` and injects `menus/prefabs/TargetReadout/TargetReadout.xml` into the
+HUD. That XML is hand-written. A script runs four times a second and writes the readout text to it.
+When the crosshair leaves, the readout stays for half a second, fades over the next half second, and
+then hides. It hides at once when VATS opens and during the kill camera. The crosshair reference
+comes from JIP's `GetCrosshairRefEx`, which reaches past activation distance. If that function can't
+be used, the readout falls back to xNVSE's `GetCrosshairRef`, and the console says that targets are
+read only within reach.
+
+**Settings (console):**
+- `player.AuxVarSetFlt "_trOn" 0` switches the readout off, and 1 switches it on again.
+- `player.AuxVarSetFlt "_trRange" 5000` reads actors up to 5000 units away. The default is 3000.
+- `player.AuxVarSetFlt "_trRed" 0` shows the text in the HUD colour. 1 is red, the default, and 2 is
+  the HUD's alternate colour.
+- `player.AuxVarSetFlt "_trX" -40` moves it 40 left, and `"_trY" 30` moves it 30 down.
+
+Settings are saved with the game.
+
+**Check it worked:** aim at anyone in Goodsprings and the readout appears. If nothing shows, the
+console says whether the HUD file was injected or a script failed to compile. If the text shows white
+instead of red, set `_trRed` to 0 or 2 (the red uses plain RGB tile traits, untested in this repo).
+Stand next to an NPC, close enough to talk, and check that the readout doesn't cover the game's
+prompt (or the sneak indicator while crouched); move it with `_trX` / `_trY` if it does. Check STATUS
+at a raider camp before they see you (HOSTILE) and, on a save where the NCR is vilified, at an NCR
+patrol (HOSTILE).
 
 ## How Fission Power works
 

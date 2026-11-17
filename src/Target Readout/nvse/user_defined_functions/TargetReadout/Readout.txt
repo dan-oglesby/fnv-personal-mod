@@ -1,0 +1,50 @@
+; Target Readout: the whole readout for the actor rX, five lines (called by Tick.txt):
+;   NAME: BENNY
+;   LEVEL 12   CONDITION 85%      (or LEVEL 12   DECEASED)
+;   FACTION: THE CHAIRMEN         (Faction.txt)
+;   STATUS: NEUTRAL               (Status.txt)
+;   WEAPON: MARIA / PISTOL        (Weapon.txt)
+; Lines are separated by %r newlines, which only sv_Construct (and other format strings) turn into
+; real newlines. GetHealthPercentage reads 0 to 1. %n gives "<no name>" for a form without a name
+; (xNVSE's GetFullName), so that reads UNKNOWN too.
+ref rX
+ref rFn
+int iLvl
+float fHp
+string_var sName
+string_var sLine
+string_var sOut
+
+begin Function {rX}
+	let sName := sv_Construct "%n" rX
+	if eval (sv_Length sName) == 0 || sName == "<no name>"
+		let sName := "UNKNOWN"
+	endif
+	let sName := sv_ToUpper sName
+	let sOut := sv_Construct "NAME: %z%r" sName
+	let iLvl := rX.GetLevel
+	if eval rX.GetDead
+		let sLine := sv_Construct "LEVEL %.0f   DECEASED%r" iLvl
+	else
+		let fHp := rX.GetHealthPercentage
+		let fHp := fHp * 100
+		if fHp < 0
+			let fHp := 0
+		endif
+		let sLine := sv_Construct "LEVEL %.0f   CONDITION %.0f%%%r" iLvl fHp
+	endif
+	let sOut := sOut + sLine
+	let rFn := CompileScript "TargetReadout/Faction.txt"
+	let sName := call rFn rX
+	let sLine := sv_Construct "FACTION: %z%r" sName
+	let sOut := sOut + sLine
+	let rFn := CompileScript "TargetReadout/Status.txt"
+	let sName := call rFn rX
+	let sLine := sv_Construct "STATUS: %z%r" sName
+	let sOut := sOut + sLine
+	let rFn := CompileScript "TargetReadout/Weapon.txt"
+	let sName := call rFn rX
+	let sLine := sv_Construct "WEAPON: %z" sName
+	let sOut := sOut + sLine
+	SetFunctionValue sOut
+end
