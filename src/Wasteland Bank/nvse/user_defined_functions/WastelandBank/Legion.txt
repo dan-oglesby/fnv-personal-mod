@@ -1,0 +1,57 @@
+; Wasteland Bank: the Legion treasury, through the couriers (2026-11-16). Lend denarii from your
+; denarius account (Accounts.txt) for 30 days at 2 percent a week, paid in denarii, or buy
+; publicani contracts (LegCon.txt). Only losing the Dam touches the treasury's risk: then 75 percent
+; is gone and what's left shrinks to nothing over 30 days; once you collect it, the Legion's
+; business with you ends (LegDay.txt, LegionBtn.txt). The treasury deals only with those the Legion
+; accepts (LegRep.txt).
+; State: loans "_ltA" 0-4 (denarii) ending "_ltEnd" (game day); contracts "_ltC" 0-2 ending
+; "_ltCEnd", offered again from "_ltCNext"; "_ltDefault", "_ltOwed", "_ltRec", "_ltClosed".
+float fAcct
+float fLoans
+float fCons
+float fRec
+int iN
+int iK
+int iRep
+string_var sState
+ref rFn
+ref rCb
+
+begin Function {}
+	let rFn := CompileScript "WastelandBank/LegInit.txt"
+	call rFn
+	let fAcct := player.AuxVarGetFlt "_wbBalL"
+	let fLoans := 0
+	let iN := 0
+	let iK := 0
+	while iK < 5
+		let fRec := player.AuxVarGetFlt "_ltA" iK
+		if fRec > 0
+			let fLoans += fRec
+			let iN += 1
+		endif
+		let iK += 1
+	loop
+	let fCons := 0
+	let iK := 0
+	while iK < 3
+		let fCons += player.AuxVarGetFlt "_ltC" iK
+		let iK += 1
+	loop
+	let rFn := CompileScript "WastelandBank/LegRep.txt"
+	let iRep := call rFn
+	let sState := "The treasury deals with you."
+	if eval (player.AuxVarGetFlt "_ltClosed") == 1
+		let sState := "The Legion's paymaster has fled down the river. Its business here is over."
+	elseif eval (player.AuxVarGetFlt "_ltDefault") == 1
+		let fRec := player.AuxVarGetFlt "_ltOwed"
+		let fRec *= player.AuxVarGetFlt "_ltRec"
+		let sState := sv_Construct "The Legion lost the Dam and has defaulted. %.0f denarii can still be recovered, less each day." fRec
+	elseif iRep == 0
+		let sState := "The treasury won't deal with you: your standing with the Legion is below Accepted."
+	elseif iRep == 2
+		let sState := "The Legion holds you Vilified: it pays you nothing."
+	endif
+	let rCb := CompileScript "WastelandBank/LegionBtn.txt"
+	MessageBoxExAlt rCb "^Legion treasury^Your denarius account: %.0f denarii.%rLent: %.0f denarii in %.0f loan(s), 2 percent a week.%rIn publicani contracts: %.0f denarii.%r%z|Lend 100 denarii for 30 days|Lend 1,000 denarii for 30 days|Publicani contracts|Collect what can be recovered|Back" fAcct fLoans iN fCons sState
+end

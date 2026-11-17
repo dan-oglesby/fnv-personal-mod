@@ -1,0 +1,39 @@
+; Wasteland Bank: the bank's own notes (WastelandBank.esp WBNote10 0x809, WBNote100 0x80A) are worth
+; their face value times the bank's share price against its 50-cap start (WBNK, ticker 16), so
+; they strengthen as the bank does. Set as the items' value (JIP SetBaseItemValue, whole caps, at
+; least 1), which merchants pay too. Not saved by the game: run on every load and daily (ExTick).
+; Returns caps per face cap (the multiplier), which BankNotes.txt uses exactly.
+int iPlug
+int iV
+float fM
+float fV
+ref rFn
+ref rNote
+
+begin Function {}
+	let fM := 1
+	if eval (player.AuxVarGetFlt "_wxInit") == 1
+		let rFn := CompileScript "WastelandBank/ExPrice.txt"
+		let fM := call rFn 16
+		let fM /= 50
+	endif
+	SetFunctionValue fM
+	if eval (IsModLoaded "WastelandBank.esp") == 0
+		return
+	endif
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rNote := BuildRef iPlug 2057	; WBNote10
+	let fV := 10 * fM + 0.5
+	let iV := fV
+	if iV < 1
+		let iV := 1
+	endif
+	SetBaseItemValue rNote iV
+	let rNote := BuildRef iPlug 2058	; WBNote100
+	let fV := 100 * fM + 0.5
+	let iV := fV
+	if iV < 1
+		let iV := 1
+	endif
+	SetBaseItemValue rNote iV
+end

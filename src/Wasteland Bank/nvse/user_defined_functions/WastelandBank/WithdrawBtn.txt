@@ -9,6 +9,7 @@ ref rCaps
 ref rNext
 float fFee
 float fPct
+ref rRateFn
 
 begin Function {iBtn}
 	if iBtn == 4
@@ -17,7 +18,8 @@ begin Function {iBtn}
 		return
 	endif
 	let fBal := player.AuxVarGetFlt "_wbBal"
-	let fPct := player.AuxVarGetFlt "_wbFeePct"
+	let rRateFn := CompileScript "WastelandBank/Rate.txt"
+	let fPct := call rRateFn 0
 	let fBal := fBal / (1 + fPct / 100)
 	let iWhole := Floor fBal
 	let iAmt := iWhole

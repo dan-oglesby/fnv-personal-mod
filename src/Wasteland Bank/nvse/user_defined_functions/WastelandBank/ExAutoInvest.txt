@@ -49,7 +49,7 @@ begin Function {}
 		let iT := 0
 		while iT < iN
 			let fEx := player.AuxVarGetFlt "_wxEx" iT
-			if fEx <= 2
+			if fEx <= 2 && iT != 17 && iT != 18
 				if eval (player.AuxVarGetFlt "_wxX" iT) == 0
 					let fH := player.AuxVarGetFlt "_wxH" iT
 					if (fH > 0) || ((iMode == 1) && (fH == 0))

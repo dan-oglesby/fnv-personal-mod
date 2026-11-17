@@ -1,0 +1,100 @@
+; Wasteland Bank: managed account buttons (0 put 1,000 in, 1 put 10,000 in, 2 withdraw half, 3
+; withdraw all, 4 change the risk, 5 exclusions, 6 back). Money put in starts trading at the next
+; game day's rebalance ("_wmaReb"). A withdrawal shrinks what you put in, the high-water mark and
+; the week's and month's starting values in proportion, and reaches your balance a day later.
+int iBtn
+int iRisk
+float fAmt
+float fBal
+float fVal
+float fK
+float fV
+float fAt
+ref rFn
+
+begin Function {iBtn}
+	if iBtn == 6
+		let rFn := CompileScript "WastelandBank/Invest.txt"
+		call rFn
+		return
+	elseif iBtn == 5
+		let rFn := CompileScript "WastelandBank/MaExcl.txt"
+		call rFn
+		return
+	endif
+	let fVal := player.AuxVarGetFlt "_wmaVal"
+	if iBtn == 0 || iBtn == 1
+		let fAmt := 1000
+		if iBtn == 1
+			let fAmt := 10000
+		endif
+		let fBal := player.AuxVarGetFlt "_wbBal"
+		if fAmt > fBal
+			let fAmt := Floor fBal
+		endif
+		if fAmt < 1
+			MessageEx "Not enough in the bank."
+		else
+			let fBal -= fAmt
+			player.AuxVarSetFlt "_wbBal" fBal
+			let fVal += fAmt
+			player.AuxVarSetFlt "_wmaVal" fVal
+			let fV := player.AuxVarGetFlt "_wmaIn"
+			let fV += fAmt
+			player.AuxVarSetFlt "_wmaIn" fV
+			let fV := player.AuxVarGetFlt "_wmaHi"
+			let fV += fAmt
+			player.AuxVarSetFlt "_wmaHi" fV
+			let fV := player.AuxVarGetFlt "_wmaWk"
+			let fV += fAmt
+			player.AuxVarSetFlt "_wmaWk" fV
+			let fV := player.AuxVarGetFlt "_wmaMo"
+			let fV += fAmt
+			player.AuxVarSetFlt "_wmaMo" fV
+			player.AuxVarSetFlt "_wmaReb" 1
+			MessageEx "Put %.0f caps into the managed account. The trader takes it from tomorrow." fAmt
+		endif
+	elseif iBtn == 2 || iBtn == 3
+		if fVal <= 0
+			MessageEx "The managed account is empty."
+		else
+			let fK := 0.5
+			if iBtn == 3
+				let fK := 1
+			endif
+			let fAmt := fVal * fK
+			let fVal -= fAmt
+			player.AuxVarSetFlt "_wmaVal" fVal
+			let fK := 1 - fK
+			let fV := player.AuxVarGetFlt "_wmaIn"
+			let fV *= fK
+			player.AuxVarSetFlt "_wmaIn" fV
+			let fV := player.AuxVarGetFlt "_wmaHi"
+			let fV *= fK
+			player.AuxVarSetFlt "_wmaHi" fV
+			let fV := player.AuxVarGetFlt "_wmaWk"
+			let fV *= fK
+			player.AuxVarSetFlt "_wmaWk" fV
+			let fV := player.AuxVarGetFlt "_wmaMo"
+			let fV *= fK
+			player.AuxVarSetFlt "_wmaMo" fV
+			let fV := player.AuxVarGetFlt "_wmaOut"
+			let fV += fAmt
+			player.AuxVarSetFlt "_wmaOut" fV
+			let fAt := GameDaysPassed
+			let fAt += 1
+			player.AuxVarSetFlt "_wmaOutAt" fAt
+			MessageEx "Withdrawal ordered: %.0f caps reach your balance in a day." fAmt
+		endif
+	elseif iBtn == 4
+		let iRisk := player.AuxVarGetFlt "_wmaRisk"
+		let iRisk += 1
+		if iRisk > 2
+			let iRisk := 0
+		endif
+		player.AuxVarSetFlt "_wmaRisk" iRisk
+		player.AuxVarSetFlt "_wmaReb" 1
+	endif
+	let rFn := CompileScript "WastelandBank/Managed.txt"
+	call rFn
+end

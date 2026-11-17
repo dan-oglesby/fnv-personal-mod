@@ -1,6 +1,9 @@
 ; Wasteland Exchange: weekly bookkeeping. Dividends (annual yield / 52) on shares held are paid to
 ; the bank, or buy more shares if reinvestment is on. A short position pays the dividend instead,
-; plus a 0.2% weekly borrowing fee. Then the margin check.
+; plus a 0.2% weekly borrowing fee. Then the margin check. WBNK (16) pays a fixed dividend per
+; share (3.5 percent of its 50-cap start a year), always reinvested: it buys shares from other
+; shareholders, so your stake grows by itself (never past all 1,000 shares). Dividends also count
+; toward this month's profits ("_wbProfM", for the NCR's tax: Tax.txt).
 int iT
 int iN
 float fH
@@ -24,7 +27,23 @@ begin Function {}
 			if eval (player.AuxVarGetFlt "_wxX" iT) == 0
 				let fP := call rPrice iT
 				let fYld := player.AuxVarGetFlt "_wxYld" iT
-				if fH > 0
+				if fH > 0 && iT == 16
+					let fDiv := fH * 50 * fYld / 52
+					let fH += fDiv / fP
+					if fH > 1000
+						let fH := 1000
+					endif
+					player.AuxVarSetFlt "_wxH" fH iT
+					let fTot := player.AuxVarGetFlt "_wxC" iT
+					let fTot += fDiv
+					player.AuxVarSetFlt "_wxC" fTot iT
+					let fTot := player.AuxVarGetFlt "_wxDiv"
+					let fTot += fDiv
+					player.AuxVarSetFlt "_wxDiv" fTot
+					let fTot := player.AuxVarGetFlt "_wbProfM"
+					let fTot += fDiv
+					player.AuxVarSetFlt "_wbProfM" fTot
+				elseif fH > 0
 					let fDiv := fH * fP * fYld / 52
 					; reinvest if this stock is set to, or "reinvest all dividends" is on
 					if eval ((player.AuxVarGetFlt "_wxD" iT) == 1) || ((player.AuxVarGetFlt "_wxDripAll") == 1)
@@ -39,6 +58,9 @@ begin Function {}
 					let fTot := player.AuxVarGetFlt "_wxDiv"
 					let fTot += fDiv
 					player.AuxVarSetFlt "_wxDiv" fTot
+					let fTot := player.AuxVarGetFlt "_wbProfM"
+					let fTot += fDiv
+					player.AuxVarSetFlt "_wbProfM" fTot
 				else
 					let fCost := (0 - fH) * fP * (fYld / 52 + 0.002)
 					let fCost := 0 - fCost

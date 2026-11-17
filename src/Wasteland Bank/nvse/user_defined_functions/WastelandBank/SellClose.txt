@@ -41,6 +41,13 @@ begin Function {iMenu}
 		let rItem := BuildRef 0 iId
 		Ar_Append aSkip rItem
 	loop
+	if eval IsModLoaded "WastelandBank.esp"
+		let iId := GetModIndex "WastelandBank.esp"
+		let rItem := BuildRef iId 2057	; WBNote10
+		Ar_Append aSkip rItem
+		let rItem := BuildRef iId 2058	; WBNote100
+		Ar_Append aSkip rItem
+	endif
 	let aItems := Ar_Construct "array"
 	let aCnts := Ar_Construct "array"
 	let iNum := rBox.GetNumItems

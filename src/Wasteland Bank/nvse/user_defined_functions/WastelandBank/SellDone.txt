@@ -13,12 +13,14 @@ int iN
 int iCat
 ref rPush
 array_var aVol
+ref rRateFn
 
 begin Function {fGross, aVol, iN}
 	if iN < 1
 		return
 	endif
-	let fCut := player.AuxVarGetFlt "_wbSellCut"
+	let rRateFn := CompileScript "WastelandBank/Rate.txt"
+	let fCut := call rRateFn 2
 	let fNet := fGross * (1 - fCut / 100)
 	let fFees := player.AuxVarGetFlt "_wbFees"
 	let fFees += fGross - fNet

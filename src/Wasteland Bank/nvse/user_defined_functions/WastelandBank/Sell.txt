@@ -7,12 +7,14 @@ float fPend
 int iN
 ref rJunk
 ref rCb
+ref rRateFn
 
 begin Function {}
 	let rJunk := CompileScript "WastelandBank/SellJunk.txt"
 	let fGross := call rJunk 0
 	let iN := player.AuxVarGetFlt "*_wbJunkN"
-	let fCut := player.AuxVarGetFlt "_wbSellCut"
+	let rRateFn := CompileScript "WastelandBank/Rate.txt"
+	let fCut := call rRateFn 2
 	let fNet := fGross * (1 - fCut / 100)
 	let fPend := player.AuxVarGetFlt "_wbSalePend"
 	let rCb := CompileScript "WastelandBank/SellBtn.txt"

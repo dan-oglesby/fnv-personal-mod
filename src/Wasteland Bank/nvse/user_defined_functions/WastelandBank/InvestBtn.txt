@@ -1,0 +1,25 @@
+; Wasteland Bank: investment buttons (0 exchange, 1 war bonds, 2 currency accounts, 3 bank notes,
+; 4 managed account, 5 Legion treasury, 6 the bank's fees for its controlling owner, 7 back).
+int iBtn
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 0
+		let rNext := CompileScript "WastelandBank/ExMenu.txt"
+	elseif iBtn == 1
+		let rNext := CompileScript "WastelandBank/Bonds.txt"
+	elseif iBtn == 2
+		let rNext := CompileScript "WastelandBank/Accounts.txt"
+	elseif iBtn == 3
+		let rNext := CompileScript "WastelandBank/BankNotes.txt"
+	elseif iBtn == 4
+		let rNext := CompileScript "WastelandBank/Managed.txt"
+	elseif iBtn == 5
+		let rNext := CompileScript "WastelandBank/Legion.txt"
+	elseif iBtn == 6
+		let rNext := CompileScript "WastelandBank/OwnerFees.txt"
+	else
+		let rNext := CompileScript "WastelandBank/Courier.txt"
+	endif
+	call rNext
+end

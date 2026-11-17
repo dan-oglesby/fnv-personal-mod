@@ -1,0 +1,24 @@
+; Wasteland Bank: exclusion buttons (0-2 toggle the NCR, Legion, House factions, 3 single companies,
+; 4 back to the managed account). The trader rebalances at the next game day.
+int iBtn
+float fX
+ref rFn
+
+begin Function {iBtn}
+	if iBtn == 4
+		let rFn := CompileScript "WastelandBank/Managed.txt"
+		call rFn
+		return
+	elseif iBtn == 3
+		player.AuxVarSetFlt "*_wmaPage" 0
+		let rFn := CompileScript "WastelandBank/MaCo.txt"
+		call rFn
+		return
+	endif
+	let fX := player.AuxVarGetFlt "_wmaXF" iBtn
+	let fX := 1 - fX
+	player.AuxVarSetFlt "_wmaXF" fX iBtn
+	player.AuxVarSetFlt "_wmaReb" 1
+	let rFn := CompileScript "WastelandBank/MaExcl.txt"
+	call rFn
+end

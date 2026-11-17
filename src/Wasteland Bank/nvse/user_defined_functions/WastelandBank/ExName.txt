@@ -101,6 +101,24 @@ begin Function {iT, iFull}
 		else
 			let sOut := "LEGD"
 		endif
+	elseif iT == 16
+		if iFull
+			let sOut := "Wasteland Bank"
+		else
+			let sOut := "WBNK"
+		endif
+	elseif iT == 17
+		if iFull
+			let sOut := "Vegas Total Market Fund"
+		else
+			let sOut := "VIDX"
+		endif
+	elseif iT == 18
+		if iFull
+			let sOut := "Mojave Sovereign Debt Fund"
+		else
+			let sOut := "SOVD"
+		endif
 	endif
 	SetFunctionValue sOut
 end

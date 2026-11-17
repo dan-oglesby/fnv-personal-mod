@@ -1,12 +1,16 @@
 ; Wasteland Bank: bookkeeping, every 10 s of play (registered by ln_wasteland_bank.txt).
 ;
 ; Deposit interest, once per whole game day that has passed since the last booking: the balance
-; grows by 0.5% plus Barter/50000 (0.7% at Barter 100), compounding, as in the 2011 mod. The 2011
-; mod stored the day counters as whole numbers and compared them with the fractional day, which
-; made its loan interest fire every few seconds; here everything counts whole days (Floor).
+; grows by 0.5% plus Barter/50000 (0.7% at Barter 100), compounding, as in the 2011 mod, times your
+; customer tier's interest multiple (Rate.txt 5). The 2011 mod stored the day counters as whole
+; numbers and compared them with the fractional day, which made its loan interest fire every few
+; seconds; here everything counts whole days (Floor).
+; Currency accounts (2026-11-16): NCR dollars earn 1.5 times that rate, denarii 2.5 times, each
+; times a risk premium from its currency's news shock (bad news pays more: 1 - 2 x shock, kept
+; between 0.5 and 2). All interest counts toward the month's profits ("_wbProfM", Tax.txt).
 ; Loan interest: 0.5% for every 7 whole game days owed.
-; Auto-deposit (if on): once per game day, deposits the caps you carry above the amount kept.
-; Auto-convert (if on): every tick, quietly turns other currency into caps.
+; Also: courier sales and managed-account withdrawals reaching the balance a day later, the NCR's
+; monthly tax (Tax.txt), and a note when your customer tier rises.
 int iToday
 int iLast
 int iDays
@@ -14,11 +18,16 @@ float fSale
 int iLoanDays
 int iCarry
 int iAmt
+int iTier
 float fBal
 float fGrown
 float fRate
 float fLoan
 float fKeep
+float fMult
+float fPrem
+float fCur
+float fProf
 ref rCaps
 ref rConv
 
@@ -34,16 +43,42 @@ begin Function {}
 			MessageEx "Wasteland Bank: the couriers' sales came in, %.0f caps added to your balance." fSale
 		endif
 	endif
+	; managed-account withdrawals, likewise
+	let fSale := player.AuxVarGetFlt "_wmaOut"
+	if fSale > 0
+		if eval GameDaysPassed >= (player.AuxVarGetFlt "_wmaOutAt")
+			let fBal := player.AuxVarGetFlt "_wbBal"
+			let fBal += fSale
+			player.AuxVarSetFlt "_wbBal" fBal
+			player.AuxVarSetFlt "_wmaOut" 0
+			MessageEx "Wasteland Bank: %.0f caps from your managed account reached your balance." fSale
+		endif
+	endif
+	; customer tier
+	let rConv := CompileScript "WastelandBank/Rate.txt"
+	let iTier := call rConv 7
+	if eval iTier > (player.AuxVarGetFlt "_wbTier")
+		player.AuxVarSetFlt "_wbTier" iTier
+		if iTier == 1
+			MessageBoxEx "Wasteland Bank%rThe bank now counts you as a Trader: lower fees, a bigger float, faster couriers and better interest."
+		else
+			MessageBoxEx "Wasteland Bank%rThe bank now counts you as a Mogul: its lowest fees, its biggest float, its fastest couriers and its best interest."
+		endif
+	endif
+
 	let iToday := Floor GameDaysPassed
 	let iLast := player.AuxVarGetFlt "_wbDay"
 	if iToday > iLast
 		let iDays := iToday - iLast
 		player.AuxVarSetFlt "_wbDay" iToday
+		let fMult := call rConv 5
+		let fProf := player.AuxVarGetFlt "_wbProfM"
 
 		; deposit interest, compounding per day
+		let fRate := 0.005 + ((player.GetAV Barter) / 50000)
+		let fRate *= fMult
 		let fBal := player.AuxVarGetFlt "_wbBal"
 		if fBal > 0
-			let fRate := 0.005 + ((player.GetAV Barter) / 50000)
 			let fGrown := fBal
 			let iAmt := iDays
 			while iAmt > 0
@@ -51,11 +86,44 @@ begin Function {}
 				let iAmt -= 1
 			loop
 			player.AuxVarSetFlt "_wbBal" fGrown
-			let fRate := player.AuxVarGetFlt "_wbEarned"	; reused: interest earned so far
-			let fRate += fGrown - fBal
-			player.AuxVarSetFlt "_wbEarned" fRate
+			let fCur := player.AuxVarGetFlt "_wbEarned"
+			let fCur += fGrown - fBal
+			player.AuxVarSetFlt "_wbEarned" fCur
+			let fProf += fGrown - fBal
 			print "Wasteland Bank: " + $iDays + " day(s) of interest, balance now " + $fGrown
 		endif
+
+		; currency accounts: their own rates and risk premiums, interest in the currency
+		let rConv := CompileScript "WastelandBank/ExPrice.txt"
+		let fCur := player.AuxVarGetFlt "_wbBalN"
+		if fCur > 0
+			let fPrem := player.AuxVarGetFlt "_wxS" 14
+			let fPrem := 1 - 2 * fPrem
+			if fPrem < 0.5
+				let fPrem := 0.5
+			elseif fPrem > 2
+				let fPrem := 2
+			endif
+			let fGrown := fCur * ((1 + fRate * 1.5 * fPrem) ^ iDays)
+			player.AuxVarSetFlt "_wbBalN" fGrown
+			let fKeep := call rConv 14
+			let fProf += (fGrown - fCur) * 0.4 * fKeep
+		endif
+		let fCur := player.AuxVarGetFlt "_wbBalL"
+		if fCur > 0
+			let fPrem := player.AuxVarGetFlt "_wxS" 15
+			let fPrem := 1 - 2 * fPrem
+			if fPrem < 0.5
+				let fPrem := 0.5
+			elseif fPrem > 2
+				let fPrem := 2
+			endif
+			let fGrown := fCur * ((1 + fRate * 2.5 * fPrem) ^ iDays)
+			player.AuxVarSetFlt "_wbBalL" fGrown
+			let fKeep := call rConv 15
+			let fProf += (fGrown - fCur) * 4 * fKeep
+		endif
+		player.AuxVarSetFlt "_wbProfM" fProf
 
 		; loan interest, per whole week
 		let fLoan := player.AuxVarGetFlt "_wbLoan"
@@ -70,12 +138,16 @@ begin Function {}
 			player.AuxVarSetFlt "_wbLoanDays" iLoanDays
 		endif
 
-		; auto-deposit: when a courier squad arrives now (SqTick.txt)
+		; the NCR's tax, if it has won
+		let rConv := CompileScript "WastelandBank/Tax.txt"
+		call rConv iToday
+		; auto-deposit and auto-convert: when a courier squad arrives now (SqTick.txt)
 	endif
-
-	; auto-convert: when a courier squad arrives now (SqTick.txt)
 
 	; Wasteland Exchange: daily prices, dividends and news events
 	let rConv := CompileScript "WastelandBank/ExTick.txt"
+	call rConv
+	; the bank's notes follow its share price
+	let rConv := CompileScript "WastelandBank/NoteApply.txt"
 	call rConv
 end

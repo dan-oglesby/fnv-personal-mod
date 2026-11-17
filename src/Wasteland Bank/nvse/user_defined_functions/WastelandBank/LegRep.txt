@@ -1,0 +1,25 @@
+; Wasteland Bank: where you stand with the Legion, for its treasury (RepNVCaesarsLegion,
+; FalloutNV.esm 0x0F43DD; fame and infamy run to 100). Returns 1 if the treasury deals with you
+; (at least Accepted: fame of "_ltFame" or more, default 15, and more fame than infamy), 2 if you're
+; Vilified (infamy 50 or more and fame under "_ltFame": they repudiate what they owe you), else 0.
+float fFame
+float fInf
+float fMin
+ref rRep
+
+begin Function {}
+	let rRep := BuildRef 0 1000413
+	let fFame := GetReputation rRep 0
+	let fInf := GetReputation rRep 1
+	let fMin := player.AuxVarGetFlt "_ltFame"
+	if fMin <= 0
+		let fMin := 15
+	endif
+	if fInf >= 50 && fFame < fMin
+		SetFunctionValue 2
+	elseif fFame >= fMin && fFame > fInf
+		SetFunctionValue 1
+	else
+		SetFunctionValue 0
+	endif
+end

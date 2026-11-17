@@ -9,6 +9,7 @@ float fBal
 ref rCaps
 ref rNext
 float fFee
+ref rRateFn
 
 begin Function {iBtn}
 	if iBtn == 4
@@ -35,7 +36,8 @@ begin Function {iBtn}
 		let fBal += iAmt
 		player.AuxVarSetFlt "_wbBal" fBal
 		print "Wasteland Bank: deposited " + $iAmt + " caps"
-		let fFee := player.AuxVarGetFlt "_wbFeePct"
+		let rRateFn := CompileScript "WastelandBank/Rate.txt"
+		let fFee := call rRateFn 0
 		let fFee := iAmt * fFee / 100
 		let rNext := CompileScript "WastelandBank/Fee.txt"
 		call rNext fFee

@@ -1,6 +1,8 @@
 ; Wasteland Exchange: move every listed price one game day. The wobble mean-reverts (5% a day) and
 ; is half shared with the ticker's sector; news shocks fade with a 7-day half-life; the permanent
 ; level follows the ticker's trend. Every 7th day: dividends and the margin check (ExWeekly).
+; WBNK (16) swings more the more of it you own (up to three times at all of it). After the prices,
+; the day's turn for the managed account (MaDay.txt) and the Legion treasury (LegDay.txt).
 int iDay
 int iT
 int iN
@@ -16,6 +18,7 @@ float fP
 ref rNorm
 ref rPrice
 ref rWeek
+float fOwn
 
 begin Function {iDay}
 	let rNorm := CompileScript "WastelandBank/ExNorm.txt"
@@ -31,6 +34,16 @@ begin Function {iDay}
 			let fZs := call rNorm iSecKey 0 iDay
 			let fZi := call rNorm iT 1 iDay
 			let fVol := player.AuxVarGetFlt "_wxVol" iT
+			if iT == 16
+				let fOwn := player.AuxVarGetFlt "_wxH" 16
+				let fOwn /= 1000
+				if fOwn > 1
+					let fOwn := 1
+				elseif fOwn < 0
+					let fOwn := 0
+				endif
+				let fVol *= 1 + 2 * fOwn
+			endif
 			let fWob := player.AuxVarGetFlt "_wxW" iT
 			let fWob := fWob * 0.95 + fVol * (0.5 * fZs + 0.866 * fZi)
 			player.AuxVarSetFlt "_wxW" fWob iT
@@ -47,4 +60,8 @@ begin Function {iDay}
 		let rWeek := CompileScript "WastelandBank/ExWeekly.txt"
 		call rWeek
 	endif
+	let rWeek := CompileScript "WastelandBank/MaDay.txt"
+	call rWeek iDay
+	let rWeek := CompileScript "WastelandBank/LegDay.txt"
+	call rWeek iDay
 end

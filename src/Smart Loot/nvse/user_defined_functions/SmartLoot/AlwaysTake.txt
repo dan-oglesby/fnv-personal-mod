@@ -50,6 +50,14 @@ begin Function {}
 		endif
 		let iIdx += 1
 	loop
+	; Wasteland Bank's own notes (WastelandBank.esp 0x809, 0x80A)
+	if eval IsModLoaded "WastelandBank.esp"
+		let iPlug := GetModIndex "WastelandBank.esp"
+		let rItem := BuildRef iPlug 2057
+		ListAddForm rList rItem
+		let rItem := BuildRef iPlug 2058
+		ListAddForm rList rItem
+	endif
 	if eval IsModLoaded "DeadMoney.esm"
 		let iPlug := GetModIndex "DeadMoney.esm"
 		let rItem := BuildRef iPlug 70198	; NVDLC01SierraMadreChip

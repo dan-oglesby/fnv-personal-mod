@@ -1,0 +1,41 @@
+; Wasteland Bank: leave single companies out of the managed account, two pages ("*_wmaPage" 0:
+; tickers 0-6, 1: tickers 7-12). Each button toggles one; "(out)" marks the ones left out.
+int iPage
+int iK
+int iT
+string_var sBtns
+string_var sName
+array_var aNames
+array_var aEntry
+ref rName
+ref rCb
+
+begin Function {}
+	let iPage := player.AuxVarGetFlt "*_wmaPage"
+	let rName := CompileScript "WastelandBank/ExName.txt"
+	let aNames := Ar_Construct "array"
+	let iK := 0
+	while iK < 7
+		let iT := iPage * 7 + iK
+		if iT <= 12
+			let sName := call rName iT 1
+			if eval (player.AuxVarGetFlt "_wmaXC" iT) == 1
+				let sName := sName + " (out)"
+			endif
+			Ar_Append aNames sName
+		endif
+		let iK += 1
+	loop
+	let sBtns := ""
+	foreach aEntry <- aNames
+		let sBtns := sBtns + aEntry["value"] + "|"
+	loop
+	if iPage == 0
+		let sBtns := sBtns + "More companies|Back"
+	else
+		let sBtns := sBtns + "First page|Back"
+	endif
+	let rCb := CompileScript "WastelandBank/MaCoBtn.txt"
+	MessageBoxExAlt rCb "^Leave out companies^%z" sBtns
+	let aNames := Ar_Null
+end

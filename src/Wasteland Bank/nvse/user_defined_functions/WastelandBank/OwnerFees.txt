@@ -1,0 +1,21 @@
+; Wasteland Bank: the bank's base fees, set by whoever controls it (more than 500 of its 1,000
+; shares, WBNK ticker 16). Customer tiers still apply on top (Rate.txt). Fees you pay are the bank's
+; revenue: they lift its share price and so the bank notes (Fee.txt, NoteApply.txt).
+float fH
+float fPct
+float fVault
+float fCut
+ref rCb
+
+begin Function {}
+	let fH := player.AuxVarGetFlt "_wxH" 16
+	if fH <= 500
+		MessageEx "Only the bank's controlling owner (more than 500 of its 1,000 shares) sets its fees. You hold %.1f." fH
+		return
+	endif
+	let fPct := player.AuxVarGetFlt "_wbFeePct"
+	let fVault := player.AuxVarGetFlt "_wbVaultRate"
+	let fCut := player.AuxVarGetFlt "_wbSellCut"
+	let rCb := CompileScript "WastelandBank/OwnerFeesBtn.txt"
+	MessageBoxExAlt rCb "^Run the bank^You control the bank (%.1f of 1,000 shares).%rCourier fee: %.1f percent.%rVault: %.2f caps a pound.%rSelling cut: %.0f percent.|Change the courier fee|Change the vault rate|Change the selling cut|Back" fH fPct fVault fCut
+end

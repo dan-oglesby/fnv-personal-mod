@@ -1,0 +1,48 @@
+; Wasteland Bank: the currency effect of your investing (2026-11-16). Money you put into a side's
+; assets supports its currency a little, money you take out weakens it: fCaps (positive = bought)
+; nudges the currency's fading news shock by fCaps / 1,000,000 (10,000 caps, about 1 percent),
+; at most 3 percent at a time. Like any shock it fades (7-day half-life: ExDay.txt), so the rates
+; still follow the war.
+; iT: an exchange ticker (Hub-listed stocks and NCR War Bonds 13 move the NCR dollar, 14; the
+; sovereign debt fund 18 moves both halves), or 14 / 15 directly (currency accounts, the Legion
+; treasury).
+int iT
+int iCur
+float fCaps
+float fD
+float fS
+
+begin Function {iT, fCaps}
+	let fD := fCaps / 1000000
+	if fD > 0.03
+		let fD := 0.03
+	elseif fD < -0.03
+		let fD := -0.03
+	endif
+	if iT == 18
+		let fD /= 2
+		let fS := player.AuxVarGetFlt "_wxS" 14
+		let fS += fD
+		player.AuxVarSetFlt "_wxS" fS 14
+		let fS := player.AuxVarGetFlt "_wxS" 15
+		let fS += fD
+		player.AuxVarSetFlt "_wxS" fS 15
+		return
+	endif
+	let iCur := -1
+	if iT == 14 || iT == 15
+		let iCur := iT
+	elseif iT == 13
+		let iCur := 14
+	elseif iT < 14
+		if eval (player.AuxVarGetFlt "_wxEx" iT) == 1
+			let iCur := 14
+		endif
+	endif
+	if iCur < 0
+		return
+	endif
+	let fS := player.AuxVarGetFlt "_wxS" iCur
+	let fS += fD
+	player.AuxVarSetFlt "_wxS" fS iCur
+end

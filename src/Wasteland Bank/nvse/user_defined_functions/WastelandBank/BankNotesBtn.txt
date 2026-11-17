@@ -1,0 +1,77 @@
+; Wasteland Bank: bank note buttons (0 take 1,000 caps' worth, 1 take 10,000, 2 turn in, 3 back).
+; Hundreds first, then tens; whatever is left over stays in the balance.
+int iBtn
+int iPlug
+int iN
+int iN10
+int iN100
+float fM
+float fAmt
+float fBal
+float fV10
+float fV100
+float fV
+ref rFn
+ref rTen
+ref rHun
+
+begin Function {iBtn}
+	if iBtn == 3
+		let rFn := CompileScript "WastelandBank/Invest.txt"
+		call rFn
+		return
+	endif
+	let rFn := CompileScript "WastelandBank/NoteApply.txt"
+	let fM := call rFn
+	let fV10 := 10 * fM
+	let fV100 := 100 * fM
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rTen := BuildRef iPlug 2057	; WBNote10
+	let rHun := BuildRef iPlug 2058	; WBNote100
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	if iBtn == 0 || iBtn == 1
+		let fAmt := 1000
+		if iBtn == 1
+			let fAmt := 10000
+		endif
+		if fAmt > fBal
+			let fAmt := fBal
+		endif
+		let iN100 := Floor (fAmt / fV100)
+		let fAmt -= iN100 * fV100
+		let iN10 := Floor (fAmt / fV10)
+		let fV := iN100 * fV100 + iN10 * fV10
+		if fV <= 0
+			MessageEx "Not enough in the bank for a note."
+		else
+			let fBal -= fV
+			player.AuxVarSetFlt "_wbBal" fBal
+			if iN100 > 0
+				player.AddItem rHun iN100 1
+			endif
+			if iN10 > 0
+				player.AddItem rTen iN10 1
+			endif
+			MessageEx "The couriers hand you %.0f caps' worth of bank notes." fV
+		endif
+	elseif iBtn == 2
+		let iN10 := player.GetItemCount rTen
+		let iN100 := player.GetItemCount rHun
+		let fV := iN100 * fV100 + iN10 * fV10
+		if fV <= 0
+			MessageEx "You aren't carrying any bank notes."
+		else
+			if iN100 > 0
+				player.RemoveItem rHun iN100 1
+			endif
+			if iN10 > 0
+				player.RemoveItem rTen iN10 1
+			endif
+			let fBal += fV
+			player.AuxVarSetFlt "_wbBal" fBal
+			MessageEx "Turned in bank notes for %.0f caps." fV
+		endif
+	endif
+	let rFn := CompileScript "WastelandBank/BankNotes.txt"
+	call rFn
+end

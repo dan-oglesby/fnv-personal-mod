@@ -1,0 +1,274 @@
+; Wasteland Bank: the managed account's game day (from ExDay.txt, after the day's prices).
+; 1. The day's result: each position (fraction of the value, negative = short) times its ticker's
+;    move since yesterday ("_wxPy"). Delisted tickers count as no move.
+; 2. The management fee (Rate.txt 6, 2 percent a month at the first tier), the bank's revenue.
+; 3. The stop: at a quarter of what you put in, the trader closes everything; what's left reaches
+;    your balance a day later.
+; 4. Every 3rd day, or after you change something ("_wmaReb"), the trader rebalances:
+;    - Steady (0): every stock (0-12) not left out, equal shares, no borrowing;
+;    - Bold (1): the four with the best score, 1.5 times the money;
+;    - All in (2): the three best long (1.4 times) and the two worst short (0.6 times).
+;    Score: the ticker's news shock, plus three times yesterday's move, plus a random 2 percent.
+;    The trader deals in stocks 0-12, NCR War Bonds (13) and the two currencies (14, 15), never the
+;    bank itself or the funds.
+; 5. Every 7th day, a letter from your account manager; every 30th, the performance fee (20 percent
+;    of the value above its last high) and the month's result toward the NCR's tax (Tax.txt).
+int iDay
+int iT
+int iRisk
+int iPick
+int iBest
+int iLong
+int iShort
+int iN
+int iOk
+float fVal
+float fR
+float fWt
+float fP
+float fPy
+float fFee
+float fIn
+float fScore
+float fBest
+float fV
+float fWk
+ref rPrice
+ref rFn
+ref rName
+string_var sLong
+string_var sShort
+array_var aScore
+array_var aOk
+
+begin Function {iDay}
+	let fVal := player.AuxVarGetFlt "_wmaVal"
+	if fVal <= 0
+		return
+	endif
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+
+	; 1. the day's result
+	let fR := 0
+	let iT := 0
+	while iT < 16
+		let fWt := player.AuxVarGetFlt "_wmaW" iT
+		if fWt != 0
+			if eval (player.AuxVarGetFlt "_wxX" iT) == 0
+				let fPy := player.AuxVarGetFlt "_wxPy" iT
+				if fPy > 0
+					let fP := call rPrice iT
+					let fR += fWt * (fP / fPy - 1)
+				endif
+			endif
+		endif
+		let iT += 1
+	loop
+	let fVal *= 1 + fR
+
+	; 2. management fee
+	let rFn := CompileScript "WastelandBank/Rate.txt"
+	let fFee := call rFn 6
+	let fFee := fVal * fFee / 100 / 30
+	let fVal -= fFee
+	let fV := player.AuxVarGetFlt "_wbFees"
+	let fV += fFee
+	player.AuxVarSetFlt "_wbFees" fV
+	if fVal < 0
+		let fVal := 0
+	endif
+
+	; 3. the stop
+	let fIn := player.AuxVarGetFlt "_wmaIn"
+	if fVal <= 0.25 * fIn
+		let fV := player.AuxVarGetFlt "_wmaOut"
+		let fV += fVal
+		player.AuxVarSetFlt "_wmaOut" fV
+		let fV := GameDaysPassed
+		let fV += 1
+		player.AuxVarSetFlt "_wmaOutAt" fV
+		let fV := fVal - fIn
+		let fWt := player.AuxVarGetFlt "_wbProfM"
+		let fWt += fV
+		player.AuxVarSetFlt "_wbProfM" fWt
+		player.AuxVarSetFlt "_wmaVal" 0
+		player.AuxVarSetFlt "_wmaIn" 0
+		player.AuxVarSetFlt "_wmaHi" 0
+		player.AuxVarSetFlt "_wmaWk" 0
+		player.AuxVarSetFlt "_wmaMo" 0
+		let iT := 0
+		while iT < 16
+			player.AuxVarSetFlt "_wmaW" 0 iT
+			let iT += 1
+		loop
+		MessageEx "Account manager: the stop was hit. Everything is closed out, %.0f caps reach your balance tomorrow." fVal
+		return
+	endif
+	player.AuxVarSetFlt "_wmaVal" fVal
+
+	; 4. rebalance
+	if eval (iDay % 3) == 0 || (player.AuxVarGetFlt "_wmaReb") == 1
+		player.AuxVarSetFlt "_wmaReb" 0
+		let iRisk := player.AuxVarGetFlt "_wmaRisk"
+		let aScore := Ar_Construct "array"
+		let aOk := Ar_Construct "array"
+		let iN := 0
+		let iT := 0
+		while iT < 16
+			let iOk := 1
+			if eval (player.AuxVarGetFlt "_wxX" iT) == 1 || (player.AuxVarGetFlt "_wmaXC" iT) == 1
+				let iOk := 0
+			endif
+			if iRisk == 0 && iT > 12
+				let iOk := 0
+			endif
+			; factions: NCR = Hub-listed (exchange 1), War Bonds, the NCR dollar; Legion = the
+			; denarius; House and the Strip = RobCo 8, Tops 4, Gomorrah 5, Ultra-Luxe 6
+			if eval (player.AuxVarGetFlt "_wmaXF" 0) == 1
+				if eval iT == 13 || iT == 14 || (iT < 13 && (player.AuxVarGetFlt "_wxEx" iT) == 1)
+					let iOk := 0
+				endif
+			endif
+			if eval (player.AuxVarGetFlt "_wmaXF" 1) == 1 && iT == 15
+				let iOk := 0
+			endif
+			if eval (player.AuxVarGetFlt "_wmaXF" 2) == 1
+				if iT == 8 || iT == 4 || iT == 5 || iT == 6
+					let iOk := 0
+				endif
+			endif
+			let fScore := player.AuxVarGetFlt "_wxS" iT
+			let fPy := player.AuxVarGetFlt "_wxPy" iT
+			if fPy > 0
+				let fP := call rPrice iT
+				let fScore += 3 * (fP / fPy - 1)
+			endif
+			let fV := Rand 0 0.04
+			let fScore += fV - 0.02
+			Ar_Append aScore fScore
+			Ar_Append aOk iOk
+			if iOk == 1
+				let iN += 1
+			endif
+			player.AuxVarSetFlt "_wmaW" 0 iT
+			let iT += 1
+		loop
+		if iN > 0
+			if iRisk == 0
+				let fWt := 1 / iN
+				let iT := 0
+				while iT < 16
+					if eval aOk[iT] == 1
+						player.AuxVarSetFlt "_wmaW" fWt iT
+					endif
+					let iT += 1
+				loop
+			else
+				; longs: the best scores
+				let iLong := 4
+				let fWt := 0.375
+				if iRisk == 2
+					let iLong := 3
+					let fWt := 1.4 / 3
+				endif
+				if iLong > iN
+					let iLong := iN
+				endif
+				let iPick := 0
+				while iPick < iLong
+					let iBest := -1
+					let iT := 0
+					while iT < 16
+						if eval aOk[iT] == 1
+							let fScore := aScore[iT]
+							if iBest < 0 || fScore > fBest
+								let iBest := iT
+								let fBest := fScore
+							endif
+						endif
+						let iT += 1
+					loop
+					if iBest >= 0
+						player.AuxVarSetFlt "_wmaW" fWt iBest
+						let aOk[iBest] := 0
+					endif
+					let iPick += 1
+				loop
+				; shorts (All in): the worst scores
+				if iRisk == 2
+					let iPick := 0
+					while iPick < 2
+						let iBest := -1
+						let iT := 0
+						while iT < 16
+							if eval aOk[iT] == 1
+								let fScore := aScore[iT]
+								if iBest < 0 || fScore < fBest
+									let iBest := iT
+									let fBest := fScore
+								endif
+							endif
+							let iT += 1
+						loop
+						if iBest >= 0
+							let fWt := -0.3
+							player.AuxVarSetFlt "_wmaW" fWt iBest
+							let aOk[iBest] := 0
+						endif
+						let iPick += 1
+					loop
+				endif
+			endif
+		endif
+		let aScore := Ar_Null
+		let aOk := Ar_Null
+	endif
+
+	; 5. weekly letter
+	if (iDay % 7) == 0
+		let fWk := player.AuxVarGetFlt "_wmaWk"
+		let fV := 0
+		if fWk > 0
+			let fV := (fVal / fWk - 1) * 100
+		endif
+		player.AuxVarSetFlt "_wmaWk" fVal
+		let rName := CompileScript "WastelandBank/ExName.txt"
+		let sLong := "nothing"
+		let sShort := "nothing"
+		let fBest := 0
+		let fFee := 0
+		let iT := 0
+		while iT < 16
+			let fWt := player.AuxVarGetFlt "_wmaW" iT
+			if fWt > fBest
+				let fBest := fWt
+				let sLong := call rName iT 0
+			elseif fWt < fFee
+				let fFee := fWt
+				let sShort := call rName iT 0
+			endif
+			let iT += 1
+		loop
+		MessageEx "Account manager: %.1f percent this week (long %z, short %z). Value %.0f caps." fV sLong sShort fVal
+	endif
+
+	; monthly: the performance fee and the month's result
+	if (iDay % 30) == 0
+		let fV := player.AuxVarGetFlt "_wmaHi"
+		if fVal > fV
+			let fFee := (fVal - fV) * 0.2
+			let fVal -= fFee
+			player.AuxVarSetFlt "_wmaVal" fVal
+			player.AuxVarSetFlt "_wmaHi" fVal
+			let fV := player.AuxVarGetFlt "_wbFees"
+			let fV += fFee
+			player.AuxVarSetFlt "_wbFees" fV
+		endif
+		let fV := player.AuxVarGetFlt "_wmaMo"
+		let fV := fVal - fV
+		let fWt := player.AuxVarGetFlt "_wbProfM"
+		let fWt += fV
+		player.AuxVarSetFlt "_wbProfM" fWt
+		player.AuxVarSetFlt "_wmaMo" fVal
+	endif
+end

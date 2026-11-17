@@ -17,7 +17,7 @@ begin Function {iBtn}
 	let iT := 0
 	while iT < iN
 		let fEx := player.AuxVarGetFlt "_wxEx" iT
-		if (fEx == iEx) || (fEx == 2)
+		if (fEx == iEx) || (fEx == 2 && iEx < 2)
 			if iK == iBtn
 				let iPick := iT
 			endif

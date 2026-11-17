@@ -1,0 +1,83 @@
+; Wasteland Bank: Legion treasury buttons (0 lend 100, 1 lend 1,000, 2 contracts, 3 collect after a
+; default, 4 back). Loans come from the denarius account and move the denarius a little (Flow.txt).
+int iBtn
+int iRep
+int iK
+int iSlot
+int iToday
+float fAmt
+float fAcct
+float fV
+float fLeg
+ref rFn
+
+begin Function {iBtn}
+	if iBtn == 4
+		let rFn := CompileScript "WastelandBank/Invest.txt"
+		call rFn
+		return
+	elseif iBtn == 2
+		let rFn := CompileScript "WastelandBank/LegCon.txt"
+		call rFn
+		return
+	endif
+	if iBtn == 3
+		if eval (player.AuxVarGetFlt "_ltDefault") == 0
+			MessageEx "Nothing to recover: coupons and repayments come to your denarius account by themselves."
+		elseif eval (player.AuxVarGetFlt "_ltClosed") == 0
+			let fV := player.AuxVarGetFlt "_ltOwed"
+			let fV *= player.AuxVarGetFlt "_ltRec"
+			let fAcct := player.AuxVarGetFlt "_wbBalL"
+			let fAcct += fV
+			player.AuxVarSetFlt "_wbBalL" fAcct
+			player.AuxVarSetFlt "_ltOwed" 0
+			player.AuxVarSetFlt "_ltClosed" 1
+			MessageBoxEx "Legion treasury%rThe paymaster counts out %.0f denarii, all that is left, and wishes you fortune. By morning he is gone down the river." fV
+			return
+		endif
+	elseif iBtn == 0 || iBtn == 1
+		let rFn := CompileScript "WastelandBank/LegRep.txt"
+		let iRep := call rFn
+		if eval (player.AuxVarGetFlt "_ltDefault") == 1 || (player.AuxVarGetFlt "_ltClosed") == 1
+			MessageEx "The Legion treasury lends no more."
+		elseif iRep != 1
+			MessageEx "The treasury won't deal with you: your standing with the Legion is below Accepted."
+		else
+			let fAmt := 100
+			if iBtn == 1
+				let fAmt := 1000
+			endif
+			let fAcct := player.AuxVarGetFlt "_wbBalL"
+			if fAmt > fAcct
+				MessageEx "Not enough denarii in your account: move some in under Currency accounts."
+			else
+				let iSlot := -1
+				let iK := 0
+				while iK < 5
+					if eval iSlot < 0 && (player.AuxVarGetFlt "_ltA" iK) <= 0
+						let iSlot := iK
+					endif
+					let iK += 1
+				loop
+				if iSlot < 0
+					MessageEx "Five loans at a time at most: wait for one to come back."
+				else
+					let fAcct -= fAmt
+					player.AuxVarSetFlt "_wbBalL" fAcct
+					player.AuxVarSetFlt "_ltA" fAmt iSlot
+					let iToday := Floor GameDaysPassed
+					let iToday += 30
+					player.AuxVarSetFlt "_ltEnd" iToday iSlot
+					let rFn := CompileScript "WastelandBank/ExPrice.txt"
+					let fLeg := call rFn 15
+					let fV := fAmt * fLeg * 4
+					let rFn := CompileScript "WastelandBank/Flow.txt"
+					call rFn 15 fV
+					MessageEx "Lent %.0f denarii to the Legion treasury for 30 days." fAmt
+				endif
+			endif
+		endif
+	endif
+	let rFn := CompileScript "WastelandBank/Legion.txt"
+	call rFn
+end

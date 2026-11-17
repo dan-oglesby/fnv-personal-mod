@@ -6,6 +6,7 @@ float fHours
 float fFloat
 float fNow
 float fAt
+ref rRateFn
 
 begin Function {iBtn}
 	if iBtn == 5
@@ -13,7 +14,10 @@ begin Function {iBtn}
 	endif
 	let fHours := GetRandomPercent
 	let fHours := 1 + fHours / 100
-	let fFloat := 2500
+	let rRateFn := CompileScript "WastelandBank/Rate.txt"
+	let fFloat := call rRateFn 4
+	let fHours *= fFloat	; faster at higher tiers
+	let fFloat := call rRateFn 3	; the ordinary float for your tier
 	if iBtn > 0
 		let fHours += 23
 		if iBtn == 1

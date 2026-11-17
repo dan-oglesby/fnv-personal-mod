@@ -113,6 +113,14 @@ COURIER_NAME = "Bank Courier"
 COURIER_PACKAGE = 0x171CEF             # DefaultSandboxCurrentLocation256NoSleepNoWanderNoConv
 VAULT_CONT, VAULT_CELL, VAULT_REF = 0x804, 0x805, 0x806
 SELL_CONT, SELL_REF = 0x807, 0x808     # the couriers' consignment box (things to sell), same cell
+# Wasteland Bank notes (2026-11-16): the bank's own paper money. Face value 10 and 100 caps at
+# issue; their worth follows the bank's share price (BankNotes.txt sets it on load and daily).
+# Paper weight as NCR notes; the vanilla $20 NCR note's model and icons.
+BANK_NOTES = [(0x809, "WBNote10", "Wasteland Bank Note (10)", 10),
+              (0x80A, "WBNote100", "Wasteland Bank Note (100)", 100)]
+NOTE_MODEL = r"clutter\Money\NCRMoney20.nif"
+NOTE_ICON = r"interface\icons\pipboyimages\items\items_money_NCR_20.dds"
+NOTE_MICO = r"interface\icons\pipboyimages_small\items_small\glow_items_money_NCR_20.dds"
 VAULT_MODEL = r"Clutter\Security\GenericSafeWall01.NIF"   # the vanilla wall safe's model
 FNV_DATA = Path(os.environ.get("FNV_DATA", r"C:\Program Files (x86)\Steam\steamapps\common\Fallout New Vegas\Data"))
 
@@ -196,6 +204,11 @@ def bank_plugin(edid, name, model, icon, small_icon):
     cont += record("CONT", 0, 0x01000000 | SELL_CONT,
                    sub("EDID", z("WBConsign")) + sub("OBND", bytes(12)) + sub("FULL", z("Courier Consignment: to sell"))
                    + sub("MODL", z(VAULT_MODEL)) + sub("DATA", struct.pack("<Bf", 0, 0.0)))
+    notes = b"".join(record("MISC", 0, 0x01000000 | objid,
+                            sub("EDID", z(ed)) + sub("OBND", bytes(12)) + sub("FULL", z(nm))
+                            + sub("MODL", z(NOTE_MODEL)) + sub("ICON", z(NOTE_ICON)) + sub("MICO", z(NOTE_MICO))
+                            + sub("DATA", struct.pack("<if", face, 0.0022)))
+                     for objid, ed, nm, face in BANK_NOTES)
     cell_id = 0x01000000 | VAULT_CELL
     cell = record("CELL", 0, cell_id,
                   sub("EDID", z("WBVaultCell")) + sub("FULL", z("Wasteland Bank Vault"))
@@ -210,13 +223,14 @@ def bank_plugin(edid, name, model, icon, small_icon):
     block, subblock = VAULT_CELL % 10, (VAULT_CELL // 10) % 10
     cells = _grup(b"CELL", 0, _grup(struct.pack("<i", block), 2,
                                     _grup(struct.pack("<i", subblock), 3, cell + children)))
-    n_records = 1 + len(COURIERS) + 2 + 1 + 2
+    n_records = 1 + len(COURIERS) + 2 + len(BANK_NOTES) + 1 + 2
     header = record("TES4", 0, 0,
-                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, SELL_REF + 1))
+                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, 0x80B))
                     + sub("CNAM", z("fnv-personal-mod"))
                     + sub("MAST", z("FalloutNV.esm"))
                     + sub("DATA", bytes(8)))
-    return header + card_group + _grup(b"CONT", 0, cont) + _grup(b"NPC_", 0, npcs) + cells
+    return (header + card_group + _grup(b"CONT", 0, cont) + _grup(b"MISC", 0, notes)
+            + _grup(b"NPC_", 0, npcs) + cells)
 
 
 def misc_plugin(edid, name, model, icon, value, weight) -> bytes:

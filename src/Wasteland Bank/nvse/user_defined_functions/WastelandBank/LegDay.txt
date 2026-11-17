@@ -1,0 +1,169 @@
+; Wasteland Bank: the Legion treasury's game day (from ExDay.txt).
+; - The Dam: once the NCR, House or an independent Vegas has won it (For the Republic, Part 2
+;   1270118; House Always Wins VIII 1341579; Wild Card: Finishing Touches 1409661, FalloutNV.esm,
+;   completed), the treasury defaults: every loan and contract becomes one debt ("_ltOwed"), of
+;   which a quarter can be recovered at first, falling to nothing over 30 days ("_ltRec").
+; - Vilified by the Legion: it repudiates everything it owes you.
+; - Every 7th day: coupons (2 percent a week on loans; contracts 4 percent times their frontier
+;   factor, LegCon.txt) into the denarius account, counted toward the month's profits in caps.
+; - Loans and contracts that reach their end return their principal to the denarius account.
+int iDay
+int iK
+int iDone
+int iRep
+int iEnd
+float fA
+float fOwed
+float fPay
+float fRec
+float fLeg
+float fV
+float fK
+ref rFn
+ref rQ
+
+begin Function {iDay}
+	if eval (player.AuxVarGetFlt "_ltInit") == 0 || (player.AuxVarGetFlt "_ltClosed") == 1
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_ltDefault") == 1
+		let fRec := iDay - (player.AuxVarGetFlt "_ltDefDay")
+		let fRec := 0.25 * (1 - fRec / 30)
+		if fRec < 0
+			let fRec := 0
+		endif
+		player.AuxVarSetFlt "_ltRec" fRec
+		return
+	endif
+
+	; the Dam
+	let iDone := 0
+	let rQ := BuildRef 0 1270118
+	if eval GetQuestCompleted rQ
+		let iDone := 1
+	endif
+	let rQ := BuildRef 0 1341579
+	if eval GetQuestCompleted rQ
+		let iDone := 1
+	endif
+	let rQ := BuildRef 0 1409661
+	if eval GetQuestCompleted rQ
+		let iDone := 1
+	endif
+	if iDone == 1
+		let fOwed := 0
+		let iK := 0
+		while iK < 5
+			let fOwed += player.AuxVarGetFlt "_ltA" iK
+			player.AuxVarSetFlt "_ltA" 0 iK
+			let iK += 1
+		loop
+		let iK := 0
+		while iK < 3
+			let fOwed += player.AuxVarGetFlt "_ltC" iK
+			player.AuxVarSetFlt "_ltC" 0 iK
+			let iK += 1
+		loop
+		player.AuxVarSetFlt "_ltOwed" fOwed
+		player.AuxVarSetFlt "_ltDefDay" iDay
+		player.AuxVarSetFlt "_ltRec" 0.25
+		player.AuxVarSetFlt "_ltDefault" 1
+		if fOwed > 0
+			MessageEx "The Legion has lost the Dam and its treasury defaults. A quarter of what it owed you can be recovered through the couriers, less each day."
+		else
+			player.AuxVarSetFlt "_ltClosed" 1
+		endif
+		return
+	endif
+
+	; repudiation
+	let rFn := CompileScript "WastelandBank/LegRep.txt"
+	let iRep := call rFn
+	if iRep == 2
+		let fOwed := 0
+		let iK := 0
+		while iK < 5
+			let fOwed += player.AuxVarGetFlt "_ltA" iK
+			player.AuxVarSetFlt "_ltA" 0 iK
+			let iK += 1
+		loop
+		let iK := 0
+		while iK < 3
+			let fOwed += player.AuxVarGetFlt "_ltC" iK
+			player.AuxVarSetFlt "_ltC" 0 iK
+			let iK += 1
+		loop
+		if fOwed > 0
+			MessageEx "The Legion holds you Vilified. Its treasury repudiates the %.0f denarii it owed you." fOwed
+		endif
+		return
+	endif
+
+	; coupons
+	let fPay := 0
+	if (iDay % 7) == 0
+		let iK := 0
+		while iK < 5
+			let fA := player.AuxVarGetFlt "_ltA" iK
+			let fPay += fA * 0.02
+			let iK += 1
+		loop
+		let iK := 0
+		while iK < 3
+			let fA := player.AuxVarGetFlt "_ltC" iK
+			if fA > 0
+				let fK := 1
+				if iK == 0
+					if eval (player.AuxVarGetFlt "_wxE" 29) == 1
+						let fK := 2
+					endif
+				elseif iK == 1
+					let fK := 1.25
+				elseif eval (player.AuxVarGetFlt "_wxE" 19) == 1
+					let fK := 0.5
+				endif
+				let fPay += fA * 0.04 * fK
+			endif
+			let iK += 1
+		loop
+	endif
+
+	; repayments at the end of the term
+	let fV := 0
+	let iK := 0
+	while iK < 5
+		let fA := player.AuxVarGetFlt "_ltA" iK
+		let iEnd := player.AuxVarGetFlt "_ltEnd" iK
+		if fA > 0 && iDay >= iEnd
+			let fV += fA
+			player.AuxVarSetFlt "_ltA" 0 iK
+		endif
+		let iK += 1
+	loop
+	let iK := 0
+	while iK < 3
+		let fA := player.AuxVarGetFlt "_ltC" iK
+		let iEnd := player.AuxVarGetFlt "_ltCEnd" iK
+		if fA > 0 && iDay >= iEnd
+			let fV += fA
+			player.AuxVarSetFlt "_ltC" 0 iK
+		endif
+		let iK += 1
+	loop
+	if fPay > 0 || fV > 0
+		let fA := player.AuxVarGetFlt "_wbBalL"
+		let fA += fPay + fV
+		player.AuxVarSetFlt "_wbBalL" fA
+		let rFn := CompileScript "WastelandBank/ExPrice.txt"
+		let fLeg := call rFn 15
+		let fA := player.AuxVarGetFlt "_wbProfM"
+		let fA += fPay * fLeg * 4
+		player.AuxVarSetFlt "_wbProfM" fA
+		if fPay > 0
+			MessageEx "Legion treasury: %.0f denarii in coupons paid to your account." fPay
+		endif
+		if fV > 0
+			MessageEx "Legion treasury: %.0f denarii repaid to your account." fV
+		endif
+	endif
+end

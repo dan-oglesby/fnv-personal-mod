@@ -28,6 +28,7 @@ int iCarry
 int iAmt
 float fBal
 float fFee
+ref rRateFn
 
 begin Function {}
 	let iState := player.AuxVarGetFlt "_wbSqState"
@@ -67,7 +68,8 @@ begin Function {}
 		MessageEx "A Wasteland Bank courier squad has arrived."
 		let fFee := player.AuxVarGetFlt "_wbSqFloat"
 		if fFee <= 0
-			let fFee := 2500
+			let rRateFn := CompileScript "WastelandBank/Rate.txt"
+			let fFee := call rRateFn 3
 		endif
 		let fBal := player.AuxVarGetFlt "_wbBal"
 		let fBal := Floor fBal
@@ -82,7 +84,8 @@ begin Function {}
 			let rFn := CompileScript "WastelandBank/ConvertNow.txt"
 			let iAmt := call rFn 1
 			if iAmt > 0
-				let fFee := player.AuxVarGetFlt "_wbFeePct"
+				let rRateFn := CompileScript "WastelandBank/Rate.txt"
+				let fFee := call rRateFn 0
 				let fFee := iAmt * fFee / 100
 				call rFee fFee
 			endif
@@ -97,7 +100,8 @@ begin Function {}
 				let fBal := player.AuxVarGetFlt "_wbBal"
 				let fBal += iAmt
 				player.AuxVarSetFlt "_wbBal" fBal
-				let fFee := player.AuxVarGetFlt "_wbFeePct"
+				let rRateFn := CompileScript "WastelandBank/Rate.txt"
+				let fFee := call rRateFn 0
 				let fFee := iAmt * fFee / 100
 				call rFee fFee
 				MessageEx "The couriers took %.0f caps to the bank." iAmt

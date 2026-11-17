@@ -89,7 +89,22 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
     left; you can never owe more than you put in;
   - withdrawals as cash-out orders, delivered by a squad at least 24 hours later.
 
-## Phase 3: the Legion treasury
+- **Wasteland Bank notes** (built): the bank's own paper money, 10 and 100 caps at face, worth face
+  times the bank's share price against its start, so they strengthen with the bank. Free to take
+  from or turn in to the couriers; merchants take them at their worth.
+- **Customer tiers** (built): High roller to start, Trader once the bank has earned 2,500 caps
+  from you, Mogul from 15,000. Each tier lowers the fees (by a quarter, then half), raises the
+  float (2,500 / 5,000 / 10,000), speeds the couriers, raises interest (1 / 1.1 / 1.25 times) and
+  cuts the managed account's monthly fee (2 / 1.5 / 1 percent). The managed account's riskiest
+  setting is called All in, so High roller names only the tier.
+- **The NCR's tax** (built): if the NCR wins the Dam and play goes on (a post-ending mod), 5 percent
+  of each month's investment profits.
+- Built as planned: currency accounts, the market-cap-weighted Vegas Total Market Fund (VIDX),
+  the sovereign debt fund (SOVD), WBNK with fee control, currency effects of investing, and the
+  managed account with faction and company exclusions. The bank's stock and the two funds trade on
+  their own board, "Funds and the bank".
+
+## Phase 3: the Legion treasury (built with phase 2b)
 
 Lending to Caesar instead of an equity market (the Legion has none; Rome ran on state loans and
 *publicani*, private contractors who supplied the army or collected a province's tribute).
@@ -114,3 +129,23 @@ rarer the worse each government is doing (their currency and news state), and ca
 both as House or an independent Vegas does well (the House and Yes Man paths already move the
 rates; this would make it consistent). First step: find how those patrols are spawned (leveled
 lists and their chance of none, encounter markers) and whether that can be scaled at run time.
+
+## Phase 5 (planned): an international market
+
+Cap-denominated emerging-market companies from beyond the Mojave, quoted on a much longer lag and
+far more volatile; companies list, grow, fail and vanish over time. The Vegas Total Market Fund
+holds them too, by market cap, making it a total international fund. A long list of
+interchangeable company names and places (in the spirit of Klamath traders) is to be drawn from
+the Old World Blues mod for Hearts of Iron IV installed on Dan's machine: anything taken from that
+mod stays local, generated into an untracked file and never committed to this public repository.
+
+## Phase 6 (planned): wealth unlocks, and the kingpin
+
+- Options grow with your total wealth: a bank balance, then the exchange, the managed account, and
+  at the top your own hedge fund. At that scale individual stocks give way to sector portfolios.
+- Government debt follows your main-quest allegiance.
+- Around a million caps (House's league), your management team can move markets underhandedly:
+  random events you can steer, flagged by which faction to hurt (bear raids, a run on a currency,
+  shorting caps while crashing it). Getting caught carries fines and reputation damage.
+- House intervenes against your team when its moves cut against his interest; your team's chance
+  of beating him grows with the size of your account.

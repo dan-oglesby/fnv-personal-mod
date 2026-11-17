@@ -1,0 +1,32 @@
+; Wasteland Bank: the managed account (2026-11-16). The bank's trader, reached only through a weekly
+; letter from "your account manager", trades what you put in on the exchange's real prices
+; (MaDay.txt): Steady (every stock, no borrowing), Bold (the four strongest, 1.5 times), or High
+; roller (three long and two short on news and momentum, twice the money). Fees: 2 percent a month
+; and 20 percent of new profits. Below a quarter of what you put in, the trader closes it out.
+; Withdrawals reach your balance a day later. Some factions or companies can be left out (MaExcl).
+; State: "_wmaVal" value, "_wmaIn" what you put in, "_wmaHi" high-water mark, "_wmaRisk" 0-2,
+; "_wmaW" 0-15 positions (fractions of the value, negative = short), "_wmaOut" money on its way out.
+float fVal
+float fIn
+float fOut
+float fBal
+int iRisk
+string_var sRisk
+ref rCb
+
+begin Function {}
+	let fVal := player.AuxVarGetFlt "_wmaVal"
+	let fIn := player.AuxVarGetFlt "_wmaIn"
+	let fOut := player.AuxVarGetFlt "_wmaOut"
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let iRisk := player.AuxVarGetFlt "_wmaRisk"
+	if iRisk == 0
+		let sRisk := "Steady"
+	elseif iRisk == 1
+		let sRisk := "Bold"
+	else
+		let sRisk := "High roller"
+	endif
+	let rCb := CompileScript "WastelandBank/ManagedBtn.txt"
+	MessageBoxExAlt rCb "^Managed account^Value: %.0f caps (you put in %.0f).%rOn its way to your balance: %.0f caps.%rRisk: %z. Bank balance: %.0f caps.%rFees: 2 percent a month and 20 percent of new profits.|Put 1,000 caps in|Put 10,000 caps in|Withdraw half (in a day)|Withdraw all (in a day)|Change the risk|Leave out factions or companies|Back" fVal fIn fOut sRisk fBal
+end

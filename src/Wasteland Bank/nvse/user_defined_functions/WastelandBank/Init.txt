@@ -8,6 +8,8 @@
 ;   _wbSet     settings version
 
 int iToday
+int iK
+ref rFn
 
 begin Function {}
 	if eval (player.AuxVarGetFlt "_wbInit") == 0
@@ -21,6 +23,23 @@ begin Function {}
 		player.AuxVarSetFlt "_wbFeePct" 2
 		player.AuxVarSetFlt "_wbVaultRate" 1
 	endif
+	if eval (player.AuxVarGetFlt "_wbSet") < 3
+		player.AuxVarSetFlt "_wbSet" 3
+		player.AuxVarSetFlt "_wmaRisk" 2
+		let iK := 0
+		while iK < 16
+			player.AuxVarSetFlt "_wmaW" 0 iK
+			player.AuxVarSetFlt "_wmaXC" 0 iK
+			let iK += 1
+		loop
+		let iK := 0
+		while iK < 3
+			player.AuxVarSetFlt "_wmaXF" 0 iK
+			let iK += 1
+		loop
+	endif
+	let rFn := CompileScript "WastelandBank/LegInit.txt"
+	call rFn
 	if eval (player.AuxVarGetFlt "_wbSet") < 2
 		player.AuxVarSetFlt "_wbSet" 2
 		player.AuxVarSetFlt "_wbSellCut" 10

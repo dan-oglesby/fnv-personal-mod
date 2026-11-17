@@ -23,16 +23,18 @@ ref rFn
 ref rNext
 array_var aIds
 array_var aDen
+ref rRateFn
 
 begin Function {iBtn}
-	let rNext := CompileScript "WastelandBank/Courier.txt"
+	let rNext := CompileScript "WastelandBank/Invest.txt"
 	if iBtn == 3
 		call rNext
 		return
 	endif
 	let rFn := CompileScript "WastelandBank/ExRate.txt"
 	let fRate := call rFn
-	let fPct := player.AuxVarGetFlt "_wbFeePct"
+	let rRateFn := CompileScript "WastelandBank/Rate.txt"
+	let fPct := call rRateFn 0
 	if iBtn == 0
 		let aIds := Ar_List 1287382, 1534662, 1287383, 1534664, 1287384, 1534665
 		let aDen := Ar_List 5, 5, 20, 20, 100, 100

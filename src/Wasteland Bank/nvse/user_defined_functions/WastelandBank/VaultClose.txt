@@ -16,6 +16,7 @@ float fFee
 ref rVault
 ref rItem
 ref rFee
+ref rRateFn
 
 begin Function {iMenu}
 	if iMenu != 1008
@@ -74,7 +75,8 @@ begin Function {iMenu}
 	if fLb <= 0
 		return
 	endif
-	let fRate := player.AuxVarGetFlt "_wbVaultRate"
+	let rRateFn := CompileScript "WastelandBank/Rate.txt"
+	let fRate := call rRateFn 1
 	let fFee := fLb * fRate
 	if fFee < 1
 		let fFee := 1

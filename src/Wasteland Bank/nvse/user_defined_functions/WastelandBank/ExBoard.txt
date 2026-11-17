@@ -1,5 +1,5 @@
 ; Wasteland Exchange: an exchange's quote board. iEx 0 = New Vegas Exchange (caps), 1 = Hub Exchange
-; (NCR dollars). Lists each ticker on that exchange (Gun Runners is on both) with today's change
+; (NCR dollars), 3 = the bank's own board (its stock and the funds). Lists each ticker on that exchange (Gun Runners is on both) with today's change
 ; and your position. The buttons are in ticker order, matching ExBoardBtn.
 int iEx
 int iT
@@ -32,7 +32,7 @@ begin Function {iEx}
 	let iT := 0
 	while iT < iN
 		let fEx := player.AuxVarGetFlt "_wxEx" iT
-		if (fEx == iEx) || (fEx == 2)
+		if (fEx == iEx) || (fEx == 2 && iEx < 2)
 			let sTk := call rName iT 0
 			let sNm := call rName iT 1
 			let fP := call rPrice iT
@@ -65,7 +65,9 @@ begin Function {iEx}
 		let iT += 1
 	loop
 	let rCb := CompileScript "WastelandBank/ExBoardBtn.txt"
-	if iEx == 1
+	if iEx == 3
+		MessageBoxExAlt rCb "^Funds and the bank^The bank's own stock (1,000 shares, a steady dividend) and two funds: the whole market by size, and government debt.%r%r%z|WBNK  Wasteland Bank|VIDX  Vegas Total Market Fund|SOVD  Mojave Sovereign Debt Fund|Back" sBody
+	elseif iEx == 1
 		MessageBoxExAlt rCb "^Hub Exchange (NCR)^Prices in NCR dollars (%.2f caps each). Trades settle in caps through the bank.%r%r%z|GUN  Gun Runners|CRIM  Crimson Caravan|HAPY  Happy Trails|WTRM  Water Merchants|FGO  Far Go Traders|BRMN  Brahmin Barons|NCRB  NCR War Bonds|Back" fRate sBody
 	else
 		MessageBoxExAlt rCb "^New Vegas Exchange^Prices in caps. Change since yesterday in brackets.%r%r%z|GUN  Gun Runners|VGE  Van Graff Energy|MEX  Mojave Express|TOPS  The Tops|GOMR  Gomorrah|ULUX  Ultra-Luxe|WRNG  Atomic Wrangler|RBCO  RobCo Industries|Back" sBody

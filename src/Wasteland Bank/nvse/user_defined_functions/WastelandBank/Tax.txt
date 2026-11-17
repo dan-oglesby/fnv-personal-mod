@@ -1,0 +1,41 @@
+; Wasteland Bank: the NCR's tax (2026-11-16). Once the NCR has won the Dam (For the Republic,
+; Part 2, FalloutNV.esm 1270118, completed; you can only still be playing then with a mod that lets
+; the game go on after the ending), every 30 days it takes 5 percent of the month's profits:
+; interest, dividends, gains and losses on sales, the managed account's month, Legion coupons
+; (all gathered in "_wbProfM", in caps). A month at a loss pays nothing. Called daily by Tick.txt.
+int iToday
+int iLast
+float fProf
+float fTax
+float fPaid
+ref rQ
+ref rFn
+
+begin Function {iToday}
+	let iLast := player.AuxVarGetFlt "_wbTaxDay"
+	if iLast <= 0
+		player.AuxVarSetFlt "_wbTaxDay" iToday
+		return
+	endif
+	if iToday - iLast < 30
+		return
+	endif
+	player.AuxVarSetFlt "_wbTaxDay" iToday
+	let fProf := player.AuxVarGetFlt "_wbProfM"
+	player.AuxVarSetFlt "_wbProfM" 0
+	let rQ := BuildRef 0 1270118	; For the Republic, Part 2
+	if eval (GetQuestCompleted rQ) == 0
+		return
+	endif
+	if fProf <= 0
+		return
+	endif
+	let fTax := fProf * 0.05
+	let fPaid := 0 - fTax
+	let rFn := CompileScript "WastelandBank/ExCash.txt"
+	call rFn fPaid
+	let fPaid := player.AuxVarGetFlt "_wbTaxPaid"
+	let fPaid += fTax
+	player.AuxVarSetFlt "_wbTaxPaid" fPaid
+	MessageEx "NCR revenue office: 5 percent of last month's profits, %.0f caps, taken from your balance." fTax
+end

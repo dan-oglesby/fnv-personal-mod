@@ -1,0 +1,25 @@
+; Wasteland Bank: the bank's notes, from the couriers, free both ways (2026-11-16). A note's worth
+; follows the bank's share price (NoteApply.txt), so holding them is a light bet on the bank, and
+; merchants take them at that worth. Taking notes draws on your balance at today's worth; turning
+; them in credits it at today's worth.
+float fM
+float fBal
+int iN10
+int iN100
+ref rFn
+ref rCb
+ref rNote
+int iPlug
+
+begin Function {}
+	let rFn := CompileScript "WastelandBank/NoteApply.txt"
+	let fM := call rFn
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rNote := BuildRef iPlug 2057
+	let iN10 := player.GetItemCount rNote
+	let rNote := BuildRef iPlug 2058
+	let iN100 := player.GetItemCount rNote
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let rCb := CompileScript "WastelandBank/BankNotesBtn.txt"
+	MessageBoxExAlt rCb "^Wasteland Bank notes^A note is worth its face times the bank's share price against its start: today %.3f caps a face cap. No fee either way.%rYou carry %.0f tens and %.0f hundreds. Balance: %.0f caps.|Take 1,000 caps of my balance in notes|Take 10,000 caps in notes|Turn in the notes I carry|Back" fM iN10 iN100 fBal
+end

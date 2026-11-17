@@ -23,11 +23,47 @@
 ; two crashes in nvse_1_4.dll that way, from a variable named like a console command). So if any
 ; failed, register nothing and say so.
 let int iBad := 0
-let ref rChk := CompileScript "WastelandBank/Always.txt"
+let ref rChk := CompileScript "WastelandBank/Accounts.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/AccountsBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Always.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/BankNotes.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/BankNotesBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Bonds.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/BondsBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/ConvertNow.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Courier.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CourierBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Deliver.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
@@ -171,11 +207,55 @@ let rChk := CompileScript "WastelandBank/ExWeekly.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/Fee.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Flow.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/FxApply.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/Init.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Invest.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/InvestBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/LegCon.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/LegConBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/LegDay.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/LegInit.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/LegRep.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Legion.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/LegionBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
@@ -187,7 +267,39 @@ let rChk := CompileScript "WastelandBank/LoanBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/MaCo.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/MaCoBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/MaDay.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/MaExcl.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/MaExclBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/MainBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Managed.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/ManagedBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/NoteApply.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
@@ -203,67 +315,15 @@ let rChk := CompileScript "WastelandBank/Open.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
-let rChk := CompileScript "WastelandBank/Settings.txt"
+let rChk := CompileScript "WastelandBank/OwnerFees.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
-let rChk := CompileScript "WastelandBank/SettingsBtn.txt"
+let rChk := CompileScript "WastelandBank/OwnerFeesBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
-let rChk := CompileScript "WastelandBank/Tick.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/UseCard.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/Withdraw.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/WithdrawBtn.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/Courier.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/CourierBtn.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/Fee.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/SqCall.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/SqHere.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/SqLeave.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/SqTick.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/Vault.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/VaultClose.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/Weight.txt"
+let rChk := CompileScript "WastelandBank/Rate.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
@@ -291,19 +351,63 @@ let rChk := CompileScript "WastelandBank/SellOne.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
-let rChk := CompileScript "WastelandBank/Bonds.txt"
+let rChk := CompileScript "WastelandBank/Settings.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
-let rChk := CompileScript "WastelandBank/BondsBtn.txt"
+let rChk := CompileScript "WastelandBank/SettingsBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
-let rChk := CompileScript "WastelandBank/Deliver.txt"
+let rChk := CompileScript "WastelandBank/SqCall.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/SqCallBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SqHere.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SqLeave.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SqTick.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Tax.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Tick.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/UseCard.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Vault.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/VaultClose.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Weight.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Withdraw.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/WithdrawBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
@@ -317,6 +421,8 @@ else
 	call rInit	; Wasteland Exchange (stocks)
 	let rInit := CompileScript "WastelandBank/FxApply.txt"
 	call rInit	; currency values (not saved by the game, so set on every load)
+	let rInit := CompileScript "WastelandBank/NoteApply.txt"
+	call rInit	; the bank's notes follow its share price (not saved either)
 	let rInit := CompileScript "WastelandBank/Weight.txt"
 	call rInit	; money has weight (not saved either)
 	if eval IsModLoaded "WastelandBank.esp"

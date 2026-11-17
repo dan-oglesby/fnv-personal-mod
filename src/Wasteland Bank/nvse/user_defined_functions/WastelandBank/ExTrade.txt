@@ -3,6 +3,9 @@
 ; Buying and covering pay the ask (price + 1.5%); selling and shorting get the bid (price - 1.5%).
 ; Shares are fractional. Your own trades don't move the price. Trades go through a courier squad
 ; (2026-11-16): with none here (SqHere.txt), nothing is traded. Prices can be read any time.
+; WBNK (16) has 1,000 shares in all: you can't buy past that, or short it. Buying and selling NCR
+; assets (Hub-listed stocks, War Bonds) and the sovereign debt fund moves the currencies a little
+; (Flow.txt). Gains and losses on sales count toward this month's profits ("_wbProfM", Tax.txt).
 ; Shorting needs margin: after the trade, equity (balance + shares - cost to cover shorts) must be
 ; at least half of all your short positions. Weekly checks cover everything if it drops under 30%.
 int iT
@@ -25,6 +28,7 @@ ref rTot
 ref rCash
 ref rHere
 int iHere
+ref rFlow
 
 begin Function {iT, iAct, fAmt}
 	let rHere := CompileScript "WastelandBank/SqHere.txt"
@@ -59,10 +63,20 @@ begin Function {iT, iAct, fAmt}
 			return
 		endif
 		let fQ := fAmt / fAsk
+		if iT == 16 && fH + fQ > 1000
+			let fQ := 1000 - fH
+			let fAmt := fQ * fAsk
+			if fQ <= 0
+				MessageEx "You already own every share of the bank."
+				return
+			endif
+		endif
 		let fH += fQ
 		let fC += fAmt
 		let fV := 0 - fAmt
 		call rCash fV
+		let rFlow := CompileScript "WastelandBank/Flow.txt"
+		call rFlow iT fAmt
 		MessageEx "Bought %.2f shares for %.0f caps" fQ fAmt
 
 	elseif iAct == 2
@@ -81,9 +95,19 @@ begin Function {iT, iAct, fAmt}
 		endif
 		call rCash fV
 		let fPart := fV - fPart
+		let fLong := player.AuxVarGetFlt "_wbProfM"
+		let fLong += fPart
+		player.AuxVarSetFlt "_wbProfM" fLong
+		let rFlow := CompileScript "WastelandBank/Flow.txt"
+		let fLong := 0 - fV
+		call rFlow iT fLong
 		MessageEx "Sold %.2f shares for %.0f caps (gain %.0f)" fQ fV fPart
 
 	elseif iAct == 3
+		if iT == 16
+			MessageEx "The bank's shares can't be shorted."
+			return
+		endif
 		if fH > 0
 			MessageEx "Sell your shares first, then you can short it."
 			return
@@ -114,6 +138,9 @@ begin Function {iT, iAct, fAmt}
 		let fC := 0
 		let fV := 0 - fV
 		call rCash fV
+		let fLong := player.AuxVarGetFlt "_wbProfM"
+		let fLong += fPart
+		player.AuxVarSetFlt "_wbProfM" fLong
 		MessageEx "Covered %.2f shares (gain %.0f caps)" fQ fPart
 	endif
 

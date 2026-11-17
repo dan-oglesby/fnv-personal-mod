@@ -1,0 +1,34 @@
+; Wasteland Bank: what the managed account leaves out. Factions ("_wmaXF" 0 NCR: the Hub-listed
+; stocks, War Bonds and the NCR dollar; 1 Legion: the denarius; 2 House and the Strip: RobCo, the
+; Tops, Ultra-Luxe and Gomorrah) and single companies ("_wmaXC" per ticker, MaCo.txt).
+int iN
+int iK
+string_var sN
+string_var sL
+string_var sH
+ref rCb
+
+begin Function {}
+	let sN := "trades"
+	if eval (player.AuxVarGetFlt "_wmaXF" 0) == 1
+		let sN := "left out"
+	endif
+	let sL := "trades"
+	if eval (player.AuxVarGetFlt "_wmaXF" 1) == 1
+		let sL := "left out"
+	endif
+	let sH := "trades"
+	if eval (player.AuxVarGetFlt "_wmaXF" 2) == 1
+		let sH := "left out"
+	endif
+	let iN := 0
+	let iK := 0
+	while iK < 16
+		if eval (player.AuxVarGetFlt "_wmaXC" iK) == 1
+			let iN += 1
+		endif
+		let iK += 1
+	loop
+	let rCb := CompileScript "WastelandBank/MaExclBtn.txt"
+	MessageBoxExAlt rCb "^Managed account: left out^NCR (Hub stocks, War Bonds, NCR dollar): %z%rLegion (the denarius): %z%rHouse and the Strip (RobCo, Tops, Ultra-Luxe, Gomorrah): %z%rCompanies left out one by one: %.0f|NCR on or off|Legion on or off|House and the Strip on or off|Single companies|Back" sN sL sH iN
+end

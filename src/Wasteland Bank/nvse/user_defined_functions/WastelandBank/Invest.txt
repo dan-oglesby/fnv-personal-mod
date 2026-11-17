@@ -1,0 +1,20 @@
+; Wasteland Bank: the couriers' investment services (from the courier menu).
+float fFees
+int iTier
+string_var sTier
+ref rFn
+ref rCb
+
+begin Function {}
+	let rFn := CompileScript "WastelandBank/Rate.txt"
+	let iTier := call rFn 7
+	let sTier := "High roller"
+	if iTier == 1
+		let sTier := "Trader"
+	elseif iTier == 2
+		let sTier := "Mogul"
+	endif
+	let fFees := player.AuxVarGetFlt "_wbFees"
+	let rCb := CompileScript "WastelandBank/InvestBtn.txt"
+	MessageBoxExAlt rCb "^Investments^Your standing with the bank: %z (the bank has earned %.0f caps from you, Trader from 2,500, Mogul from 15,000).|Wasteland Exchange (trade)|NCR War Bonds|Currency accounts|Wasteland Bank notes|Managed account|Legion treasury|Run the bank (controlling owners)|Back" sTier fFees
+end

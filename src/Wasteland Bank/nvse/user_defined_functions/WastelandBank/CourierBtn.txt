@@ -1,11 +1,12 @@
 ; Wasteland Bank: courier menu buttons (0 Deposit, 1 Withdraw, 2 Convert, 3 Vault, 4 Sell,
-; 5 NCR War Bonds, 6 Loans, 7 Send them off, 8 Back to the main menu). Converting currency is charged the cash fee on the
+; 5 Investments (Invest.txt), 6 Loans, 7 Send them off, 8 Back to the main menu). Converting currency is charged the cash fee on the
 ; caps it makes.
 int iBtn
 int iMade
 float fFee
 ref rNext
 ref rFee
+ref rRateFn
 
 begin Function {iBtn}
 	if iBtn == 0
@@ -18,7 +19,8 @@ begin Function {iBtn}
 		let rNext := CompileScript "WastelandBank/ConvertNow.txt"
 		let iMade := call rNext 0
 		if iMade > 0
-			let fFee := player.AuxVarGetFlt "_wbFeePct"
+			let rRateFn := CompileScript "WastelandBank/Rate.txt"
+			let fFee := call rRateFn 0
 			let fFee := iMade * fFee / 100
 			let rFee := CompileScript "WastelandBank/Fee.txt"
 			call rFee fFee
@@ -32,7 +34,7 @@ begin Function {iBtn}
 		let rNext := CompileScript "WastelandBank/Sell.txt"
 		call rNext
 	elseif iBtn == 5
-		let rNext := CompileScript "WastelandBank/Bonds.txt"
+		let rNext := CompileScript "WastelandBank/Invest.txt"
 		call rNext
 	elseif iBtn == 6
 		let rNext := CompileScript "WastelandBank/Loan.txt"

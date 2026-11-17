@@ -1,6 +1,7 @@
 ; Wasteland Bank: charge a courier fee of fAmt caps. It comes out of your balance; if that's short,
 ; from the caps you carry; whatever is still owed is added to your loan. Every fee is counted in
-; "_wbFees" (the bank's revenue, for its stock in phase 2).
+; "_wbFees" (the bank's revenue), and lifts the bank's share level (WBNK, ticker 16) by
+; fee / 50,000 (500 caps of fees, about 1 percent).
 float fAmt
 float fBal
 float fLoan
@@ -16,6 +17,9 @@ begin Function {fAmt}
 	let fFees := player.AuxVarGetFlt "_wbFees"
 	let fFees += fAmt
 	player.AuxVarSetFlt "_wbFees" fFees
+	let fLoan := player.AuxVarGetFlt "_wxL" 16
+	let fLoan += fAmt / 50000
+	player.AuxVarSetFlt "_wxL" fLoan 16
 	let fBal := player.AuxVarGetFlt "_wbBal"
 	if fBal >= fAmt
 		let fBal -= fAmt

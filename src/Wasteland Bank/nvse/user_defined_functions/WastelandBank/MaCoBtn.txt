@@ -1,0 +1,32 @@
+; Wasteland Bank: single-company buttons. Page 0 has 7 companies (0-6), page 1 has 6 (7-12); then
+; "other page" and "back".
+int iBtn
+int iPage
+int iN
+int iT
+float fX
+ref rFn
+
+begin Function {iBtn}
+	let iPage := player.AuxVarGetFlt "*_wmaPage"
+	let iN := 7
+	if iPage == 1
+		let iN := 6
+	endif
+	if iBtn == iN + 1
+		let rFn := CompileScript "WastelandBank/MaExcl.txt"
+		call rFn
+		return
+	elseif iBtn == iN
+		let iPage := 1 - iPage
+		player.AuxVarSetFlt "*_wmaPage" iPage
+	else
+		let iT := iPage * 7 + iBtn
+		let fX := player.AuxVarGetFlt "_wmaXC" iT
+		let fX := 1 - fX
+		player.AuxVarSetFlt "_wmaXC" fX iT
+		player.AuxVarSetFlt "_wmaReb" 1
+	endif
+	let rFn := CompileScript "WastelandBank/MaCo.txt"
+	call rFn
+end

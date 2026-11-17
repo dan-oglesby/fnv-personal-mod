@@ -26,5 +26,5 @@ begin Function {}
 	endif
 	let fBal := player.AuxVarGetFlt "_wbBal"
 	let rCb := CompileScript "WastelandBank/SqCallBtn.txt"
-	MessageBoxExAlt rCb "^Call a courier squad^An ordinary squad comes in 1 to 2 hours with up to 2,500 caps of your balance for withdrawals. A larger sum takes a day to arrange.%rBalance: %.0f caps.|Call a squad now|Bring 5,000 caps (in a day)|Bring 10,000 caps (in a day)|Bring 25,000 caps (in a day)|Bring my whole balance (in a day)|Cancel" fBal
+	MessageBoxExAlt rCb "^Call a courier squad^An ordinary squad comes in 1 to 2 hours (sooner at higher tiers) with up to 2,500 caps of your balance for withdrawals (5,000 for a Trader, 10,000 for a Mogul). A larger sum takes a day to arrange.%rBalance: %.0f caps.|Call a squad now|Bring 5,000 caps (in a day)|Bring 10,000 caps (in a day)|Bring 25,000 caps (in a day)|Bring my whole balance (in a day)|Cancel" fBal
 end

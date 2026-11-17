@@ -1,13 +1,86 @@
-; Wasteland Exchange: a ticker's price in caps = start x e^(level + shock + wobble).
+; Wasteland Exchange: a ticker's price in caps = start x e^(level + shock + wobble), with three
+; exceptions (2026-11-16):
+; - 16 WBNK, the bank: times e^(0.5 x your share of its 1,000 shares). The fewer shares left for
+;   others to trade, the dearer each one (its swings grow too: ExDay.txt).
+; - 17 VIDX, the Vegas Total Market Fund: holds every stock in proportion to its market cap (shares
+;   outstanding "_wxSh" x price): start x total market cap now / total market cap at the start.
+;   Delisted stocks count as nothing. (The international market, when it exists, joins it.)
+; - 18 SOVD, the Mojave Sovereign Debt Fund: start x half NCR War Bonds (13) against their start,
+;   half Legion treasury debt: the denarius (15) times what the Legion still honours
+;   ("_ltRec" once it has lost the Dam; Legion.txt).
 int iT
+int iK
+int iN
 float fX
 float fE
 float fP
+float fSum
+float fF
+float fRec
+float fSh
+float fCap0
 
 begin Function {iT}
+	if iT == 17
+		let fSum := 0
+		let fCap0 := 0
+		let iN := player.AuxVarGetFlt "_wxCount"
+		let iK := 0
+		while iK < iN
+			let fSh := player.AuxVarGetFlt "_wxSh" iK
+			if fSh > 0
+				let fP := player.AuxVarGetFlt "_wxP0" iK
+				let fCap0 += fSh * fP
+				if eval (player.AuxVarGetFlt "_wxX" iK) == 0
+					let fX := player.AuxVarGetFlt "_wxL" iK
+					let fX += player.AuxVarGetFlt "_wxS" iK
+					let fX += player.AuxVarGetFlt "_wxW" iK
+					let fSum += fSh * fP * (Exp fX)
+				endif
+			endif
+			let iK += 1
+		loop
+		let fP := player.AuxVarGetFlt "_wxP0" 17
+		if fCap0 > 0
+			let fP *= fSum / fCap0
+		endif
+		SetFunctionValue fP
+		return
+	elseif iT == 18
+		let fX := player.AuxVarGetFlt "_wxL" 13
+		let fX += player.AuxVarGetFlt "_wxS" 13
+		let fX += player.AuxVarGetFlt "_wxW" 13
+		let fSum := Exp fX
+		if eval (player.AuxVarGetFlt "_wxX" 13) == 1
+			let fSum := 0
+		endif
+		let fX := player.AuxVarGetFlt "_wxL" 15
+		let fX += player.AuxVarGetFlt "_wxS" 15
+		let fX += player.AuxVarGetFlt "_wxW" 15
+		let fE := Exp fX
+		let fRec := 1
+		if eval (player.AuxVarGetFlt "_ltDefault") == 1
+			let fRec := player.AuxVarGetFlt "_ltRec"
+		endif
+		let fSum += fE * fRec
+		let fP := player.AuxVarGetFlt "_wxP0" 18
+		let fP *= fSum / 2
+		SetFunctionValue fP
+		return
+	endif
 	let fX := player.AuxVarGetFlt "_wxL" iT
 	let fX += player.AuxVarGetFlt "_wxS" iT
 	let fX += player.AuxVarGetFlt "_wxW" iT
+	if iT == 16
+		let fF := player.AuxVarGetFlt "_wxH" 16
+		let fF /= 1000
+		if fF < 0
+			let fF := 0
+		elseif fF > 1
+			let fF := 1
+		endif
+		let fX += 0.5 * fF
+	endif
 	let fE := Exp fX
 	let fP := player.AuxVarGetFlt "_wxP0" iT
 	let fP := fP * fE

@@ -1,0 +1,23 @@
+; Wasteland Bank: sets up the Legion treasury's slots once (indexed aux variables are filled in
+; order from 0): five loans, three contracts.
+int iK
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_ltInit") == 1
+		return
+	endif
+	let iK := 0
+	while iK < 5
+		player.AuxVarSetFlt "_ltA" 0 iK
+		player.AuxVarSetFlt "_ltEnd" 0 iK
+		let iK += 1
+	loop
+	let iK := 0
+	while iK < 3
+		player.AuxVarSetFlt "_ltC" 0 iK
+		player.AuxVarSetFlt "_ltCEnd" 0 iK
+		player.AuxVarSetFlt "_ltCNext" 0 iK
+		let iK += 1
+	loop
+	player.AuxVarSetFlt "_ltInit" 1
+end

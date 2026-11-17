@@ -1,0 +1,29 @@
+; Wasteland Bank: currency accounts (2026-11-16). Besides caps ("_wbBal") you can hold NCR dollars
+; ("_wbBalN") and denarii ("_wbBalL"); the currency you hold is a bet on the war. Each pays its own
+; interest (Tick.txt): NCR dollars 1.5 times the caps rate, denarii 2.5 times, each higher while its
+; side takes bad news. The couriers convert at today's rate for the usual fee, take in the notes
+; and coins you carry, and deliver them back as notes and coins a day later (Deliver.txt).
+float fBal
+float fN
+float fL
+float fNcr
+float fLeg
+float fNv
+float fLv
+ref rFn
+ref rCb
+
+begin Function {}
+	let rFn := CompileScript "WastelandBank/ExRate.txt"
+	let fNcr := call rFn
+	let rFn := CompileScript "WastelandBank/ExPrice.txt"
+	let fLeg := call rFn 15
+	let fLeg *= 4	; caps per denarius (vanilla 4)
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let fN := player.AuxVarGetFlt "_wbBalN"
+	let fL := player.AuxVarGetFlt "_wbBalL"
+	let fNv := fN * fNcr
+	let fLv := fL * fLeg
+	let rCb := CompileScript "WastelandBank/AccountsBtn.txt"
+	MessageBoxExAlt rCb "^Currency accounts^Caps: %.0f%rNCR dollars: %.0f (worth %.0f caps at %.3f)%rDenarii: %.0f (worth %.0f caps at %.2f)|Move 1,000 caps into NCR dollars|Move 1,000 caps into denarii|Move all NCR dollars back to caps|Move all denarii back to caps|Pay in the NCR notes I carry|Pay in the Legion coins I carry|Cash out NCR dollars as notes (in a day)|Cash out denarii as coins (in a day)|Back" fBal fN fNv fNcr fL fLv fLeg
+end

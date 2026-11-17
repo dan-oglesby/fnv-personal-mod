@@ -1,0 +1,53 @@
+; Wasteland Bank: owner fee buttons, each cycling through set steps (0 courier fee 1 > 2 > 3 > 5 >
+; 1 percent, 1 vault 0.5 > 1 > 2 > 3 > 0.5 caps a pound, 2 selling cut 5 > 10 > 15 > 20 > 5 percent,
+; 3 back).
+int iBtn
+float fV
+ref rFn
+
+begin Function {iBtn}
+	if iBtn == 3
+		let rFn := CompileScript "WastelandBank/Invest.txt"
+		call rFn
+		return
+	endif
+	if iBtn == 0
+		let fV := player.AuxVarGetFlt "_wbFeePct"
+		if fV < 2
+			let fV := 2
+		elseif fV < 3
+			let fV := 3
+		elseif fV < 5
+			let fV := 5
+		else
+			let fV := 1
+		endif
+		player.AuxVarSetFlt "_wbFeePct" fV
+	elseif iBtn == 1
+		let fV := player.AuxVarGetFlt "_wbVaultRate"
+		if fV < 1
+			let fV := 1
+		elseif fV < 2
+			let fV := 2
+		elseif fV < 3
+			let fV := 3
+		else
+			let fV := 0.5
+		endif
+		player.AuxVarSetFlt "_wbVaultRate" fV
+	elseif iBtn == 2
+		let fV := player.AuxVarGetFlt "_wbSellCut"
+		if fV < 10
+			let fV := 10
+		elseif fV < 15
+			let fV := 15
+		elseif fV < 20
+			let fV := 20
+		else
+			let fV := 5
+		endif
+		player.AuxVarSetFlt "_wbSellCut" fV
+	endif
+	let rFn := CompileScript "WastelandBank/OwnerFees.txt"
+	call rFn
+end

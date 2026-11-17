@@ -1,0 +1,69 @@
+; Wasteland Bank: your customer tier and what it gets you (2026-11-16). The tier follows the money
+; the bank has made from you ("_wbFees", every fee and cut ever paid): High roller from the start,
+; Trader from 2,500 caps, Mogul from 15,000. Every rate the bank charges or pays goes through here:
+;   iKind 0 courier fee, percent of cash moved ("_wbFeePct" x 1 / 0.75 / 0.5)
+;         1 vault rate, caps a pound ("_wbVaultRate" x 1 / 0.75 / 0.5)
+;         2 the couriers' cut of what they sell, percent ("_wbSellCut" x 1 / 0.75 / 0.5)
+;         3 the float a squad carries: 2,500 / 5,000 / 10,000 caps
+;         4 how long a squad takes, as a share of the ordinary 1 to 2 hours: 1 / 0.75 / 0.5
+;         5 interest, as a multiple of the ordinary rate: 1 / 1.1 / 1.25
+;         6 the managed account's monthly fee, percent: 2 / 1.5 / 1
+;         7 the tier itself: 0 High roller, 1 Trader, 2 Mogul
+; The bank's owner sets the base fees ("_wbFeePct", "_wbVaultRate", "_wbSellCut": OwnerFees.txt).
+int iKind
+int iTier
+float fFees
+float fK
+float fR
+
+begin Function {iKind}
+	let fFees := player.AuxVarGetFlt "_wbFees"
+	let iTier := 0
+	if fFees >= 15000
+		let iTier := 2
+	elseif fFees >= 2500
+		let iTier := 1
+	endif
+	let fK := 1
+	if iTier == 1
+		let fK := 0.75
+	elseif iTier == 2
+		let fK := 0.5
+	endif
+	if iKind == 0
+		let fR := player.AuxVarGetFlt "_wbFeePct"
+		let fR *= fK
+	elseif iKind == 1
+		let fR := player.AuxVarGetFlt "_wbVaultRate"
+		let fR *= fK
+	elseif iKind == 2
+		let fR := player.AuxVarGetFlt "_wbSellCut"
+		let fR *= fK
+	elseif iKind == 3
+		let fR := 2500
+		if iTier == 1
+			let fR := 5000
+		elseif iTier == 2
+			let fR := 10000
+		endif
+	elseif iKind == 4
+		let fR := fK
+	elseif iKind == 5
+		let fR := 1
+		if iTier == 1
+			let fR := 1.1
+		elseif iTier == 2
+			let fR := 1.25
+		endif
+	elseif iKind == 6
+		let fR := 2
+		if iTier == 1
+			let fR := 1.5
+		elseif iTier == 2
+			let fR := 1
+		endif
+	else
+		let fR := iTier
+	endif
+	SetFunctionValue fR
+end

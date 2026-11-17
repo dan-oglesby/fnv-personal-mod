@@ -35,6 +35,14 @@ begin Function {}
 		endif
 		let iK += 1
 	loop
+	; Wasteland Bank's own notes (WastelandBank.esp 0x809, 0x80A): their worth follows the bank
+	if eval IsModLoaded "WastelandBank.esp"
+		let iId := GetModIndex "WastelandBank.esp"
+		let rForm := BuildRef iId 2057
+		AuxVarSetFlt "*_wmSkip" 1 0 rForm
+		let rForm := BuildRef iId 2058
+		AuxVarSetFlt "*_wmSkip" 1 0 rForm
+	endif
 	let rBatt := BuildRef 0 211910	; Fission Battery (FalloutNV.esm 0x033BC6)
 	let aTypes := Ar_List 41, 47, 40, 24, 31
 	let iN := 0

@@ -59,5 +59,5 @@ begin Function {}
 		let sAuto := "my stocks"
 	endif
 	let rCb := CompileScript "WastelandBank/ExMenuBtn.txt"
-	MessageBoxExAlt rCb "^Wasteland Exchange^Bank balance (cash): %.0f caps%rShares held: %.0f caps%rShort positions: %.0f caps to cover%rDividends earned: %.0f caps%r%rNCR dollar: %.3f caps (%.1f%% today). Denarius: %.2f caps (%.1f%% today).%rAuto-invest: %z (reserve %.0f caps)%r%rLatest: %z|New Vegas Exchange (caps)|Hub Exchange (NCR dollars)|My portfolio|Market news|Exchange settings|Back to the bank" fBal fLong fShort fDiv fNcr fNcrCh fLeg fLegCh sAuto fReserve sHead
+	MessageBoxExAlt rCb "^Wasteland Exchange^Bank balance (cash): %.0f caps%rShares held: %.0f caps%rShort positions: %.0f caps to cover%rDividends earned: %.0f caps%r%rNCR dollar: %.3f caps (%.1f%% today). Denarius: %.2f caps (%.1f%% today).%rAuto-invest: %z (reserve %.0f caps)%r%rLatest: %z|New Vegas Exchange (caps)|Hub Exchange (NCR dollars)|Funds and the bank|My portfolio|Market news|Exchange settings|Back to the bank" fBal fLong fShort fDiv fNcr fNcrCh fLeg fLegCh sAuto fReserve sHead
 end

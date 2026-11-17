@@ -1,0 +1,168 @@
+; Wasteland Bank: currency account buttons (0 caps to NCR dollars, 1 caps to denarii, 2 NCR dollars
+; to caps, 3 denarii to caps, 4 pay in NCR notes, 5 pay in Legion coins, 6 cash out NCR dollars, 7
+; cash out denarii, 8 back). Every conversion and every note or coin moved pays the usual fee
+; ("_wbFeePct", taken from the amount moved), and moves the currency a little (Flow.txt).
+; Coins: a denarius 1, a mangled denarius 0.75, an aureus 25 (their vanilla values, 4, 3 and 100
+; caps). NCR notes: $5, $20, $100, and the caravan-money twins.
+int iBtn
+int iIdx
+int iId
+int iN
+float fPct
+float fNcr
+float fLeg
+float fAmt
+float fFee
+float fV
+float fAt
+float fBal
+float fCur
+ref rItem
+ref rFn
+ref rFlow
+array_var aIds
+array_var aDen
+ref rRateFn
+
+begin Function {iBtn}
+	if iBtn == 8
+		let rFn := CompileScript "WastelandBank/Invest.txt"
+		call rFn
+		return
+	endif
+	let rRateFn := CompileScript "WastelandBank/Rate.txt"
+	let fPct := call rRateFn 0
+	let rFn := CompileScript "WastelandBank/ExRate.txt"
+	let fNcr := call rFn
+	let rFn := CompileScript "WastelandBank/ExPrice.txt"
+	let fLeg := call rFn 15
+	let fLeg *= 4
+	let rFlow := CompileScript "WastelandBank/Flow.txt"
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	if iBtn == 0 || iBtn == 1
+		let fAmt := 1000
+		if fAmt > fBal
+			let fAmt := Floor fBal
+		endif
+		if fAmt < 1
+			MessageEx "Not enough caps in the bank."
+		else
+			let fBal -= fAmt
+			player.AuxVarSetFlt "_wbBal" fBal
+			let fFee := fAmt * fPct / 100
+			let rFn := CompileScript "WastelandBank/Fee.txt"
+			call rFn fFee
+			let fV := fAmt - fFee
+			if iBtn == 0
+				let fCur := player.AuxVarGetFlt "_wbBalN"
+				let fCur += fV / fNcr
+				player.AuxVarSetFlt "_wbBalN" fCur
+				call rFlow 14 fV
+			else
+				let fCur := player.AuxVarGetFlt "_wbBalL"
+				let fCur += fV / fLeg
+				player.AuxVarSetFlt "_wbBalL" fCur
+				call rFlow 15 fV
+			endif
+		endif
+	elseif iBtn == 2 || iBtn == 3
+		if iBtn == 2
+			let fCur := player.AuxVarGetFlt "_wbBalN"
+			let fV := fCur * fNcr
+			player.AuxVarSetFlt "_wbBalN" 0
+		else
+			let fCur := player.AuxVarGetFlt "_wbBalL"
+			let fV := fCur * fLeg
+			player.AuxVarSetFlt "_wbBalL" 0
+		endif
+		if fV > 0
+			let fBal := player.AuxVarGetFlt "_wbBal"
+			let fBal += fV
+			player.AuxVarSetFlt "_wbBal" fBal
+			let fFee := fV * fPct / 100
+			let rFn := CompileScript "WastelandBank/Fee.txt"
+			call rFn fFee
+			let fV := 0 - fV
+			if iBtn == 2
+				call rFlow 14 fV
+			else
+				call rFlow 15 fV
+			endif
+		endif
+	elseif iBtn == 4 || iBtn == 5
+		if iBtn == 4
+			let aIds := Ar_List 1287382, 1534662, 1287383, 1534664, 1287384, 1534665
+			let aDen := Ar_List 5, 5, 20, 20, 100, 100
+		else
+			; denarius, its caravan twin, mangled denarius, aureus, its caravan twin
+			let aIds := Ar_List 1276829, 1534660, 1520182, 1287385, 1534663
+			let aDen := Ar_List 1, 1, 0.75, 25, 25
+		endif
+		let fAmt := 0
+		let iIdx := 0
+		while iIdx < Ar_Size aIds
+			let iId := aIds[iIdx]
+			let rItem := BuildRef 0 iId
+			let iN := player.GetItemCount rItem
+			if iN > 0
+				player.RemoveItem rItem iN 1
+				let fV := aDen[iIdx]
+				let fAmt += iN * fV
+			endif
+			let iIdx += 1
+		loop
+		if fAmt <= 0
+			MessageEx "You aren't carrying any."
+		else
+			let fFee := fAmt * fPct / 100
+			if iBtn == 4
+				let fV := fFee * fNcr
+				let fCur := player.AuxVarGetFlt "_wbBalN"
+				let fCur += fAmt - fFee
+				player.AuxVarSetFlt "_wbBalN" fCur
+			else
+				let fV := fFee * fLeg
+				let fCur := player.AuxVarGetFlt "_wbBalL"
+				let fCur += fAmt - fFee
+				player.AuxVarSetFlt "_wbBalL" fCur
+			endif
+			let fCur := player.AuxVarGetFlt "_wbFees"
+			let fCur += fV
+			player.AuxVarSetFlt "_wbFees" fCur
+		endif
+	elseif iBtn == 6 || iBtn == 7
+		if iBtn == 6
+			let fCur := player.AuxVarGetFlt "_wbBalN"
+			player.AuxVarSetFlt "_wbBalN" 0
+		else
+			let fCur := player.AuxVarGetFlt "_wbBalL"
+			player.AuxVarSetFlt "_wbBalL" 0
+		endif
+		if fCur <= 0
+			MessageEx "That account is empty."
+		else
+			let fFee := fCur * fPct / 100
+			let fCur -= fFee
+			let fAt := GameDaysPassed
+			let fAt += 1
+			player.AuxVarSetFlt "_wbOutAt" fAt
+			if iBtn == 6
+				let fV := player.AuxVarGetFlt "_wbOutNcrD"
+				let fV += fCur
+				player.AuxVarSetFlt "_wbOutNcrD" fV
+				let fV := fFee * fNcr
+			else
+				let fV := player.AuxVarGetFlt "_wbOutLegD"
+				let fV += fCur
+				player.AuxVarSetFlt "_wbOutLegD" fV
+				let fV := fFee * fLeg
+			endif
+			let fCur := player.AuxVarGetFlt "_wbFees"
+			let fCur += fV
+			player.AuxVarSetFlt "_wbFees" fCur
+			MessageEx "Cash-out ordered: a courier squad called a day from now or later brings it."
+		endif
+	endif
+	let rFn := CompileScript "WastelandBank/Accounts.txt"
+	call rFn
+end
