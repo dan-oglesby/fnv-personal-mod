@@ -152,7 +152,7 @@ begin Function {rEff, iMode}
 	if eval IsFormValid rClean
 		if iRad < 2
 			if eval rCleanSrc != player
-				rCleanSrc.RemoveItemTarget rClean player 1 1	; from storage: one comes to you
+				rCleanSrc.RemoveItemTarget rClean player 1 0	; from storage: one comes to you
 			endif
 			SetFunctionValue rClean
 			return
@@ -165,7 +165,7 @@ begin Function {rEff, iMode}
 		return
 	endif
 	if eval rPickSrc != player
-		rPickSrc.RemoveItemTarget rPick player 1 1
+		rPickSrc.RemoveItemTarget rPick player 1 0
 	endif
 	SetFunctionValue rPick
 end

@@ -6,6 +6,8 @@
 ;   carry none of any ammo the weapon takes and storage has none of the loaded kind, it fetches
 ;   another kind the weapon takes.
 ; - Fission batteries (with Fission Power): wearing power armor with no spare, one comes out.
+; - Every 5th second, the feed (Feed.txt): ammo and food over a working amount go into storage,
+;   and come back out as you use them.
 ; Off: player.AuxVarSetFlt "_twNoStash" 1
 int iClip
 int iHave
@@ -19,6 +21,8 @@ ref rAmmo
 ref rList
 ref rSuit
 ref rStash
+ref rFeed
+int iFeedT
 
 begin Function {}
 	if player.GetDead
@@ -31,6 +35,12 @@ begin Function {}
 		return
 	endif
 	let rStash := CompileScript "WastelandTweaks/Stash.txt"
+	let iFeedT := player.AuxVarGetFlt "*_twFeedT"
+	let iFeedT += 1
+	if iFeedT >= 5
+		let iFeedT := 0
+	endif
+	player.AuxVarSetFlt "*_twFeedT" iFeedT
 
 	let rW := player.GetEquippedObject 5
 	if eval IsFormValid rW
@@ -91,6 +101,14 @@ begin Function {}
 					call rStash rAmmo 1
 				endif
 			endif
+		endif
+	endif
+
+	; the feed runs after this second's top-up, so the working amounts it keeps match
+	if iFeedT == 0
+		let rFeed := CompileScript "WastelandTweaks/Feed.txt"
+		if eval IsFormValid rFeed
+			call rFeed
 		endif
 	endif
 end

@@ -4,7 +4,7 @@
 ; (FalloutNVCheatTerminal.esp): Aid 0x00480C, Ammo 0x00480D, Armor 0x00480E, Misc 0x00480F,
 ; Weapons 0x004810, General Items 1-3 0x00A3E9-0x00A3EB. Only what you put there yourself is in them,
 ; so this is a cheat you choose, not one you trip into. RemoveItemTarget (JIP) moves items silently
-; and whole (condition and mods kept). Used by StashTick.txt and Auto Smoke (Smart Loot's
+; and whole (condition, mods and ownership kept). Used by StashTick.txt and Auto Smoke (Smart Loot's
 ; auto-consume reads the boxes itself, in Pick.txt).
 int iPlug
 int iIdx
@@ -47,7 +47,7 @@ begin Function {rItem, iCount}
 		if iTake > iHave
 			let iTake := iHave
 		endif
-		rBox.RemoveItemTarget rItem player iTake 1
+		rBox.RemoveItemTarget rItem player iTake 0	; 0 = ownership travels with it
 		let iMoved += iTake
 	loop
 	SetFunctionValue iMoved
