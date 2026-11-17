@@ -3,9 +3,10 @@
 ; service is noted in "*_wbInvC" (button number -> service: 0 exchange, 1 war bonds, 2 currency
 ; accounts, 3 bank notes, 4 managed account, 5 Legion treasury, 6 running the bank, 7 holdings by
 ; sector, 8 operations, 9 back), which InvestBtn.txt reads.
-;   always: the exchange (to look at; trading has its own stages), bank notes
+;   always: the exchange (to look at; trading has its own stages). Bank notes are in the courier
+;   menu (cash), which keeps this menu within the game's 10 buttons.
 ;   Saver (1): currency accounts, the managed account
-;   Investor (2): NCR War Bonds
+;   Investor (2): NCR War Bonds, caravan ventures (Caravans.txt, code 10)
 ;   Speculator (3): the Legion treasury
 ;   Fund manager (5): holdings by sector
 ;   Kingpin (6): operations
@@ -67,12 +68,14 @@ begin Function {}
 		player.AuxVarSetFlt "*_wbInvC" 2 iN
 		let iN += 1
 	endif
-	let sBtns := sBtns + "|Wasteland Bank notes"
-	player.AuxVarSetFlt "*_wbInvC" 3 iN
-	let iN += 1
 	if eval iStage >= 1 || (player.AuxVarGetFlt "_wmaVal") > 0 || (player.AuxVarGetFlt "_wmaOut") > 0
 		let sBtns := sBtns + "|Managed account"
 		player.AuxVarSetFlt "*_wbInvC" 4 iN
+		let iN += 1
+	endif
+	if iStage >= 2
+		let sBtns := sBtns + "|Caravan ventures"
+		player.AuxVarSetFlt "*_wbInvC" 10 iN
 		let iN += 1
 	endif
 	if iStage >= 3

@@ -1,0 +1,69 @@
+; Wasteland Bank: a caravan venture ends (CvTick.txt). iOut: 0 arrived on its own, 1 lost on its
+; own, 2 walked in with you, 3 the caravaneer died with you. The stake comes back into your balance
+; with its return (0: x 1.15 + 0.5 x danger; 2: x 1.6 + 0.6 x danger) or 30 percent salvaged (1, 3).
+; The result counts toward the month's profits (Tax.txt), the Caravan Manifest goes, and runs from
+; the Crimson Caravan Company move its stock (CRIM, ticker 1): a success up 2 percent, a loss down 4.
+int iOut
+int iR
+int iPlug
+float fStake
+float fD
+float fPay
+float fS
+float fP
+string_var sName
+string_var sWhat
+ref rFn
+ref rMan
+
+begin Function {iOut}
+	let iR := player.AuxVarGetFlt "_cvRoute"
+	let fStake := player.AuxVarGetFlt "_cvStake"
+	let fD := player.AuxVarGetFlt "_cvDanger"
+	if iOut == 0
+		let fPay := fStake * (1.15 + 0.5 * fD)
+		let sWhat := "made it on its own"
+	elseif iOut == 2
+		let fPay := fStake * (1.6 + 0.6 * fD)
+		let sWhat := "made it, with you at its side"
+	elseif iOut == 3
+		let fPay := fStake * 0.3
+		let sWhat := "was lost on the road: its caravaneer is dead. The guards salvage what they can"
+	else
+		let fPay := fStake * 0.3
+		let sWhat := "was lost on the road. Some of the goods were salvaged"
+	endif
+	let fP := player.AuxVarGetFlt "_wbBal"
+	let fP += fPay
+	player.AuxVarSetFlt "_wbBal" fP
+	let fP := player.AuxVarGetFlt "_wbProfM"
+	let fP += fPay - fStake
+	player.AuxVarSetFlt "_wbProfM" fP
+	if iR <= 1
+		let fS := player.AuxVarGetFlt "_wxS" 1
+		if iOut == 0 || iOut == 2
+			let fS += 0.02
+		else
+			let fS -= 0.04
+		endif
+		player.AuxVarSetFlt "_wxS" fS 1
+	endif
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rMan := BuildRef iPlug 2066	; WBCaravanManifest
+	if eval IsFormValid rMan
+		if eval (player.GetItemCount rMan) > 0
+			player.RemoveItem rMan 1 1
+		endif
+	endif
+	let rFn := CompileScript "WastelandBank/CvName.txt"
+	let sName := call rFn iR
+	MessageBoxEx "Caravan venture%rYour caravan, %z, %z. %.0f caps paid into your balance (you put in %.0f)." sName sWhat fPay fStake
+	if iOut == 2
+		player.AuxVarSetFlt "*_cvLinger" 0
+		player.AuxVarSetFlt "_cvState" 4	; they linger, then go (CvTick.txt)
+	else
+		let rFn := CompileScript "WastelandBank/CvClean.txt"
+		call rFn
+		player.AuxVarSetFlt "_cvState" 0
+	endif
+end

@@ -1,0 +1,16 @@
+; Wasteland Bank: how much to put into the chosen caravan run ("*_cvPick"): 2,000 / 5,000 / 10,000 /
+; 20,000 caps from your balance (CvStakeBtn.txt).
+int iR
+float fBal
+string_var sName
+ref rFn
+ref rCb
+
+begin Function {}
+	let iR := player.AuxVarGetFlt "*_cvPick"
+	let rFn := CompileScript "WastelandBank/CvName.txt"
+	let sName := call rFn iR
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let rCb := CompileScript "WastelandBank/CvStakeBtn.txt"
+	MessageBoxExAlt rCb "^%z^How much do you put into this run? Balance: %.0f caps.|2,000 caps|5,000 caps|10,000 caps|20,000 caps|Back" sName fBal
+end

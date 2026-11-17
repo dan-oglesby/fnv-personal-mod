@@ -1,0 +1,29 @@
+; Wasteland Bank: the caravan routes (2026-11-17). iWhat: 0 where it sets out and 1 where it goes
+; (FalloutNV.esm map markers, persistent, decimal), 2 the route's own danger (0-1), 3 days on the
+; road when it travels without you, 4 who ambushes it (a vanilla leveled list).
+;   0 Crimson Caravan Company 977968 -> Mojave Outpost 843599: 0.5, 4 days, Jackals (VarJackalAllT1 1474006)
+;   1 Crimson Caravan Company 977968 -> Primm 843590: 0.35, 2 days, Powder Gangers (VarPowderGangerAll 1393689)
+;   2 Freeside's East Gate 1435820 -> Novac 600219: 0.4, 2 days, Fiends (EncFiendRandom 990343)
+;   3 Novac 600219 -> Nipton 843539: 0.6, 1 day, the Legion (VarLegionWastelandRecruit 1464313)
+;   4 Goodsprings 843601 -> Primm 843590: 0.15, 1 day, Powder Gangers
+int iRoute
+int iWhat
+array_var aData
+float fV
+
+begin Function {iRoute, iWhat}
+	if iWhat == 0
+		let aData := Ar_List 977968, 977968, 1435820, 600219, 843601
+	elseif iWhat == 1
+		let aData := Ar_List 843599, 843590, 600219, 843539, 843590
+	elseif iWhat == 2
+		let aData := Ar_List 0.5, 0.35, 0.4, 0.6, 0.15
+	elseif iWhat == 3
+		let aData := Ar_List 4, 2, 2, 1, 1
+	else
+		let aData := Ar_List 1474006, 1393689, 990343, 1464313, 1393689
+	endif
+	let fV := aData[iRoute]
+	SetFunctionValue fV
+	let aData := Ar_Null
+end

@@ -52,6 +52,15 @@ Fund a caravan run as a silent partner. Mechanics to settle:
 item) to escort your caravan to its destination: walk it there and it pays a high return for
 certain; don't, and it travels on its own at the route's ordinary odds.
 
+**Built (2026-11-17), first version:** Investments > Caravan ventures, from the Investor stage, one
+venture at a time, stakes of 2,000 to 20,000 caps. Five routes (Crimson Caravan Company to Mojave
+Outpost and to Primm, Freeside's East Gate to Novac, Novac to Nipton, Goodsprings to Primm), each
+with a danger that moves with the war. The run sets out 6 hours after you back it; be at its start
+within a day and a real caravan (caravaneer, two guards, a pack brahmin) walks the road with you,
+with a chance of an ambush halfway: walk it in for 60 percent plus 60 x danger. Lose it, or don't
+come, and it travels alone at the route's odds (1 - 0.7 x danger to succeed, paying 15 percent plus
+50 x danger; a loss salvages 30 percent). A Caravan Manifest marks a run on the road.
+
 ## The fence: Gomorrah's books (to explore further)
 
 The couriers won't touch stolen goods; the Omertas will.

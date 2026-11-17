@@ -1,0 +1,16 @@
+; Wasteland Bank: removes the caravan's people and brahmin ("_cvRef" 0-3), dead or alive.
+int iIdx
+ref rRef
+
+begin Function {}
+	let iIdx := 0
+	while iIdx < 4
+		let rRef := player.AuxVarGetRef "_cvRef" iIdx
+		let iIdx += 1
+		if eval IsFormValid rRef
+			rRef.Disable
+			rRef.MarkForDelete
+		endif
+	loop
+	player.AuxVarErase "_cvRef"
+end

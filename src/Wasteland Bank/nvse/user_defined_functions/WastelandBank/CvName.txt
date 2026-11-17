@@ -1,0 +1,18 @@
+; Wasteland Bank: a caravan route's name (CvRoute.txt), as "from -> to".
+int iRoute
+string_var sOut
+
+begin Function {iRoute}
+	if iRoute == 0
+		let sOut := "Crimson Caravan Company to Mojave Outpost"
+	elseif iRoute == 1
+		let sOut := "Crimson Caravan Company to Primm"
+	elseif iRoute == 2
+		let sOut := "Freeside's East Gate to Novac"
+	elseif iRoute == 3
+		let sOut := "Novac to Nipton"
+	else
+		let sOut := "Goodsprings to Primm"
+	endif
+	SetFunctionValue sOut
+end

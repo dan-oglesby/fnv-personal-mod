@@ -126,6 +126,10 @@ CAT_CONT, CAT_REF, SHIP_CONT, SHIP_REF = 0x80B, 0x80C, 0x80D, 0x80E
 ME_BOX = 0x14B05F
 # Debt collectors (2026-11-17): the same mercenary copies as the couriers, but not essential, named
 # Debt Collector; sent when a loan is two weeks overdue (ColTick.txt). Same empty activation script.
+# Caravan ventures (2026-11-17): the Caravan Manifest you carry while your caravan is on the road
+# (CvTick.txt). Weightless, worthless, flagged a quest item (record flag 0x400) so it isn't dropped
+# or sold. The model and icon of vanilla's Dr. Richard's Medical Report (a clipboard, the note icon).
+MANIFEST = (0x812, "WBCaravanManifest", "Caravan Manifest")
 COLLECTORS = [(0x80F, "WBCollectorA", 0x165066), (0x810, "WBCollectorB", 0x165064), (0x811, "WBCollectorC", 0x165065)]
 # Wasteland Bank notes (2026-11-16): the bank's own paper money. Face value 10 and 100 caps at
 # issue; their worth follows the bank's share price (BankNotes.txt sets it on load and daily).
@@ -239,6 +243,11 @@ def bank_plugin(edid, name, model, icon, small_icon):
     bflags, bsubs = box[ME_BOX]
     cont += record("CONT", bflags, ME_BOX,
                    b"".join(sub(t, struct.pack("<I", COURIER_SCRIPT) if t == "SCRI" else d) for t, d in bsubs))
+    notes += record("MISC", 0x400, 0x01000000 | MANIFEST[0],
+                    sub("EDID", z(MANIFEST[1])) + sub("OBND", bytes(12)) + sub("FULL", z(MANIFEST[2]))
+                    + sub("MODL", z(r"clutter\office\clipboard01.nif"))
+                    + sub("ICON", z(r"interface\icons\pipboyimages\items\items_note.dds"))
+                    + sub("DATA", struct.pack("<if", 0, 0.0)))
     cell_id = 0x01000000 | VAULT_CELL
     cell = record("CELL", 0, cell_id,
                   sub("EDID", z("WBVaultCell")) + sub("FULL", z("Wasteland Bank Vault"))
@@ -257,9 +266,9 @@ def bank_plugin(edid, name, model, icon, small_icon):
     block, subblock = VAULT_CELL % 10, (VAULT_CELL // 10) % 10
     cells = _grup(b"CELL", 0, _grup(struct.pack("<i", block), 2,
                                     _grup(struct.pack("<i", subblock), 3, cell + children)))
-    n_records = 1 + len(COURIERS) + len(COLLECTORS) + 5 + len(BANK_NOTES) + 1 + 4
+    n_records = 1 + len(COURIERS) + len(COLLECTORS) + 5 + len(BANK_NOTES) + 1 + 1 + 4
     header = record("TES4", 0, 0,
-                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, 0x812))
+                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, 0x813))
                     + sub("CNAM", z("fnv-personal-mod"))
                     + sub("MAST", z("FalloutNV.esm"))
                     + sub("DATA", bytes(8)))

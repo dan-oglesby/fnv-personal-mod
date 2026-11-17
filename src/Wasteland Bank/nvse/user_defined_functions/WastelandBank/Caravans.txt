@@ -1,0 +1,63 @@
+; Wasteland Bank: caravan ventures (2026-11-17; Investments, from the Investor stage). Back a
+; caravan run with a large stake (CvStake.txt). It sets out 6 hours later from its starting point;
+; be there within a day to escort it yourself (it walks the road with you, and may be ambushed):
+; get it to its destination and it pays a high return, for certain. Otherwise it travels on its own
+; and the route's odds decide (CvTick.txt, CvEnd.txt). One venture at a time.
+;   on its own: succeeds 1 - 0.7 x danger of the time, paying 15 percent + 50 x danger; fails and
+;   only 30 percent is salvaged. Escorted to the end: 60 percent + 60 x danger. Danger: CvDanger.txt.
+int iR
+int iState
+float fD
+float fP
+float fWin
+float fEsc
+float fStake
+float fNow
+float fH
+float fDpct
+string_var sName
+string_var sBody
+ref rFn
+ref rName
+ref rCb
+
+begin Function {}
+	let iState := player.AuxVarGetFlt "_cvState"
+	let rName := CompileScript "WastelandBank/CvName.txt"
+	let rCb := CompileScript "WastelandBank/CaravansBtn.txt"
+	if iState > 0
+		let iR := player.AuxVarGetFlt "_cvRoute"
+		let sName := call rName iR
+		let fStake := player.AuxVarGetFlt "_cvStake"
+		let fNow := GameDaysPassed
+		if iState == 1
+			let fH := player.AuxVarGetFlt "_cvDep"
+			let fH := (fH - fNow) * 24
+			if fH > 0
+				let sBody := sv_Construct "Your caravan (%.0f caps), %z, sets out in about %.0f hours. Be at its starting point to escort it." fStake sName fH
+			else
+				let fH := player.AuxVarGetFlt "_cvArr"
+				let fH := (fH - fNow) * 24
+				let sBody := sv_Construct "Your caravan (%.0f caps), %z, is on the road without you: it arrives in about %.0f hours, and the route's odds decide." fStake sName fH
+			endif
+		else
+			let sBody := sv_Construct "Your caravan (%.0f caps), %z, is on the road with you. Keep it alive and in sight." fStake sName
+		endif
+		MessageBoxExAlt rCb "^Caravan ventures^%z|Back" sBody
+		return
+	endif
+	let rFn := CompileScript "WastelandBank/CvDanger.txt"
+	let sBody := sv_Construct "Back a caravan run. Escort it yourself for a high, certain return, or let it take its chances."
+	let iR := 0
+	while iR < 5
+		let fD := call rFn iR
+		let fP := (1 - 0.7 * fD) * 100
+		let fWin := (0.15 + 0.5 * fD) * 100
+		let fEsc := (0.6 + 0.6 * fD) * 100
+		let sName := call rName iR
+		let fDpct := fD * 100
+		let sBody := sBody + (sv_Construct "%r%z: danger %.0f. Alone: %.0f percent chance of +%.0f percent. Escorted: +%.0f percent." sName fDpct fP fWin fEsc)
+		let iR += 1
+	loop
+	MessageBoxExAlt rCb "^Caravan ventures^%z|Crimson Caravan Co. to Mojave Outpost|Crimson Caravan Co. to Primm|Freeside's East Gate to Novac|Novac to Nipton|Goodsprings to Primm|Back" sBody
+end

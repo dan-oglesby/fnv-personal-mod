@@ -1,0 +1,15 @@
+; Wasteland Bank: caravan venture buttons. With a venture running there's only Back; otherwise 0-4
+; pick a route (CvStake.txt), 5 back.
+int iBtn
+ref rFn
+
+begin Function {iBtn}
+	if eval (player.AuxVarGetFlt "_cvState") > 0 || iBtn >= 5
+		let rFn := CompileScript "WastelandBank/Invest.txt"
+		call rFn
+		return
+	endif
+	player.AuxVarSetFlt "*_cvPick" iBtn
+	let rFn := CompileScript "WastelandBank/CvStake.txt"
+	call rFn
+end

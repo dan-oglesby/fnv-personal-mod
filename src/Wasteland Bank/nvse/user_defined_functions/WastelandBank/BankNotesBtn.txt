@@ -17,7 +17,7 @@ ref rHun
 
 begin Function {iBtn}
 	if iBtn == 3
-		let rFn := CompileScript "WastelandBank/Invest.txt"
+		let rFn := CompileScript "WastelandBank/Courier.txt"
 		call rFn
 		return
 	endif

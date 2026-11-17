@@ -26,6 +26,8 @@ begin Function {iBtn}
 		let rNext := CompileScript "WastelandBank/Sectors.txt"
 	elseif iCode == 8
 		let rNext := CompileScript "WastelandBank/Ops.txt"
+	elseif iCode == 10
+		let rNext := CompileScript "WastelandBank/Caravans.txt"
 	else
 		let rNext := CompileScript "WastelandBank/Courier.txt"
 	endif

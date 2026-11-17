@@ -67,6 +67,14 @@ let rChk := CompileScript "WastelandBank/BondsBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/Caravans.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CaravansBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/CardPaid.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -132,6 +140,38 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/CreditDay.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CvClean.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CvDanger.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CvEnd.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CvName.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CvRoute.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CvStake.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CvStakeBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CvTick.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
@@ -583,6 +623,9 @@ else
 	; debt collectors, when a loan runs two weeks overdue (ColTick.txt; same flags)
 	let ref rCol := CompileScript "WastelandBank/ColTick.txt"
 	CallWhilePerSeconds 1 rCol rTrue 20
+	; caravan ventures: escorts and outcomes (CvTick.txt; same flags)
+	let ref rCvT := CompileScript "WastelandBank/CvTick.txt"
+	CallWhilePerSeconds 1 rCvT rTrue 20
 	; the vault's container screen closing: charge for what the couriers carried
 	let ref rVaultClose := CompileScript "WastelandBank/VaultClose.txt"
 	SetOnMenuCloseEventHandler rVaultClose 1 1008

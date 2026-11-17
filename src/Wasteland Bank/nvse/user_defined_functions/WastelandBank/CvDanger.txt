@@ -1,0 +1,48 @@
+; Wasteland Bank: how dangerous a caravan route is right now (0.05-0.9). The route's own danger
+; (CvRoute.txt 2), then the war:
+; - Novac to Nipton (Legion country) scales with the denarius's strength (ticker 15), and is far
+;   safer for someone the Legion counts as its own (Allegiance.txt below -0.5: 0.4 less);
+; - the Legion marching on the Dam (exchange event 29): every route 0.1 worse;
+; - the NCR marching on the Dam (26): the NCR roads (from the Crimson Caravan Company, and
+;   Goodsprings to Primm) 0.1 safer.
+int iRoute
+float fD
+float fX
+float fLean
+ref rFn
+
+begin Function {iRoute}
+	let rFn := CompileScript "WastelandBank/CvRoute.txt"
+	let fD := call rFn iRoute 2
+	if iRoute == 3
+		let fX := player.AuxVarGetFlt "_wxL" 15
+		let fX += player.AuxVarGetFlt "_wxS" 15
+		let fX += player.AuxVarGetFlt "_wxW" 15
+		let fX := Exp fX
+		if fX < 0.5
+			let fX := 0.5
+		elseif fX > 1.5
+			let fX := 1.5
+		endif
+		let fD *= fX
+		let rFn := CompileScript "WastelandBank/Allegiance.txt"
+		let fLean := call rFn 0
+		if fLean < -0.5
+			let fD -= 0.4
+		endif
+	endif
+	if eval (player.AuxVarGetFlt "_wxE" 29) == 1
+		let fD += 0.1
+	endif
+	if eval (player.AuxVarGetFlt "_wxE" 26) == 1
+		if iRoute == 0 || iRoute == 1 || iRoute == 4
+			let fD -= 0.1
+		endif
+	endif
+	if fD < 0.05
+		let fD := 0.05
+	elseif fD > 0.9
+		let fD := 0.9
+	endif
+	SetFunctionValue fD
+end

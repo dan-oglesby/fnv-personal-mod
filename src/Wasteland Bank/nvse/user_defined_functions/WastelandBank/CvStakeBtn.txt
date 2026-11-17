@@ -1,0 +1,64 @@
+; Wasteland Bank: backing a caravan run (0-3 stake 2,000 / 5,000 / 10,000 / 20,000, 4 back). The stake
+; leaves your balance; the run sets out in 6 hours ("_cvDep") and, without you, arrives after its
+; route's days ("_cvArr"); its danger is fixed now ("_cvDanger"). You get a Caravan Manifest
+; (WastelandBank.esp 0x812) to carry until it's over.
+int iBtn
+int iR
+int iPlug
+float fStake
+float fBal
+float fNow
+float fV
+float fDays
+string_var sName
+string_var sFrom
+ref rFn
+ref rMan
+
+begin Function {iBtn}
+	if iBtn == 4
+		let rFn := CompileScript "WastelandBank/Caravans.txt"
+		call rFn
+		return
+	endif
+	let fStake := 2000
+	if iBtn == 1
+		let fStake := 5000
+	elseif iBtn == 2
+		let fStake := 10000
+	elseif iBtn == 3
+		let fStake := 20000
+	endif
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	if fStake > fBal
+		MessageEx "Not enough in the bank for that stake."
+		let rFn := CompileScript "WastelandBank/CvStake.txt"
+		call rFn
+		return
+	endif
+	let iR := player.AuxVarGetFlt "*_cvPick"
+	let fBal -= fStake
+	player.AuxVarSetFlt "_wbBal" fBal
+	let fNow := GameDaysPassed
+	let fV := fNow + 0.25
+	player.AuxVarSetFlt "_cvDep" fV
+	let rFn := CompileScript "WastelandBank/CvRoute.txt"
+	let fDays := call rFn iR 3
+	let fV := fNow + fDays
+	player.AuxVarSetFlt "_cvArr" fV
+	let rFn := CompileScript "WastelandBank/CvDanger.txt"
+	let fV := call rFn iR
+	player.AuxVarSetFlt "_cvDanger" fV
+	player.AuxVarSetFlt "_cvRoute" iR
+	player.AuxVarSetFlt "_cvStake" fStake
+	player.AuxVarSetFlt "_cvAmb" 0
+	player.AuxVarSetFlt "_cvState" 1
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rMan := BuildRef iPlug 2066	; WBCaravanManifest
+	if eval IsFormValid rMan
+		player.AddItem rMan 1 1
+	endif
+	let rFn := CompileScript "WastelandBank/CvName.txt"
+	let sName := call rFn iR
+	MessageBoxEx "Caravan venture%rYou've backed %z with %.0f caps. The caravan sets out in about 6 hours and is on the road %.0f days on its own. Be at its starting point when it leaves to escort it: walk it all the way in and the return is high and certain." sName fStake fDays
+end

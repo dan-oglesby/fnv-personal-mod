@@ -1,0 +1,170 @@
+; Wasteland Bank: your caravan venture, once a second of play (2026-11-17). "_cvState" 0 none,
+; 1 backed (sets out at "_cvDep"; arrives on its own at "_cvArr"), 2 on the road with you,
+; 4 arrived with you (the caravan lingers until you leave).
+; - Escort: from the moment it sets out until a day later, coming within about 21 m of its starting
+;   point (CvRoute.txt) brings the caravan out: a caravaneer (vanilla CrimsonCaravaneerCM 971993),
+;   two guards (CrimsonCaravanGuardCM 971986, CrimsonCaravanGuardAF 971987) and a pack brahmin
+;   (CrBrahmin 118690), walking to the destination marker (vanilla DefaultTravelToLinkedPackage
+;   0x11AFD7, JIP SetLinkedRef). Spawned actors stand still when their cell unloads, so a caravan
+;   only walks with you there.
+; - On the road: halfway, the route's danger is the chance of an ambush (three of the route's
+;   attackers, ahead of the caravan). The caravaneer dying ends it (CvEnd.txt 3); reaching the
+;   destination (within about 11 m) pays the escorted return (2). Lose sight of it (about 60 m) for
+;   30 seconds and it goes on alone at the route's odds.
+; - On its own: at "_cvArr" the route's odds decide (CvEnd.txt 0 or 1).
+int iState
+int iR
+int iId
+int iIdx
+int iFar
+int iT
+float fNow
+float fD
+float fDanger
+float fRoll
+float fD0
+ref rFrom
+ref rTo
+ref rBase
+ref rRef
+ref rLead
+ref rPkg
+ref rFn
+array_var aBases
+
+begin Function {}
+	let iState := player.AuxVarGetFlt "_cvState"
+	if iState == 0
+		return
+	endif
+	if player.GetDead
+		return
+	endif
+	if IsInKillCam
+		return
+	endif
+	let fNow := GameDaysPassed
+	let iR := player.AuxVarGetFlt "_cvRoute"
+	let rFn := CompileScript "WastelandBank/CvRoute.txt"
+	let iId := call rFn iR 1
+	let rTo := BuildRef 0 iId
+
+	if iState == 1
+		let fDanger := player.AuxVarGetFlt "_cvDanger"
+		if eval fNow >= (player.AuxVarGetFlt "_cvArr")
+			let fRoll := GetRandomPercent
+			let fRoll /= 100
+			let rFn := CompileScript "WastelandBank/CvEnd.txt"
+			if fRoll < 1 - 0.7 * fDanger
+				call rFn 0
+			else
+				call rFn 1
+			endif
+			return
+		endif
+		if eval fNow < (player.AuxVarGetFlt "_cvDep") || fNow > (player.AuxVarGetFlt "_cvDep") + 1
+			return
+		endif
+		if eval player.IsInInterior
+			return
+		endif
+		let iId := call rFn iR 0
+		let rFrom := BuildRef 0 iId
+		if eval (IsFormValid rFrom) == 0 || (IsFormValid rTo) == 0
+			return
+		endif
+		if eval (player.GetDistance rFrom) > 1500
+			return
+		endif
+		; out come the caravan: caravaneer first (the one that matters), two guards, a brahmin
+		let rPkg := BuildRef 0 1159127	; DefaultTravelToLinkedPackage (0x11AFD7)
+		let aBases := Ar_List 971993, 971986, 971987, 118690
+		let iIdx := 0
+		while iIdx < 4
+			let iId := aBases[iIdx]
+			let rBase := BuildRef 0 iId
+			let rRef := rFrom.PlaceAtMe rBase 1 256 iIdx
+			rRef.SetLinkedRef rTo
+			rRef.AddScriptPackage rPkg
+			rRef.EvaluatePackage
+			player.AuxVarSetRef "_cvRef" rRef iIdx
+			let iIdx += 1
+		loop
+		let aBases := Ar_Null
+		let rLead := player.AuxVarGetRef "_cvRef" 0
+		let fD0 := rLead.GetDistance rTo
+		player.AuxVarSetFlt "_cvDist0" fD0
+		player.AuxVarSetFlt "*_cvFar" 0
+		player.AuxVarSetFlt "_cvState" 2
+		let rFn := CompileScript "WastelandBank/CvName.txt"
+		MessageEx "Your caravan sets out. Keep the caravaneer alive and in sight all the way."
+		return
+	endif
+
+	let rLead := player.AuxVarGetRef "_cvRef" 0
+	if iState == 4
+		let iT := player.AuxVarGetFlt "*_cvLinger"
+		let iT += 1
+		player.AuxVarSetFlt "*_cvLinger" iT
+		let fD := 99999
+		if eval IsFormValid rLead
+			let fD := player.GetDistance rLead
+		endif
+		if fD > 2000 || iT > 120
+			let rFn := CompileScript "WastelandBank/CvClean.txt"
+			call rFn
+			player.AuxVarSetFlt "_cvState" 0
+		endif
+		return
+	endif
+
+	; on the road with you
+	let rFn := CompileScript "WastelandBank/CvEnd.txt"
+	if eval (IsFormValid rLead) == 0
+		call rFn 3
+		return
+	endif
+	if eval rLead.GetDead
+		call rFn 3
+		return
+	endif
+	let fD := rLead.GetDistance rTo
+	if fD < 800
+		call rFn 2
+		return
+	endif
+	; the ambush, once, halfway
+	if eval (player.AuxVarGetFlt "_cvAmb") == 0 && fD < 0.5 * (player.AuxVarGetFlt "_cvDist0")
+		player.AuxVarSetFlt "_cvAmb" 1
+		let fDanger := player.AuxVarGetFlt "_cvDanger"
+		let fRoll := GetRandomPercent
+		let fRoll /= 100
+		if fRoll < fDanger
+			let rRef := CompileScript "WastelandBank/CvRoute.txt"
+			let iId := call rRef iR 4
+			let rBase := BuildRef 0 iId
+			let iIdx := 0
+			while iIdx < 3
+				rLead.PlaceAtMe rBase 1 1500 0
+				let iIdx += 1
+			loop
+			MessageEx "Ambush ahead of the caravan!"
+		endif
+	endif
+	; losing sight of it
+	if eval (player.GetDistance rLead) > 4000
+		let iFar := player.AuxVarGetFlt "*_cvFar"
+		let iFar += 1
+		player.AuxVarSetFlt "*_cvFar" iFar
+		if iFar >= 30
+			let rRef := CompileScript "WastelandBank/CvClean.txt"
+			call rRef
+			player.AuxVarSetFlt "_cvState" 1
+			let fD0 := fNow - 10
+			player.AuxVarSetFlt "_cvDep" fD0	; no second escort
+			MessageEx "You've lost the caravan. It goes on alone, and the route's odds decide."
+		endif
+	else
+		player.AuxVarSetFlt "*_cvFar" 0
+	endif
+end
