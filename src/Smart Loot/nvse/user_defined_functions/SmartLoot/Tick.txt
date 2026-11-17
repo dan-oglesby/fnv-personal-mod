@@ -122,6 +122,18 @@ begin Function {}
 			endif
 		loop
 	loop
+	; and the dead body under your crosshair, if it's in reach (xNVSE GetCrosshairRef): a corpse
+	; neither list returned is still looted when you look at it. A persistent Viper Leader
+	; (FalloutNV.esm VViperGangLeader...Pers) wasn't picked up (2026-11-16).
+	let rRef := GetCrosshairRef
+	if eval IsFormValid rRef
+		let iType := GetType (rRef.GetBaseObject)
+		if iType >= 42 && iType <= 45
+			if eval rRef.GetDead && (player.GetDistance rRef) <= fRad
+				Ar_Append aRefs rRef
+			endif
+		endif
+	endif
 	let rAlways := BuildRef (GetModIndex "SmartLoot.esp") 2052	; SLAlwaysTake
 	let aLoose := Ar_Construct "array"
 	let aBoxes := Ar_Construct "array"
