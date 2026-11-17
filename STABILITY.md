@@ -70,6 +70,11 @@ updated 2026-11-14. Nexus links are `nexusmods.com/newvegas/mods/<id>`.
   the game removes the oldest itself. Keep ITR's SmallDebrisCap off. Permanent Weapon Shells "Very
   Heavy" (10000 for a day) with SmallDebrisCap on was behind two casing crashes. Raise the numbers
   a step at a time and watch for casing crashes.
+- **Stewie Tweaks `bWeaponDamageStagesFix = 0`** (2026-11-16, set by Wasteland Tweaks in
+  `NVSE\Plugins\Tweaks\INIs\WastelandTweaks.ini`, which Stewie reads because `bMultiINISupport = 1`).
+  On load, every dropped weapon runs that fix. JIP LN 57.30 then follows the weapon's
+  `ExtraItemDropper` back to whoever dropped it, and if that actor has been deleted (a cleaned-up
+  temporary spawn) the game crashes in `jip_nvse` `BaseExtraList::GetByType`.
 - **Fallout.ini `bUseThreadedTempEffects=0`** (2026-11-15). Casings and decals then update on the main
   thread instead of a worker thread, which removes the kind of thread overlap behind the casing crash
   on an AI thread. It costs a little performance, and no source confirms it as a fix; it is inferred

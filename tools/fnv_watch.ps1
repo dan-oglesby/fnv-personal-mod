@@ -34,7 +34,8 @@ function Save-Session($start, $samples, $proc) {
 
     # logs written this session
     $files = 'nvse.log','falloutnv_error.log','falloutnv_havok.log','CobbCrashLogger.log','CrashLogger.log','ScanNullFix.log',
-             'FalloutNV_d3d9.log','FalloutNV_dxgi.log','nvse_steam_loader.log','mcm.log','ShowOffNVSE.log'
+             'FalloutNV_d3d9.log','FalloutNV_dxgi.log','nvse_steam_loader.log','mcm.log','ShowOffNVSE.log',
+             'ConsoleLog.txt','SmartLoot.log'
     foreach ($f in $files) {
         $p = Join-Path $game $f
         if ((Test-Path $p) -and (Get-Item $p).LastWriteTime -ge $start.AddMinutes(-1)) {

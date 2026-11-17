@@ -19,6 +19,14 @@
 ;      player.AuxVarSetFlt "_twVatsMax" 20        seconds before the watchdog ends it (default 15)
 ;      player.AuxVarSetFlt "_twVatsKey" 199       rescue key, DirectInput code (default 207, End;
 ;                                                 0 = no key)
+;
+; 3. Console log: everything the console shows also goes to ConsoleLog.txt in the game folder, from
+;    the start of each game launch: our mods' prints, any other mod's print or printc messages, and
+;    the game's own console output (vanilla SetConsoleOutputFile, which xNVSE offers scripts as
+;    con_SCOF). The session watcher keeps a copy per session. To stop it from the next launch:
+;      player.AuxVarSetFlt "_twNoConsoleLog" 1
+;    Other mods' scripts can't be made to log what they do step by step without editing them; this
+;    catches whatever they print, and falloutnv_error.log already records their script errors.
 
 if eval (player.AuxVarGetFlt "_twInit") < 1
 	player.AuxVarSetFlt "_twInit" 1
@@ -52,4 +60,12 @@ if eval (IsFormValid rTwWatch) && (IsFormValid rTwKey) && (IsFormValid rTwTrue)
 	endif
 else
 	print "Wasteland Tweaks: the VATS rescue is off because its scripts failed to compile (see nvse.log)"
+endif
+
+; console log, once per game launch (GetGameRestarted is true only the first time after a restart,
+; so loading a save doesn't start the file over)
+if eval (player.AuxVarGetFlt "_twNoConsoleLog") == 0
+	if GetGameRestarted
+		con_SCOF "ConsoleLog.txt"
+	endif
 endif
