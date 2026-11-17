@@ -1,0 +1,26 @@
+; Wasteland Bank: sell menu buttons (0 all junk, 1 hand-pick in the consignment box, 2 back).
+int iBtn
+int iPlug
+ref rNext
+ref rBox
+
+begin Function {iBtn}
+	if iBtn == 0
+		let rNext := CompileScript "WastelandBank/SellJunk.txt"
+		call rNext 1
+		let rNext := CompileScript "WastelandBank/Courier.txt"
+		call rNext
+	elseif iBtn == 1
+		let iPlug := GetModIndex "WastelandBank.esp"
+		let rBox := BuildRef iPlug 2056	; WBConsignRef 0x000808
+		if eval (IsFormValid rBox) == 0
+			MessageEx "The consignment box is missing: is WastelandBank.esp enabled?"
+			return
+		endif
+		player.AuxVarSetFlt "*_wbSellOpen" 1
+		rBox.Activate player 1
+	elseif iBtn == 2
+		let rNext := CompileScript "WastelandBank/Courier.txt"
+		call rNext
+	endif
+end

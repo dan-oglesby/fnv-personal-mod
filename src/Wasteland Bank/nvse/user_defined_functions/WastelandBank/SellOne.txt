@@ -1,0 +1,32 @@
+; Wasteland Bank: the couriers take iCount of rItem from rFrom (you, or the consignment box) to
+; sell. Returns what merchants pay for them: half the item's current value (Wasteland Market's
+; prices are already in the value, through SetBaseItemValue). Adds the original value sold to
+; aVol, per Wasteland Market category (the item's "*_wmCat", category + 1), so SellDone.txt can
+; move the market as any sale would.
+int iCount
+int iCat
+float fV
+float fOrig
+float fVol
+ref rItem
+ref rFrom
+array_var aVol
+
+begin Function {rItem, iCount, rFrom, aVol}
+	SetFunctionValue 0
+	if iCount < 1
+		return
+	endif
+	let fV := GetValue rItem
+	rFrom.RemoveItem rItem iCount 1
+	let iCat := AuxVarGetFlt "*_wmCat" 0 rItem
+	if iCat > 0
+		let iCat -= 1
+		let fOrig := AuxVarGetFlt "*_wmV" 0 rItem
+		let fVol := aVol[iCat]
+		let fVol -= fOrig * iCount
+		let aVol[iCat] := fVol
+	endif
+	let fV := fV * iCount * 0.5
+	SetFunctionValue fV
+end

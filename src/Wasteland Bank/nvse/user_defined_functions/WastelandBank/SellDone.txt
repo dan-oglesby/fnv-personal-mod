@@ -1,0 +1,53 @@
+; Wasteland Bank: books a courier sale. fGross is what merchants paid (SellOne.txt); the couriers
+; keep "_wbSellCut" percent (default 10, counted as bank revenue in "_wbFees") and the rest reaches
+; your balance a game day later ("_wbSalePend", due "_wbSaleAt"; Tick.txt pays it in). With
+; Wasteland Market running, the sales move its prices like any selling (Push.txt, then Apply.txt).
+float fGross
+float fCut
+float fNet
+float fPend
+float fFees
+float fAt
+float fVol
+int iN
+int iCat
+ref rPush
+array_var aVol
+
+begin Function {fGross, aVol, iN}
+	if iN < 1
+		return
+	endif
+	let fCut := player.AuxVarGetFlt "_wbSellCut"
+	let fNet := fGross * (1 - fCut / 100)
+	let fFees := player.AuxVarGetFlt "_wbFees"
+	let fFees += fGross - fNet
+	player.AuxVarSetFlt "_wbFees" fFees
+	let fPend := player.AuxVarGetFlt "_wbSalePend"
+	let fPend += fNet
+	player.AuxVarSetFlt "_wbSalePend" fPend
+	let fAt := GameDaysPassed
+	let fAt += 1
+	player.AuxVarSetFlt "_wbSaleAt" fAt
+	MessageEx "The couriers took %.0f item(s) to sell: about %.0f caps reaches your balance in a day." iN fNet
+
+	if eval (player.AuxVarGetFlt "_wmP" 0) <= 0
+		return	; Wasteland Market isn't running
+	endif
+	let rPush := CompileScript "WastelandMarket/Push.txt"
+	if eval (IsFormValid rPush) == 0
+		return
+	endif
+	let iCat := 0
+	while iCat < 10
+		let fVol := aVol[iCat]
+		if fVol != 0
+			call rPush iCat fVol
+		endif
+		let iCat += 1
+	loop
+	let rPush := CompileScript "WastelandMarket/Apply.txt"
+	if eval IsFormValid rPush
+		call rPush
+	endif
+end

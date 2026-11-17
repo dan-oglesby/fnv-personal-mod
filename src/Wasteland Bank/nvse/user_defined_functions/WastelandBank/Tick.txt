@@ -10,6 +10,7 @@
 int iToday
 int iLast
 int iDays
+float fSale
 int iLoanDays
 int iCarry
 int iAmt
@@ -22,6 +23,17 @@ ref rCaps
 ref rConv
 
 begin Function {}
+	; what the couriers sold for you (SellDone.txt) reaches the balance a day later
+	let fSale := player.AuxVarGetFlt "_wbSalePend"
+	if fSale > 0
+		if eval GameDaysPassed >= (player.AuxVarGetFlt "_wbSaleAt")
+			let fBal := player.AuxVarGetFlt "_wbBal"
+			let fBal += fSale
+			player.AuxVarSetFlt "_wbBal" fBal
+			player.AuxVarSetFlt "_wbSalePend" 0
+			MessageEx "Wasteland Bank: the couriers' sales came in, %.0f caps added to your balance." fSale
+		endif
+	endif
 	let iToday := Floor GameDaysPassed
 	let iLast := player.AuxVarGetFlt "_wbDay"
 	if iToday > iLast

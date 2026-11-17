@@ -20,6 +20,11 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
     out is carried by the squad, at **1 cap per pound each way**;
   - loans are paid out and repaid in cash, so through the squad too.
   Auto-deposit and auto-convert happen when a squad arrives, not on their own.
+- **Selling through the squad** (built with phase 1): "sell all junk" in one go, or hand-pick
+  anything in a consignment box. They sell to merchants at half the current market value (Wasteland
+  Market's prices), keep 10 percent, and the rest reaches your balance a day later. The sales move
+  Wasteland Market's prices like any selling. Quest items, money and casino chips aren't sold.
+- **Casino chips** convert to caps at 1 each, with the usual fee.
 - With no squad: balances, settings, prices and your portfolio can still be read.
 - Fees come out of your balance; if it's short, from the caps you carry; whatever is left is added
   to your loan.
@@ -35,6 +40,12 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
   stake (over half the shares). The fees you pay the squad are the bank's revenue and fund its
   dividend. With control, the bank's settings gain the fee levels: the cash fee, the vault rate per
   pound and the loan rate.
+
+- **A Vegas index fund:** one ticker on the New Vegas exchange that holds the whole market across
+  the exchanges (index-style investing in a single purchase).
+- **Currency effects of your investing:** net buying of NCR assets (war bonds, Hub-listed stocks)
+  supports the NCR dollar a little, selling weakens it, and the same for Legion debt and the
+  denarius. Small, building up over time and fading, so the rates still follow the faction story.
 
 ## Phase 3: the Legion treasury
 
@@ -52,3 +63,10 @@ Lending to Caesar instead of an equity market (the Legion has none; Rome ran on 
   once, and what's left shrinks to nothing over 30 days. When the last payout is collected, the
   Legion's business ends with a short goodbye: their paymaster has fled down the river.
 - Denarii handed to a squad go into treasury loans, and cash-out orders work as in phase 2.
+
+## Phase 4 (to research): faction presence follows faction fortunes
+
+NCR and Legion patrols, vanilla and from spawn mods such as Increased Wasteland Spawns, become
+rarer the worse each government is doing (their currency and news state), and caps gain value as
+House or an independent Vegas does well. First step: find how those patrols are spawned (leveled
+lists and their chance of none, encounter markers) and whether that can be scaled at run time.

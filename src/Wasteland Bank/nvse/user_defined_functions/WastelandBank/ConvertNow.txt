@@ -2,7 +2,9 @@
 ; NCR and Legion money convert at today's exchange rate: the vanilla value times that currency's
 ; floating multiplier (Wasteland Exchange tickers 14 NCRD and 15 LEGD), exactly, not the item
 ; value rounded to whole caps. Pre-war money is fixed at 10. Caravan money (the CMNY versions of
-; the same notes and coins) converts at its matching item's rate.
+; the same notes and coins) converts at its matching item's rate. Casino chips (Gomorrah, The
+; Tops, Ultra-Luxe, Vikki and Vance, Atomic Wrangler) convert at 1 cap each, what the casinos'
+; cashiers pay (2026-11-16). Through the courier squad, the usual fee is charged on the result.
 ; Argument: 1 = quiet (auto-convert), 0 = show a note.
 int iQuiet
 array_var aItems
@@ -27,10 +29,10 @@ begin Function {iQuiet}
 	; FalloutNV.esm form IDs (decimal): Aureus, Denarius, Denarius (mangled), $100, $20, $5 NCR,
 	; pre-war money; then the caravan-money twin of each (0 = none); vanilla values; currency
 	; (1 Legion, 0 NCR, 2 fixed)
-	let aItems := Ar_List 1287385, 1276829, 1520182, 1287384, 1287383, 1287382, 213095
-	let aCaravan := Ar_List 1534663, 1534660, 1534661, 1534665, 1534664, 1534662, 0
-	let aBase := Ar_List 100, 4, 3, 40, 8, 2, 10
-	let aKind := Ar_List 1, 1, 1, 0, 0, 0, 2
+	let aItems := Ar_List 1287385, 1276829, 1520182, 1287384, 1287383, 1287382, 213095, 1286112, 1330235, 1330236, 1330237, 1330238
+	let aCaravan := Ar_List 1534663, 1534660, 1534661, 1534665, 1534664, 1534662, 0, 0, 0, 0, 0, 0
+	let aBase := Ar_List 100, 4, 3, 40, 8, 2, 10, 1, 1, 1, 1, 1
+	let aKind := Ar_List 1, 1, 1, 0, 0, 0, 2, 2, 2, 2, 2, 2
 	let fNcr := 1
 	let fLeg := 1
 	if eval (player.AuxVarGetFlt "_wxInit") == 1
@@ -75,7 +77,7 @@ begin Function {iQuiet}
 			MessageEx "Converted your currency into %.0f caps." iTotal
 		endif
 	elseif iQuiet == 0
-		MessageEx "No NCR, Legion or pre-war money to convert."
+		MessageEx "No NCR, Legion or pre-war money or casino chips to convert."
 	endif
 	SetFunctionValue iTotal
 end

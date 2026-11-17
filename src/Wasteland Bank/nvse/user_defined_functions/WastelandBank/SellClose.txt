@@ -1,0 +1,84 @@
+; Wasteland Bank: JIP menu-close handler for the container screen (1008). If the consignment box
+; was open (SellBtn.txt), the couriers take everything in it to sell (SellOne.txt, SellDone.txt).
+; Quest items, money, casino chips and anything worthless go back to you.
+int iMenu
+int iPlug
+int iNum
+int iIdx
+int iCnt
+int iN
+int iBack
+int iId
+float fGross
+float fV
+ref rBox
+ref rItem
+ref rOne
+array_var aSkip
+array_var aIds
+array_var aEntry
+array_var aItems
+array_var aCnts
+array_var aVol
+
+begin Function {iMenu}
+	if iMenu != 1008
+		return
+	endif
+	if eval (player.AuxVarGetFlt "*_wbSellOpen") == 0
+		return
+	endif
+	player.AuxVarSetFlt "*_wbSellOpen" 0
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rBox := BuildRef iPlug 2056	; WBConsignRef 0x000808
+	if eval (IsFormValid rBox) == 0
+		return
+	endif
+	let aSkip := Ar_Construct "array"
+	let aIds := Ar_List 15, 213095, 1287382, 1287383, 1287384, 1276829, 1520182, 1287385, 1534660, 1534661, 1534662, 1534663, 1534664, 1534665, 1286112, 1330235, 1330236, 1330237, 1330238
+	foreach aEntry <- aIds
+		let iId := aEntry["value"]
+		let rItem := BuildRef 0 iId
+		Ar_Append aSkip rItem
+	loop
+	let aItems := Ar_Construct "array"
+	let aCnts := Ar_Construct "array"
+	let iNum := rBox.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := rBox.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval IsFormValid rItem
+			Ar_Append aItems rItem
+			let iCnt := rBox.GetItemCount rItem
+			Ar_Append aCnts iCnt
+		endif
+	loop
+	let aVol := Ar_List 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	let rOne := CompileScript "WastelandBank/SellOne.txt"
+	let fGross := 0
+	let iN := 0
+	let iBack := 0
+	let iIdx := 0
+	while iIdx < Ar_Size aItems
+		let rItem := aItems[iIdx]
+		let iCnt := aCnts[iIdx]
+		let iIdx += 1
+		if iCnt < 1
+			continue
+		endif
+		if eval (IsQuestItem rItem) || (GetValue rItem) < 1 || (Ar_Find rItem aSkip) >= 0
+			rBox.RemoveItemTarget rItem player iCnt 0
+			let iBack += iCnt
+			continue
+		endif
+		let fV := call rOne rItem iCnt rBox aVol
+		let fGross += fV
+		let iN += iCnt
+	loop
+	if iBack > 0
+		MessageEx "The couriers handed back %.0f item(s) they won't sell (quest items, money, worthless)." iBack
+	endif
+	let rOne := CompileScript "WastelandBank/SellDone.txt"
+	call rOne fGross aVol iN
+end

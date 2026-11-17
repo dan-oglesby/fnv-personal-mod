@@ -1,0 +1,20 @@
+; Wasteland Bank: the couriers sell things for you. They sell to merchants (half the market
+; value), keep "_wbSellCut" percent, and the rest reaches your balance a game day later.
+float fGross
+float fNet
+float fCut
+float fPend
+int iN
+ref rJunk
+ref rCb
+
+begin Function {}
+	let rJunk := CompileScript "WastelandBank/SellJunk.txt"
+	let fGross := call rJunk 0
+	let iN := player.AuxVarGetFlt "*_wbJunkN"
+	let fCut := player.AuxVarGetFlt "_wbSellCut"
+	let fNet := fGross * (1 - fCut / 100)
+	let fPend := player.AuxVarGetFlt "_wbSalePend"
+	let rCb := CompileScript "WastelandBank/SellBtn.txt"
+	MessageBoxExAlt rCb "^Sell through the couriers^They sell to merchants at half the market value, keep %.0f percent, and the rest reaches your balance a day later.%rStill to come in: %.0f caps.|Sell all junk: %.0f items, about %.0f caps|Hand-pick what to sell|Back" fCut fPend iN fNet
+end

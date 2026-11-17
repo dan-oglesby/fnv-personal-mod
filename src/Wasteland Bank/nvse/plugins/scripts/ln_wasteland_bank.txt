@@ -267,6 +267,30 @@ let rChk := CompileScript "WastelandBank/Weight.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/Sell.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SellBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SellClose.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SellDone.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SellJunk.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SellOne.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 if iBad > 0
 	print "Wasteland Bank: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
 	MessageEx "Wasteland Bank is switched off: a script failed to compile"
@@ -309,4 +333,7 @@ else
 	; the vault's container screen closing: charge for what the couriers carried
 	let ref rVaultClose := CompileScript "WastelandBank/VaultClose.txt"
 	SetOnMenuCloseEventHandler rVaultClose 1 1008
+	; the consignment box closing: the couriers take what's in it to sell
+	let ref rSellClose := CompileScript "WastelandBank/SellClose.txt"
+	SetOnMenuCloseEventHandler rSellClose 1 1008
 endif

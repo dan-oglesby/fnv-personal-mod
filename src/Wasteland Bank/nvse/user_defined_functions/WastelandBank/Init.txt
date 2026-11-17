@@ -4,6 +4,7 @@
 ;   _wbDay     last whole game day booked _wbAutoDep / _wbAutoConv  1 = on
 ;   _wbKeep    caps auto-deposit leaves in your pocket
 ;   _wbFeePct  courier fee, percent of the cash moved (2)   _wbVaultRate  vault fee, caps a pound (1)
+;   _wbSellCut couriers' cut of what they sell for you, percent (10)
 ;   _wbSet     settings version
 
 int iToday
@@ -19,5 +20,9 @@ begin Function {}
 		player.AuxVarSetFlt "_wbSet" 1
 		player.AuxVarSetFlt "_wbFeePct" 2
 		player.AuxVarSetFlt "_wbVaultRate" 1
+	endif
+	if eval (player.AuxVarGetFlt "_wbSet") < 2
+		player.AuxVarSetFlt "_wbSet" 2
+		player.AuxVarSetFlt "_wbSellCut" 10
 	endif
 end

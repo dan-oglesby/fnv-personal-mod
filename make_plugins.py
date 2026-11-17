@@ -112,6 +112,7 @@ COURIERS = [   # object ID, editor ID, vanilla NPC to copy
 COURIER_NAME = "Bank Courier"
 COURIER_PACKAGE = 0x171CEF             # DefaultSandboxCurrentLocation256NoSleepNoWanderNoConv
 VAULT_CONT, VAULT_CELL, VAULT_REF = 0x804, 0x805, 0x806
+SELL_CONT, SELL_REF = 0x807, 0x808     # the couriers' consignment box (things to sell), same cell
 VAULT_MODEL = r"Clutter\Security\GenericSafeWall01.NIF"   # the vanilla wall safe's model
 FNV_DATA = Path(os.environ.get("FNV_DATA", r"C:\Program Files (x86)\Steam\steamapps\common\Fallout New Vegas\Data"))
 
@@ -181,7 +182,8 @@ def _grup(label: bytes, gtype: int, body: bytes) -> bytes:
 
 def bank_plugin(edid, name, model, icon, small_icon):
     """WastelandBank.esp: the card (0x800), the couriers (0x801-0x803), the vault container (0x804)
-    in its own interior cell (0x805) as one persistent reference (0x806). None without the ESM."""
+    in its own interior cell (0x805) as one persistent reference (0x806), and the consignment box
+    (0x807, reference 0x808) in the same cell. None without the ESM."""
     vanilla = _vanilla_npcs({src for _, _, src in COURIERS})
     if vanilla is None:
         return None
@@ -191,6 +193,9 @@ def bank_plugin(edid, name, model, icon, small_icon):
     cont = record("CONT", 0, 0x01000000 | VAULT_CONT,
                   sub("EDID", z("WBVault")) + sub("OBND", bytes(12)) + sub("FULL", z("Wasteland Bank Vault"))
                   + sub("MODL", z(VAULT_MODEL)) + sub("DATA", struct.pack("<Bf", 0, 0.0)))
+    cont += record("CONT", 0, 0x01000000 | SELL_CONT,
+                   sub("EDID", z("WBConsign")) + sub("OBND", bytes(12)) + sub("FULL", z("Courier Consignment: to sell"))
+                   + sub("MODL", z(VAULT_MODEL)) + sub("DATA", struct.pack("<Bf", 0, 0.0)))
     cell_id = 0x01000000 | VAULT_CELL
     cell = record("CELL", 0, cell_id,
                   sub("EDID", z("WBVaultCell")) + sub("FULL", z("Wasteland Bank Vault"))
@@ -198,13 +203,16 @@ def bank_plugin(edid, name, model, icon, small_icon):
     ref = record("REFR", 0x400, 0x01000000 | VAULT_REF,                # persistent
                  sub("EDID", z("WBVaultRef")) + sub("NAME", struct.pack("<I", 0x01000000 | VAULT_CONT))
                  + sub("DATA", bytes(24)))
+    ref += record("REFR", 0x400, 0x01000000 | SELL_REF,
+                  sub("EDID", z("WBConsignRef")) + sub("NAME", struct.pack("<I", 0x01000000 | SELL_CONT))
+                  + sub("DATA", struct.pack("<6f", 0.0, 64.0, 0.0, 0.0, 0.0, 0.0)))
     children = _grup(struct.pack("<I", cell_id), 6, _grup(struct.pack("<I", cell_id), 8, ref))
     block, subblock = VAULT_CELL % 10, (VAULT_CELL // 10) % 10
     cells = _grup(b"CELL", 0, _grup(struct.pack("<i", block), 2,
                                     _grup(struct.pack("<i", subblock), 3, cell + children)))
-    n_records = 1 + len(COURIERS) + 1 + 1 + 1
+    n_records = 1 + len(COURIERS) + 2 + 1 + 2
     header = record("TES4", 0, 0,
-                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, VAULT_REF + 1))
+                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, SELL_REF + 1))
                     + sub("CNAM", z("fnv-personal-mod"))
                     + sub("MAST", z("FalloutNV.esm"))
                     + sub("DATA", bytes(8)))

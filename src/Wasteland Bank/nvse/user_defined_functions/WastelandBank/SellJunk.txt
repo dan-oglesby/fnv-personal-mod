@@ -1,0 +1,88 @@
+; Wasteland Bank: all your junk, for the couriers to sell. Junk = miscellaneous items worth at
+; least a cap that aren't quest items (snow globes and Sunset Sarsaparilla star caps are), money,
+; casino chips or fission batteries. iDo 0 only counts: returns what merchants would pay and puts
+; the number of items in "*_wbJunkN". iDo 1 hands them over (SellOne.txt, SellDone.txt).
+; FalloutNV.esm IDs kept (decimal): caps 15, pre-war money 213095, Fission Battery 211910, NCR notes
+; 1287382-1287384, denarius 1276829, mangled denarius 1520182, aureus 1287385, caravan money
+; 1534660-1534665, casino chips 1286112 and 1330235-1330238.
+int iDo
+int iNum
+int iIdx
+int iCnt
+int iN
+int iId
+float fGross
+float fV
+ref rItem
+ref rOne
+array_var aSkip
+array_var aIds
+array_var aEntry
+array_var aItems
+array_var aCnts
+array_var aVol
+
+begin Function {iDo}
+	SetFunctionValue 0
+	let aSkip := Ar_Construct "array"
+	let aIds := Ar_List 15, 213095, 211910, 1287382, 1287383, 1287384, 1276829, 1520182, 1287385, 1534660, 1534661, 1534662, 1534663, 1534664, 1534665, 1286112, 1330235, 1330236, 1330237, 1330238
+	foreach aEntry <- aIds
+		let iId := aEntry["value"]
+		let rItem := BuildRef 0 iId
+		Ar_Append aSkip rItem
+	loop
+	; listed first, handed over after (removing while walking the inventory would shift it)
+	let aItems := Ar_Construct "array"
+	let aCnts := Ar_Construct "array"
+	let fGross := 0
+	let iN := 0
+	let iNum := player.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := player.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		if eval (GetType rItem) != 31
+			continue
+		endif
+		if eval IsQuestItem rItem
+			continue
+		endif
+		if eval (GetValue rItem) < 1
+			continue
+		endif
+		if eval (Ar_Find rItem aSkip) >= 0
+			continue
+		endif
+		let iCnt := player.GetItemCount rItem
+		if iCnt < 1
+			continue
+		endif
+		Ar_Append aItems rItem
+		Ar_Append aCnts iCnt
+		let fV := GetValue rItem
+		let fGross += fV * iCnt * 0.5
+		let iN += iCnt
+	loop
+	player.AuxVarSetFlt "*_wbJunkN" iN
+	if iDo == 0 || iN == 0
+		SetFunctionValue fGross
+		return
+	endif
+	let aVol := Ar_List 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	let rOne := CompileScript "WastelandBank/SellOne.txt"
+	let fGross := 0
+	let iIdx := 0
+	while iIdx < Ar_Size aItems
+		let rItem := aItems[iIdx]
+		let iCnt := aCnts[iIdx]
+		let iIdx += 1
+		let fV := call rOne rItem iCnt player aVol
+		let fGross += fV
+	loop
+	let rOne := CompileScript "WastelandBank/SellDone.txt"
+	call rOne fGross aVol iN
+	SetFunctionValue fGross
+end
