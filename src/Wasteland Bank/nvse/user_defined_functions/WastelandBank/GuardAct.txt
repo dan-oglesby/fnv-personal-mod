@@ -1,0 +1,50 @@
+; Wasteland Bank: xNVSE OnActivate handler for hired guards (Guards.txt, GuardTick.txt; filtered to
+; each as either argument). Alive and serving: their orders (GuardMenu.txt). Dead: their body opens
+; to loot (the game's own activation, which their empty script would otherwise block;
+; "*_wgLoot" in game days keeps that from firing this handler again in a loop).
+ref rFirst
+ref rSecond
+ref rRef
+ref rNext
+int iK
+int iSlot
+int iOn
+float fT
+
+begin Function {rFirst, rSecond}
+	if eval rFirst != player && rSecond != player
+		return
+	endif
+	let iSlot := -1
+	let iK := 0
+	while iK < 3
+		let iOn := player.AuxVarGetFlt "_wgOn" iK
+		if iOn > 0
+			let rRef := player.AuxVarGetRef "_wgRef" iK
+			if eval rFirst == rRef || rSecond == rRef
+				let iSlot := iK
+				break
+			endif
+		endif
+		let iK += 1
+	loop
+	if iSlot < 0
+		return
+	endif
+	if eval rRef.GetDead
+		if eval GameDaysPassed < (player.AuxVarGetFlt "*_wgLoot")
+			return
+		endif
+		let fT := GameDaysPassed + 0.0005
+		player.AuxVarSetFlt "*_wgLoot" fT
+		rRef.Activate player
+		return
+	endif
+	if iOn != 1
+		MessageEx "This guard has left your service."
+		return
+	endif
+	player.AuxVarSetFlt "*_wgSel" iSlot
+	let rNext := CompileScript "WastelandBank/GuardMenu.txt"
+	call rNext
+end

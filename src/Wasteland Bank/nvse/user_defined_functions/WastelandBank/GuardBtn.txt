@@ -1,0 +1,36 @@
+; Wasteland Bank: a hired guard's order buttons (0 wait here / follow me, 1 dismiss, 2 close).
+; Waiting is a sandbox package on top of their own follow package (DefaultSandboxCurrentLocation256
+; NoSleepNoWanderNoConv 0x171CEF); following again takes it off.
+int iBtn
+int iSlot
+ref rRef
+ref rPkg
+ref rFn
+
+begin Function {iBtn}
+	if iBtn == 2
+		return
+	endif
+	let iSlot := player.AuxVarGetFlt "*_wgSel"
+	let rRef := player.AuxVarGetRef "_wgRef" iSlot
+	if eval (IsFormValid rRef) == 0
+		return
+	endif
+	if iBtn == 1
+		let rFn := CompileScript "WastelandBank/GuardGo.txt"
+		call rFn iSlot
+		MessageEx "Dismissed. The guard heads back to the company."
+		return
+	endif
+	let rPkg := BuildRef 0 1514735
+	if eval (player.AuxVarGetFlt "_wgWait" iSlot) == 1
+		player.AuxVarSetFlt "_wgWait" 0 iSlot
+		rRef.RemoveScriptPackage rPkg
+		MessageEx "The guard falls in behind you."
+	else
+		player.AuxVarSetFlt "_wgWait" 1 iSlot
+		rRef.AddScriptPackage rPkg
+		MessageEx "The guard holds here."
+	endif
+	rRef.EvaluatePackage
+end

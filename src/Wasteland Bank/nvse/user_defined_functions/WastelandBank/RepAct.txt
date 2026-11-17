@@ -1,6 +1,7 @@
 ; Wasteland Bank: xNVSE OnActivate handler for the representatives (RepTick.txt; filtered to each as
 ; either argument). They have no dialogue (an empty OnActivate script); talking to one opens their
-; caravans (Caravans.txt): "*_cvSide" 0 the Caravan Agent's runs, 1 the Publicanus's. The
+; business: the Caravan Agent's menu (AgentMenu.txt: caravans and hired guards), or the Publicanus's
+; caravans (Caravans.txt). "*_cvSide" 0 the Caravan Agent's runs, 1 the Publicanus's. The
 ; Publicanus dead, activating him opens his body to loot (the game's own activation, which his
 ; empty script would otherwise block); "*_wbRepLoot" (game days) keeps that from firing this
 ; handler again in a loop.
@@ -34,6 +35,10 @@ begin Function {rFirst, rSecond}
 			return
 		endif
 	endif
-	let rNext := CompileScript "WastelandBank/Caravans.txt"
+	if eval (player.AuxVarGetFlt "*_cvSide") == 0
+		let rNext := CompileScript "WastelandBank/AgentMenu.txt"
+	else
+		let rNext := CompileScript "WastelandBank/Caravans.txt"
+	endif
 	call rNext
 end

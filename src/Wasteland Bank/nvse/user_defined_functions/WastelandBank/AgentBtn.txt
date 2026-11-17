@@ -1,0 +1,14 @@
+; Wasteland Bank: the Caravan Agent's buttons (0 caravan ventures, 1 hired guards, 2 leave).
+int iBtn
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 0
+		let rNext := CompileScript "WastelandBank/Caravans.txt"
+	elseif iBtn == 1
+		let rNext := CompileScript "WastelandBank/Guards.txt"
+	else
+		return
+	endif
+	call rNext
+end

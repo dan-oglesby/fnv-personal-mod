@@ -1,0 +1,98 @@
+; Wasteland Bank: hired guards, once a second of play (2026-11-17).
+; - Once a game session: their activation handlers (GuardAct.txt) and waiting guards' packages are
+;   set again (neither is kept in a save), and the temporary catch-up counters ("*_wgFar" 0-2).
+; - A guard who dies stays as a body you can loot ("_wgOn" 3). A leaving guard (2) is removed once
+;   you're away from them.
+; - A following guard left behind (in another interior, another worldspace, or more than about 57 m
+;   away) for 10 seconds is moved to you.
+int iK
+int iOn
+int iFar
+int iAway
+ref rRef
+ref rFn
+ref rPkg
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_wgInit") == 0
+		return
+	endif
+	if player.GetDead
+		return
+	endif
+	if IsInKillCam
+		return
+	endif
+	let rPkg := BuildRef 0 1514735	; DefaultSandboxCurrentLocation256NoSleepNoWanderNoConv (0x171CEF)
+	if eval (player.AuxVarGetFlt "*_wgSes") == 0
+		player.AuxVarSetFlt "*_wgSes" 1
+		let rFn := CompileScript "WastelandBank/GuardAct.txt"
+		let iK := 0
+		while iK < 3
+			player.AuxVarSetFlt "*_wgFar" 0 iK
+			let iOn := player.AuxVarGetFlt "_wgOn" iK
+			if iOn > 0
+				let rRef := player.AuxVarGetRef "_wgRef" iK
+				if eval IsFormValid rRef
+					SetEventHandler "OnActivate" rFn "first"::rRef
+					SetEventHandler "OnActivate" rFn "second"::rRef
+					if eval iOn == 2 || (iOn == 1 && (player.AuxVarGetFlt "_wgWait" iK) == 1)
+						rRef.AddScriptPackage rPkg
+						rRef.EvaluatePackage
+					endif
+				endif
+			endif
+			let iK += 1
+		loop
+	endif
+	let iK := 0
+	while iK < 3
+		let iOn := player.AuxVarGetFlt "_wgOn" iK
+		if iOn == 1 || iOn == 2
+			let rRef := player.AuxVarGetRef "_wgRef" iK
+			if eval (IsFormValid rRef) == 0
+				player.AuxVarSetFlt "_wgOn" 0 iK
+			elseif eval rRef.GetDead
+				player.AuxVarSetFlt "_wgOn" 3 iK
+				if iOn == 1
+					MessageEx "One of your hired guards is dead."
+				endif
+			else
+				; away from you: another interior, another worldspace, or far off
+				let iAway := 0
+				if eval player.IsInInterior || rRef.IsInInterior
+					if eval (rRef.GetInSameCell player) == 0
+						let iAway := 1
+					endif
+				elseif eval (rRef.GetParentWorldspace) != (player.GetParentWorldspace)
+					let iAway := 1
+				endif
+				if iAway == 0
+					if eval (player.GetDistance rRef) > 4000
+						let iAway := 1
+					endif
+				endif
+				if iOn == 2
+					if iAway == 1
+						rRef.Disable
+						rRef.MarkForDelete
+						player.AuxVarSetFlt "_wgOn" 0 iK
+					endif
+				elseif eval (player.AuxVarGetFlt "_wgWait" iK) == 0
+					let iFar := player.AuxVarGetFlt "*_wgFar" iK
+					if iAway == 1
+						let iFar += 1
+					else
+						let iFar := 0
+					endif
+					if iFar >= 10
+						rRef.MoveTo player 0 128 0
+						let iFar := 0
+					endif
+					player.AuxVarSetFlt "*_wgFar" iFar iK
+				endif
+			endif
+		endif
+		let iK += 1
+	loop
+end

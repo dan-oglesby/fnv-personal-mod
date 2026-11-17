@@ -31,6 +31,14 @@ let rChk := CompileScript "WastelandBank/AccountsBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/AgentBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/AgentMenu.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/Allegiance.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -328,6 +336,38 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/FxApply.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/GuardAct.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/GuardBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/GuardDay.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/GuardGo.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/GuardMenu.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/GuardTick.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Guards.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/GuardsBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
@@ -642,6 +682,9 @@ else
 	; (RepTick.txt; every 2 s, same flags)
 	let ref rRepT := CompileScript "WastelandBank/RepTick.txt"
 	CallWhilePerSeconds 2 rRepT rTrue 20
+	; hired guards: deaths, leaving, catching up (GuardTick.txt; every second, same flags)
+	let ref rGdT := CompileScript "WastelandBank/GuardTick.txt"
+	CallWhilePerSeconds 1 rGdT rTrue 20
 	; the vault's container screen closing: charge for what the couriers carried
 	let ref rVaultClose := CompileScript "WastelandBank/VaultClose.txt"
 	SetOnMenuCloseEventHandler rVaultClose 1 1008

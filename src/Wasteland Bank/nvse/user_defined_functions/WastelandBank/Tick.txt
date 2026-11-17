@@ -147,6 +147,9 @@ begin Function {}
 		; the NCR's tax, if it has won
 		let rConv := CompileScript "WastelandBank/Tax.txt"
 		call rConv iToday
+		; hired guards' wages (GuardDay.txt)
+		let rConv := CompileScript "WastelandBank/GuardDay.txt"
+		call rConv iDays
 		; auto-deposit and auto-convert: when a courier squad arrives now (SqTick.txt)
 	endif
 

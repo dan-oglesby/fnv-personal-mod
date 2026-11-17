@@ -1,0 +1,9 @@
+; Wasteland Bank: the Caravan Agent at the Crimson Caravan Company (RepAct.txt; 2026-11-17): caravan
+; ventures (Caravans.txt) and hired guards (Guards.txt).
+ref rCb
+
+begin Function {}
+	player.AuxVarSetFlt "*_cvSide" 0
+	let rCb := CompileScript "WastelandBank/AgentBtn.txt"
+	MessageBoxExAlt rCb "^Caravan Agent^The Crimson Caravan Company backs caravans with outside money, and hires out its guards by the day.|Caravan ventures|Hire guards|Leave"
+end

@@ -1,0 +1,34 @@
+; Wasteland Bank: hired guards, from the Caravan Agent (2026-11-17). Up to three Crimson Caravan
+; guards (WastelandBank.esp 0x817, 0x818) follow you and fight at your side for a signing fee
+; ("_wgSign", 200 caps) and a daily wage each ("_wgWage", 40 caps), both from your bank balance
+; (GuardDay.txt). A day they go unpaid they warn you; a second and they walk off. They can die.
+; Talk to one for their orders (GuardAct.txt). Slots 0-2: "_wgOn" 0 free, 1 serving, 2 leaving,
+; 3 dead (the body); "_wgRef" the guard; "_wgWait" 1 holding a spot.
+int iK
+int iN
+float fSign
+float fWage
+float fBal
+float fDay
+string_var sBody
+ref rCb
+
+begin Function {}
+	let iN := 0
+	if eval (player.AuxVarGetFlt "_wgInit") == 1
+		let iK := 0
+		while iK < 3
+			if eval (player.AuxVarGetFlt "_wgOn" iK) == 1
+				let iN += 1
+			endif
+			let iK += 1
+		loop
+	endif
+	let fSign := player.AuxVarGetFlt "_wgSign"
+	let fWage := player.AuxVarGetFlt "_wgWage"
+	let fDay := fWage * iN
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let sBody := sv_Construct "Company guards, by the day: %.0f caps to sign one on, then %.0f caps a day each, paid from your bank balance. Miss a day's pay and they warn you, miss two and they walk off.%r%rYour guards: %.0f of 3, %.0f caps a day. Balance: %.0f caps." fSign fWage iN fDay fBal
+	let rCb := CompileScript "WastelandBank/GuardsBtn.txt"
+	MessageBoxExAlt rCb "^Hired guards^%z|Hire a guard|Dismiss them all|Back" sBody
+end

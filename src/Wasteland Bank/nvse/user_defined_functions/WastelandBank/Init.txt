@@ -88,6 +88,11 @@ begin Function {}
 		player.AuxVarSetFlt "_wbSet" 9
 		player.AuxVarSetFlt "_wbDelivCut" 25	; courier delivery's commission, percent of the goods' value (CatClose.txt)
 	endif
+	if eval (player.AuxVarGetFlt "_wbSet") < 10
+		player.AuxVarSetFlt "_wbSet" 10
+		player.AuxVarSetFlt "_wgSign" 200	; hired guards: signing fee, caps (Guards.txt)
+		player.AuxVarSetFlt "_wgWage" 40	; and each one's wage, caps a day (GuardDay.txt)
+	endif
 	let rFn := CompileScript "WastelandBank/LegInit.txt"
 	call rFn
 end

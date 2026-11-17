@@ -85,6 +85,45 @@ The couriers won't touch stolen goods; the Omertas will.
   take), which ties into operations; the Omertas' story (their plot against the Strip) can wipe it.
 **Decided:** only once the Omertas trust you.
 
+## Built 2026-11-17 (evening)
+
+- **Courier delivery:** away from a dropbox, the Mojave Express menu offers the catalogue for
+  courier delivery. A squad (called if none is coming) carries the order out and hands it over when
+  they reach you: the goods' value plus a 25 percent commission (setting `_wbDelivCut`), no
+  shipping.
+- **The Mojave Market Report:** the first squad you meet each week hands you that week's edition of
+  the Wasteland Market pamphlet, dated: the war (the Dam, the NCR dollar and the denarius and their
+  moves since your last report, the treasury's default, the week's wire headlines), then the
+  markets. A week without a meeting has no edition. The pamphlet keeps the last four.
+- **Caravans and the market:** each route carries a market category. A run that comes in sells at
+  the going price (the gain scales with it) and floods the category; a lost run makes it scarce
+  (5 to 15 percent, by stake).
+- **Hired guards:** from the Caravan Agent. Up to three Crimson Caravan guards follow and fight for
+  you: 200 caps to sign one on, 40 caps a day each from the bank. One unpaid day and they warn you,
+  two and they walk off. They can die. Talk to one for wait here / follow me / dismiss. Companions
+  like Boone keep their own motives; wages are only for hired guards.
+
+## Repairs by mail: thinking it through
+
+The worry: the base game prices a repair from the item's value and the condition restored, so a
+valuable weapon in bad shape costs more than an early bank balance holds. Ways to make it fit:
+
+1. **Pay as you go (layaway by condition):** leave the item at a dropbox; each payment buys a
+   step of condition (say 10 percent). Collect it at any point with what's been paid for, or leave
+   it until it's whole. No lump sum, no lock-in.
+2. **Parts credit:** spares you hand in (Smart Loot already keeps spares of your weapon) or repair
+   kits and scrap pay for part of the work, so the bill depends on what you bring, not only on the
+   item's value. Uniques have no spares, so they still cost the most.
+3. **Repair on credit:** the bank fronts the repair as a loan (interest by credit grade; unpaid,
+   the debt collectors come). Ties into what's built.
+4. **Labour pricing:** charge for the work (condition restored x a rate by weapon type), not the
+   item's value. Cheapest to build, but breaks parity with the game's merchants.
+
+Leaning: 1 with 2, and 3 as a way to pay. Open questions: the price basis (the game's value-based
+cost or labour), how long an item is away (a day per step?), whether a partly repaired item can be
+collected, and interest on unpaid layaway. Technically: condition can be read and set on an item
+held in a container through xNVSE inventory references, keeping its weapon mods; needs a test.
+
 ## Kept for later (not building now)
 
 - **Insurance** (on Mojave Express shipments and courier cash, with robbery events): parked.

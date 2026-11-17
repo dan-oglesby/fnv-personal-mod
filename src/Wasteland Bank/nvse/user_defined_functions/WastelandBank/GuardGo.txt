@@ -1,0 +1,17 @@
+; Wasteland Bank: a hired guard (slot iSlot) leaves your service: no longer your teammate, stops
+; following and waits where they are, and is gone once you're away (GuardTick.txt, "_wgOn" 2).
+int iSlot
+ref rRef
+ref rPkg
+
+begin Function {iSlot}
+	let rRef := player.AuxVarGetRef "_wgRef" iSlot
+	player.AuxVarSetFlt "_wgOn" 2 iSlot
+	player.AuxVarSetFlt "_wgWait" 0 iSlot
+	if eval IsFormValid rRef
+		rRef.SetPlayerTeammate 0
+		let rPkg := BuildRef 0 1514735	; DefaultSandboxCurrentLocation256NoSleepNoWanderNoConv (0x171CEF)
+		rRef.AddScriptPackage rPkg
+		rRef.EvaluatePackage
+	endif
+end
