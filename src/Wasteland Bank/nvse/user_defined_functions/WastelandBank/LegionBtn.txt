@@ -1,4 +1,4 @@
-; Wasteland Bank: Legion treasury buttons (0 lend 100, 1 lend 1,000, 2 contracts, 3 collect after a
+; Wasteland Bank: Legion treasury buttons (0 lend 100, 1 lend 1,000, 3 collect after a
 ; default, 4 back). Loans come from the denarius account and move the denarius a little (Flow.txt).
 int iBtn
 int iRep
@@ -15,10 +15,6 @@ begin Function {iBtn}
 	let iBtn := player.AuxVarGetFlt "*_ltBtn" iBtn	; Legion.txt lists only the buttons that apply
 	if iBtn == 4
 		let rFn := CompileScript "WastelandBank/Invest.txt"
-		call rFn
-		return
-	elseif iBtn == 2
-		let rFn := CompileScript "WastelandBank/LegCon.txt"
 		call rFn
 		return
 	endif

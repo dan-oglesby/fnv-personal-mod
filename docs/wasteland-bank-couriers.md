@@ -150,9 +150,9 @@ what your stage has opened (2026-11-17).
 |---|---|---|
 | Wastelander | start | account, couriers, vault, selling, loans, bank notes |
 | Saver | 1,000 | currency accounts, the managed account (Steady, Bold), so the bank earns early |
-| Investor | 5,000 | buying on the exchange, the funds, NCR War Bonds |
+| Investor | 5,000 | buying on the exchange, the funds, NCR War Bonds, caravan ventures (the Caravan Agent, Crimson Caravan Company) |
 | Speculator | 20,000 | short selling, auto-invest, Legion treasury loans |
-| Financier | 75,000 | publicani contracts, the managed account's All in setting |
+| Financier | 75,000 | the Legion's caravans (the Publicanus, Cottonwood Cove), the managed account's All in setting |
 | Fund manager | 250,000 | the Hedge fund setting (whole sectors), holdings by sector |
 | Kingpin | 1,000,000 | operations: weekly runs on flagged factions, House pushing back |
 

@@ -1,5 +1,6 @@
-; Wasteland Bank: backing a caravan run (0-3 stake 2,000 / 5,000 / 10,000 / 20,000, 4 back). The stake
-; leaves your balance; the run sets out in 6 hours ("_cvDep") and, without you, arrives after its
+; Wasteland Bank: backing a caravan run (0-3 stake 2,000 / 5,000 / 10,000 / 20,000 caps, or for the
+; Legion's runs 500 / 1,250 / 2,500 / 5,000 denarii, "_cvCur" 1; 4 back). The stake leaves your
+; balance (or denarius account); the run sets out in 6 hours ("_cvDep") and, without you, arrives after its
 ; route's days ("_cvArr"); its danger is fixed now ("_cvDanger"). You get a Caravan Manifest
 ; (WastelandBank.esp 0x812) to carry until it's over.
 int iBtn
@@ -12,6 +13,8 @@ float fV
 float fDays
 string_var sName
 string_var sFrom
+string_var sCur
+int iCur
 ref rFn
 ref rMan
 
@@ -21,6 +24,13 @@ begin Function {iBtn}
 		call rFn
 		return
 	endif
+	let iR := player.AuxVarGetFlt "*_cvPick"
+	let iCur := 0
+	let sCur := "caps"
+	if iR >= 5
+		let iCur := 1
+		let sCur := "denarii"
+	endif
 	let fStake := 2000
 	if iBtn == 1
 		let fStake := 5000
@@ -29,16 +39,25 @@ begin Function {iBtn}
 	elseif iBtn == 3
 		let fStake := 20000
 	endif
-	let fBal := player.AuxVarGetFlt "_wbBal"
+	if iCur == 1
+		let fStake /= 4
+		let fBal := player.AuxVarGetFlt "_wbBalL"
+	else
+		let fBal := player.AuxVarGetFlt "_wbBal"
+	endif
 	if fStake > fBal
-		MessageEx "Not enough in the bank for that stake."
+		MessageEx "Not enough in your account for that stake."
 		let rFn := CompileScript "WastelandBank/CvStake.txt"
 		call rFn
 		return
 	endif
-	let iR := player.AuxVarGetFlt "*_cvPick"
 	let fBal -= fStake
-	player.AuxVarSetFlt "_wbBal" fBal
+	if iCur == 1
+		player.AuxVarSetFlt "_wbBalL" fBal
+	else
+		player.AuxVarSetFlt "_wbBal" fBal
+	endif
+	player.AuxVarSetFlt "_cvCur" iCur
 	let fNow := GameDaysPassed
 	let fV := fNow + 0.25
 	player.AuxVarSetFlt "_cvDep" fV
@@ -60,5 +79,5 @@ begin Function {iBtn}
 	endif
 	let rFn := CompileScript "WastelandBank/CvName.txt"
 	let sName := call rFn iR
-	MessageBoxEx "Caravan venture%rYou've backed %z with %.0f caps. The caravan sets out in about 6 hours and is on the road %.0f days on its own. Be at its starting point when it leaves to escort it: walk it all the way in and the return is high and certain." sName fStake fDays
+	MessageBoxEx "Caravan venture%rYou've backed %z with %.0f %z. The caravan sets out in about 6 hours and is on the road %.0f days on its own. Be at its starting point when it leaves to escort it: walk it all the way in and the return is high and certain." sName fStake sCur fDays
 end

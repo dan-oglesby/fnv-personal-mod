@@ -5,7 +5,8 @@
 ;   which a quarter can be recovered at first, falling to nothing over 30 days ("_ltRec").
 ; - Vilified by the Legion: it repudiates everything it owes you.
 ; - Every 7th day: coupons (2 percent a week on loans; contracts 4 percent times their frontier
-;   factor, LegCon.txt) into the denarius account, counted toward the month's profits in caps.
+;   factor: Grain for the Fort double once the Legion marches on the Dam, Arizona tribute
+;   1.25, the caravan roads half once the Khans break with Caesar; no new contracts are sold) into the denarius account, counted toward the month's profits in caps.
 ; - Loans and contracts that reach their end return their principal to the denarius account.
 int iDay
 int iK

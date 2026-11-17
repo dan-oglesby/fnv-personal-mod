@@ -1,0 +1,59 @@
+; Wasteland Bank: the representatives (2026-11-17), once a second of play. Each stands by the map
+; marker of the place its business is done: the Caravan Agent (WastelandBank.esp 0x813) at the
+; Crimson Caravan Company (marker 977968, FalloutNV.esm), and the Publicanus (0x814) at Cottonwood
+; Cove (1225671). Placed the first time you come within about 40 m outdoors, kept in your save
+; ("_wbRepCv", "_wbRepLg"), and placed again if ever lost. Talking to one opens their business
+; (RepAct.txt): its handlers are filtered to each and set once a game session ("*_wbRepHCv",
+; "*_wbRepHLg"; separate names, not one indexed list, since either may come first). The Publicanus
+; isn't placed once the Legion's business with you is over ("_ltClosed").
+int iPlug
+ref rBase
+ref rMark
+ref rRep
+ref rFn
+
+begin Function {}
+	if eval player.IsInInterior
+		return
+	endif
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rFn := CompileScript "WastelandBank/RepAct.txt"
+
+	; the Caravan Agent
+	let rRep := player.AuxVarGetRef "_wbRepCv"
+	if eval IsFormValid rRep
+		if eval (player.AuxVarGetFlt "*_wbRepHCv") == 0
+			SetEventHandler "OnActivate" rFn "first"::rRep
+			SetEventHandler "OnActivate" rFn "second"::rRep
+			player.AuxVarSetFlt "*_wbRepHCv" 1
+		endif
+	else
+		let rMark := BuildRef 0 977968	; the Crimson Caravan Company's map marker
+		let rBase := BuildRef iPlug 2067	; WBRepCaravan 0x813
+		if eval (IsFormValid rMark) && (IsFormValid rBase)
+			if eval (player.GetDistance rMark) < 3000
+				let rRep := rMark.PlaceAtMe rBase 1 256 0
+				player.AuxVarSetRef "_wbRepCv" rRep
+			endif
+		endif
+	endif
+
+	; the Publicanus
+	let rRep := player.AuxVarGetRef "_wbRepLg"
+	if eval IsFormValid rRep
+		if eval (player.AuxVarGetFlt "*_wbRepHLg") == 0
+			SetEventHandler "OnActivate" rFn "first"::rRep
+			SetEventHandler "OnActivate" rFn "second"::rRep
+			player.AuxVarSetFlt "*_wbRepHLg" 1
+		endif
+	elseif eval (player.AuxVarGetFlt "_ltClosed") == 0
+		let rMark := BuildRef 0 1225671	; Cottonwood Cove's map marker
+		let rBase := BuildRef iPlug 2068	; WBRepPublicanus 0x814
+		if eval (IsFormValid rMark) && (IsFormValid rBase)
+			if eval (player.GetDistance rMark) < 3000
+				let rRep := rMark.PlaceAtMe rBase 1 256 0
+				player.AuxVarSetRef "_wbRepLg" rRep
+			endif
+		endif
+	endif
+end

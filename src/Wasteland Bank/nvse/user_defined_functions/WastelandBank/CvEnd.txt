@@ -3,6 +3,8 @@
 ; with its return (0: x 1.15 + 0.5 x danger; 2: x 1.6 + 0.6 x danger) or 30 percent salvaged (1, 3).
 ; The result counts toward the month's profits (Tax.txt), the Caravan Manifest goes, and runs from
 ; the Crimson Caravan Company move its stock (CRIM, ticker 1): a success up 2 percent, a loss down 4.
+; The Legion's runs ("_cvCur" 1) pay into the denarius account, counted in caps at the denarius's
+; price (4 caps at par, ExPrice.txt 15).
 int iOut
 int iR
 int iPlug
@@ -11,6 +13,9 @@ float fD
 float fPay
 float fS
 float fP
+float fK
+int iCur
+string_var sCur
 string_var sName
 string_var sWhat
 ref rFn
@@ -33,11 +38,24 @@ begin Function {iOut}
 		let fPay := fStake * 0.3
 		let sWhat := "was lost on the road. Some of the goods were salvaged"
 	endif
-	let fP := player.AuxVarGetFlt "_wbBal"
-	let fP += fPay
-	player.AuxVarSetFlt "_wbBal" fP
+	let iCur := player.AuxVarGetFlt "_cvCur"
+	let sCur := "caps"
+	let fK := 1
+	if iCur == 1
+		let sCur := "denarii"
+		let fP := player.AuxVarGetFlt "_wbBalL"
+		let fP += fPay
+		player.AuxVarSetFlt "_wbBalL" fP
+		let rFn := CompileScript "WastelandBank/ExPrice.txt"
+		let fK := call rFn 15
+		let fK *= 4
+	else
+		let fP := player.AuxVarGetFlt "_wbBal"
+		let fP += fPay
+		player.AuxVarSetFlt "_wbBal" fP
+	endif
 	let fP := player.AuxVarGetFlt "_wbProfM"
-	let fP += fPay - fStake
+	let fP += (fPay - fStake) * fK
 	player.AuxVarSetFlt "_wbProfM" fP
 	if iR <= 1
 		let fS := player.AuxVarGetFlt "_wxS" 1
@@ -57,7 +75,7 @@ begin Function {iOut}
 	endif
 	let rFn := CompileScript "WastelandBank/CvName.txt"
 	let sName := call rFn iR
-	MessageBoxEx "Caravan venture%rYour caravan, %z, %z. %.0f caps paid into your balance (you put in %.0f)." sName sWhat fPay fStake
+	MessageBoxEx "Caravan venture%rYour caravan, %z, %z. %.0f %z paid into your account (you put in %.0f)." sName sWhat fPay sCur fStake
 	if iOut == 2
 		player.AuxVarSetFlt "*_cvLinger" 0
 		player.AuxVarSetFlt "_cvState" 4	; they linger, then go (CvTick.txt)
@@ -66,4 +84,5 @@ begin Function {iOut}
 		call rFn
 		player.AuxVarSetFlt "_cvState" 0
 	endif
+	player.AuxVarSetFlt "_cvCur" 0
 end

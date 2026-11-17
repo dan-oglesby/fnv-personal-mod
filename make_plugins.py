@@ -130,6 +130,13 @@ ME_BOX = 0x14B05F
 # (CvTick.txt). Weightless, worthless, flagged a quest item (record flag 0x400) so it isn't dropped
 # or sold. The model and icon of vanilla's Dr. Richard's Medical Report (a clipboard, the note icon).
 MANIFEST = (0x812, "WBCaravanManifest", "Caravan Manifest")
+# Representatives (2026-11-17): stand at the places their business is done and open it when you
+# talk to them (RepTick.txt places them, RepAct.txt), in place of any bank-card menu. Copies like
+# the couriers (essential, no factions, stay near where they are, the empty activation script):
+# the Caravan Agent at the Crimson Caravan Company (caravan ventures) from vanilla
+# CrimsonCaravaneerCM, and the Publicanus at Cottonwood Cove (the Legion's caravans) from vanilla
+# LegionaryExplorer.
+REPS = [(0x813, "WBRepCaravan", 971993, "Caravan Agent"), (0x814, "WBRepPublicanus", 1177872, "Publicanus")]
 COLLECTORS = [(0x80F, "WBCollectorA", 0x165066), (0x810, "WBCollectorB", 0x165064), (0x811, "WBCollectorC", 0x165065)]
 # Wasteland Bank notes (2026-11-16): the bank's own paper money. Face value 10 and 100 caps at
 # issue; their worth follows the bank's share price (BankNotes.txt sets it on load and daily).
@@ -213,7 +220,7 @@ def bank_plugin(edid, name, model, icon, small_icon):
     """WastelandBank.esp: the card (0x800), the couriers (0x801-0x803), the vault container (0x804)
     in its own interior cell (0x805) as one persistent reference (0x806), and the consignment box
     (0x807, reference 0x808) in the same cell. None without the ESM."""
-    vanilla = _vanilla_npcs({src for _, _, src in COURIERS + COLLECTORS})
+    vanilla = _vanilla_npcs({src for _, _, src in COURIERS + COLLECTORS} | {src for _, _, src, _ in REPS})
     if vanilla is None:
         return None
     card = plugin(edid, name, model, icon, small_icon)
@@ -221,6 +228,7 @@ def bank_plugin(edid, name, model, icon, small_icon):
     npcs = b"".join(_courier(objid, ed, *vanilla[src]) for objid, ed, src in COURIERS)
     npcs += b"".join(_courier(objid, ed, *vanilla[src], name="Debt Collector", essential=False)
                       for objid, ed, src in COLLECTORS)
+    npcs += b"".join(_courier(objid, ed, *vanilla[src], name=nm) for objid, ed, src, nm in REPS)
     cont = record("CONT", 0, 0x01000000 | VAULT_CONT,
                   sub("EDID", z("WBVault")) + sub("OBND", bytes(12)) + sub("FULL", z("Wasteland Bank Vault"))
                   + sub("MODL", z(VAULT_MODEL)) + sub("DATA", struct.pack("<Bf", 0, 0.0)))
@@ -266,9 +274,9 @@ def bank_plugin(edid, name, model, icon, small_icon):
     block, subblock = VAULT_CELL % 10, (VAULT_CELL // 10) % 10
     cells = _grup(b"CELL", 0, _grup(struct.pack("<i", block), 2,
                                     _grup(struct.pack("<i", subblock), 3, cell + children)))
-    n_records = 1 + len(COURIERS) + len(COLLECTORS) + 5 + len(BANK_NOTES) + 1 + 1 + 4
+    n_records = 1 + len(COURIERS) + len(COLLECTORS) + len(REPS) + 5 + len(BANK_NOTES) + 1 + 1 + 4
     header = record("TES4", 0, 0,
-                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, 0x813))
+                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, 0x815))
                     + sub("CNAM", z("fnv-personal-mod"))
                     + sub("MAST", z("FalloutNV.esm"))
                     + sub("DATA", bytes(8)))

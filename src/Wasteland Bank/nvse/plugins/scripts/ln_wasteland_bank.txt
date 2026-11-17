@@ -343,14 +343,6 @@ let rChk := CompileScript "WastelandBank/InvestBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
-let rChk := CompileScript "WastelandBank/LegCon.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
-let rChk := CompileScript "WastelandBank/LegConBtn.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-endif
 let rChk := CompileScript "WastelandBank/LegDay.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -468,6 +460,14 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/Rate.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/RepAct.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/RepTick.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
@@ -626,6 +626,10 @@ else
 	; caravan ventures: escorts and outcomes (CvTick.txt; same flags)
 	let ref rCvT := CompileScript "WastelandBank/CvTick.txt"
 	CallWhilePerSeconds 1 rCvT rTrue 20
+	; the representatives (Caravan Agent, Publicanus): placed by their places, talked to in person
+	; (RepTick.txt; every 2 s, same flags)
+	let ref rRepT := CompileScript "WastelandBank/RepTick.txt"
+	CallWhilePerSeconds 2 rRepT rTrue 20
 	; the vault's container screen closing: charge for what the couriers carried
 	let ref rVaultClose := CompileScript "WastelandBank/VaultClose.txt"
 	SetOnMenuCloseEventHandler rVaultClose 1 1008

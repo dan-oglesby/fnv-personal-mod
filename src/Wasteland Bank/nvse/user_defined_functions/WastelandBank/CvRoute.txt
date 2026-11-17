@@ -6,6 +6,9 @@
 ;   2 Freeside's East Gate 1435820 -> Novac 600219: 0.4, 2 days, Fiends (EncFiendRandom 990343)
 ;   3 Novac 600219 -> Nipton 843539: 0.6, 1 day, the Legion (VarLegionWastelandRecruit 1464313)
 ;   4 Goodsprings 843601 -> Primm 843590: 0.15, 1 day, Powder Gangers
+; Legion runs (publicani caravans, arranged at Cottonwood Cove, paid in denarii; 2026-11-17):
+;   5 Cottonwood Cove 1225671 -> Nipton 843539: 0.45, 2 days, NCR troopers (VarNCRWastelandTrooperAllT1 1469952)
+;   6 Cottonwood Cove 1225671 -> Searchlight Airport 1304398: 0.35, 2 days, NCR troopers
 int iRoute
 int iWhat
 array_var aData
@@ -13,15 +16,15 @@ float fV
 
 begin Function {iRoute, iWhat}
 	if iWhat == 0
-		let aData := Ar_List 977968, 977968, 1435820, 600219, 843601
+		let aData := Ar_List 977968, 977968, 1435820, 600219, 843601, 1225671, 1225671
 	elseif iWhat == 1
-		let aData := Ar_List 843599, 843590, 600219, 843539, 843590
+		let aData := Ar_List 843599, 843590, 600219, 843539, 843590, 843539, 1304398
 	elseif iWhat == 2
-		let aData := Ar_List 0.5, 0.35, 0.4, 0.6, 0.15
+		let aData := Ar_List 0.5, 0.35, 0.4, 0.6, 0.15, 0.45, 0.35
 	elseif iWhat == 3
-		let aData := Ar_List 4, 2, 2, 1, 1
+		let aData := Ar_List 4, 2, 2, 1, 1, 2, 2
 	else
-		let aData := Ar_List 1474006, 1393689, 990343, 1464313, 1393689
+		let aData := Ar_List 1474006, 1393689, 990343, 1464313, 1393689, 1469952, 1469952
 	endif
 	let fV := aData[iRoute]
 	SetFunctionValue fV

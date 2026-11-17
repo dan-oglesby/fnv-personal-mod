@@ -31,6 +31,33 @@ begin Function {iRoute}
 			let fD -= 0.4
 		endif
 	endif
+	; the Legion's runs (5, 6): the NCR's strength (the NCR dollar, ticker 14) is their danger, and
+	; the war's marches cut the other way
+	if iRoute >= 5
+		let fX := player.AuxVarGetFlt "_wxL" 14
+		let fX += player.AuxVarGetFlt "_wxS" 14
+		let fX += player.AuxVarGetFlt "_wxW" 14
+		let fX := Exp fX
+		if fX < 0.5
+			let fX := 0.5
+		elseif fX > 1.5
+			let fX := 1.5
+		endif
+		let fD *= fX
+		if eval (player.AuxVarGetFlt "_wxE" 26) == 1
+			let fD += 0.1
+		endif
+		if eval (player.AuxVarGetFlt "_wxE" 29) == 1
+			let fD -= 0.1
+		endif
+		if fD < 0.05
+			let fD := 0.05
+		elseif fD > 0.9
+			let fD := 0.9
+		endif
+		SetFunctionValue fD
+		return
+	endif
 	if eval (player.AuxVarGetFlt "_wxE" 29) == 1
 		let fD += 0.1
 	endif

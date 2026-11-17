@@ -11,8 +11,12 @@ begin Function {iRoute}
 		let sOut := "Freeside's East Gate to Novac"
 	elseif iRoute == 3
 		let sOut := "Novac to Nipton"
-	else
+	elseif iRoute == 4
 		let sOut := "Goodsprings to Primm"
+	elseif iRoute == 5
+		let sOut := "Cottonwood Cove to Nipton"
+	else
+		let sOut := "Cottonwood Cove to Searchlight Airport"
 	endif
 	SetFunctionValue sOut
 end

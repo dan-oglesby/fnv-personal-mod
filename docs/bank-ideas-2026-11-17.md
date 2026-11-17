@@ -61,6 +61,16 @@ with a chance of an ambush halfway: walk it in for 60 percent plus 60 x danger. 
 come, and it travels alone at the route's odds (1 - 0.7 x danger to succeed, paying 15 percent plus
 50 x danger; a loss salvages 30 percent). A Caravan Manifest marks a run on the road.
 
+**Representatives (2026-11-17, second version):** ventures are arranged in person, not through the
+bank card or the couriers. A Caravan Agent stands by the Crimson Caravan Company (the five routes,
+in caps, from the Investor stage) and a Publicanus by Cottonwood Cove: the Legion's caravans,
+Cottonwood Cove to Nipton and to Searchlight Airport, in denarii from the denarius account (stakes
+500 to 5,000), from the Financier stage, for those the Legion accepts, until its treasury defaults.
+A Legion caravan is a veteran, an explorer, a recruit and a pack brahmin; NCR troopers ambush it,
+and its danger rises with the NCR dollar. They replace the publicani contracts (contracts already
+bought run out as before). Both representatives are placed by script the first time you come near
+and talking to one opens their menu.
+
 ## The fence: Gomorrah's books (to explore further)
 
 The couriers won't touch stolen goods; the Omertas will.

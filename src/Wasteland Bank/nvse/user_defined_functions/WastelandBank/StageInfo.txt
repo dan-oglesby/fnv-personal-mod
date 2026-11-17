@@ -5,7 +5,7 @@
 ;   1 Saver            1,000 caps       currency accounts, the managed account (Steady and Bold)
 ;   2 Investor         5,000            the Wasteland Exchange: stocks, the funds, NCR War Bonds
 ;   3 Speculator       20,000           short selling, auto-invest, Legion treasury loans
-;   4 Financier        75,000           publicani contracts, the managed account's All in setting
+;   4 Financier        75,000           the Legion's caravans (Cottonwood Cove), All in setting
 ;   5 Fund manager     250,000          your own hedge fund: sector bets, holdings by sector
 ;   6 Kingpin          1,000,000        your management team's operations against the factions
 int iStage
@@ -51,11 +51,11 @@ begin Function {iStage, iWhat}
 		elseif iStage == 1
 			let sOut := "Currency accounts, NCR dollars or denarii each with its own interest (the currency you hold is a bet on the war), and a managed account: the bank's trader works your money and writes every week."
 		elseif iStage == 2
-			let sOut := "The Wasteland Exchange: buy stocks, the Vegas Total Market Fund, the sovereign debt fund and NCR War Bonds through the couriers."
+			let sOut := "The Wasteland Exchange: buy stocks, the Vegas Total Market Fund, the sovereign debt fund and NCR War Bonds through the couriers, and caravan ventures with the Crimson Caravan Company's agent."
 		elseif iStage == 3
 			let sOut := "Short selling and auto-invest on the exchange, and loans to the Legion treasury, if the Legion will deal with you."
 		elseif iStage == 4
-			let sOut := "Publicani contracts with the Legion, and the managed account's All in setting: concentrated bets, long and short, on borrowed money."
+			let sOut := "The Legion's caravans, backed with the Publicanus at Cottonwood Cove, and the managed account's All in setting: concentrated bets, long and short, on borrowed money."
 		elseif iStage == 5
 			let sOut := "Your own hedge fund: the managed account can bet on whole sectors with more borrowing, and your holdings show by sector."
 		else

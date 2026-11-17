@@ -1,5 +1,6 @@
 ; Wasteland Bank: how much to put into the chosen caravan run ("*_cvPick"): 2,000 / 5,000 / 10,000 /
-; 20,000 caps from your balance (CvStakeBtn.txt).
+; 20,000 caps from your balance, or for the Legion's runs (5, 6) 500 / 1,250 / 2,500 / 5,000 denarii
+; from your denarius account (CvStakeBtn.txt).
 int iR
 float fBal
 string_var sName
@@ -10,7 +11,12 @@ begin Function {}
 	let iR := player.AuxVarGetFlt "*_cvPick"
 	let rFn := CompileScript "WastelandBank/CvName.txt"
 	let sName := call rFn iR
-	let fBal := player.AuxVarGetFlt "_wbBal"
 	let rCb := CompileScript "WastelandBank/CvStakeBtn.txt"
-	MessageBoxExAlt rCb "^%z^How much do you put into this run? Balance: %.0f caps.|2,000 caps|5,000 caps|10,000 caps|20,000 caps|Back" sName fBal
+	if iR >= 5
+		let fBal := player.AuxVarGetFlt "_wbBalL"
+		MessageBoxExAlt rCb "^%z^How much do you put into this run? Your denarius account: %.0f denarii.|500 denarii|1,250 denarii|2,500 denarii|5,000 denarii|Back" sName fBal
+	else
+		let fBal := player.AuxVarGetFlt "_wbBal"
+		MessageBoxExAlt rCb "^%z^How much do you put into this run? Balance: %.0f caps.|2,000 caps|5,000 caps|10,000 caps|20,000 caps|Back" sName fBal
+	endif
 end

@@ -1,0 +1,26 @@
+; Wasteland Bank: xNVSE OnActivate handler for the representatives (RepTick.txt; filtered to each as
+; either argument). They have no dialogue (an empty OnActivate script); talking to one opens their
+; caravans (Caravans.txt): "*_cvSide" 0 the Caravan Agent's runs, 1 the Publicanus's.
+ref rFirst
+ref rSecond
+ref rRep
+ref rNext
+
+begin Function {rFirst, rSecond}
+	if eval rFirst != player && rSecond != player
+		return
+	endif
+	let rRep := player.AuxVarGetRef "_wbRepCv"
+	if eval rFirst == rRep || rSecond == rRep
+		player.AuxVarSetFlt "*_cvSide" 0
+	else
+		let rRep := player.AuxVarGetRef "_wbRepLg"
+		if eval rFirst == rRep || rSecond == rRep
+			player.AuxVarSetFlt "*_cvSide" 1
+		else
+			return
+		endif
+	endif
+	let rNext := CompileScript "WastelandBank/Caravans.txt"
+	call rNext
+end

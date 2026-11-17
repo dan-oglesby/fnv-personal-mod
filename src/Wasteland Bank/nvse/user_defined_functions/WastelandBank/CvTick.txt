@@ -7,6 +7,8 @@
 ;   (CrBrahmin 118690), walking to the destination marker (vanilla DefaultTravelToLinkedPackage
 ;   0x11AFD7, JIP SetLinkedRef). Spawned actors stand still when their cell unloads, so a caravan
 ;   only walks with you there.
+;   The Legion's runs (5, 6) bring out a Veteran Legionary (FortLegionaryVeteranCM 1176547), a Legion
+;   Explorer (LegionaryExplorer 1177872), a Recruit Legionary (LegionRecruitCM 1388021) and the brahmin.
 ; - On the road: halfway, the route's danger is the chance of an ambush (three of the route's
 ;   attackers, ahead of the caravan). The caravaneer dying ends it (CvEnd.txt 3); reaching the
 ;   destination (within about 11 m) pays the escorted return (2). Lose sight of it (about 60 m) for
@@ -78,7 +80,11 @@ begin Function {}
 		endif
 		; out come the caravan: caravaneer first (the one that matters), two guards, a brahmin
 		let rPkg := BuildRef 0 1159127	; DefaultTravelToLinkedPackage (0x11AFD7)
-		let aBases := Ar_List 971993, 971986, 971987, 118690
+		if iR >= 5
+			let aBases := Ar_List 1176547, 1177872, 1388021, 118690
+		else
+			let aBases := Ar_List 971993, 971986, 971987, 118690
+		endif
 		let iIdx := 0
 		while iIdx < 4
 			let iId := aBases[iIdx]
