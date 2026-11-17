@@ -63,6 +63,14 @@ let rChk := CompileScript "WastelandBank/BondsBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/CardPaid.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CardPay.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/CatClose.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -545,6 +553,13 @@ else
 	; the Mojave Express catalogue closing: what you took is your order
 	let ref rCatClose := CompileScript "WastelandBank/CatClose.txt"
 	SetOnMenuCloseEventHandler rCatClose 1 1008
+	; paying by bank card at merchants: your balance counts as spendable caps while you barter
+	; (CardPay.txt when the barter menu opens, CardPaid.txt when it closes)
+	player.AuxVarSetFlt "*_wbCardB" 0
+	let ref rCardPay := CompileScript "WastelandBank/CardPay.txt"
+	SetOnMenuOpenEventHandler rCardPay 1 1053
+	let ref rCardPaid := CompileScript "WastelandBank/CardPaid.txt"
+	SetOnMenuCloseEventHandler rCardPaid 1 1053
 	; opening a Mojave Express dropbox opens the bank's Mojave Express menu (MEAct.txt): handlers
 	; filtered to each of the game's five dropboxes (FalloutNV.esm vMEGoodSpringsRef 1438253,
 	; vMEPrimmREF1 1530499, vMENovacRef 1438254, vMEFreesideRef 1438256, vMEVegasRef 1438257),

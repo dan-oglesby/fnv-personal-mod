@@ -1,0 +1,30 @@
+; Wasteland Bank: paying by bank card (2026-11-17). JIP menu-open handler for the barter menu (1053):
+; your bank balance (whole caps) is added to the caps you carry for the trade, so merchants see it
+; as spendable. CardPaid.txt settles when the barter closes. Off: player.AuxVarSetFlt "_wbCardPay" 0
+int iMenu
+int iBal
+int iCarry
+float fBal
+ref rCaps
+
+begin Function {iMenu}
+	if iMenu != 1053
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_wbCardPay") == 0
+		return
+	endif
+	if eval (player.AuxVarGetFlt "*_wbCardB") > 0
+		return	; already counted for this trade
+	endif
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let iBal := Floor fBal
+	if iBal < 1
+		return
+	endif
+	let rCaps := BuildRef 0 15	; Caps001
+	let iCarry := player.GetItemCount rCaps
+	player.AddItem rCaps iBal 1
+	player.AuxVarSetFlt "*_wbCardB" iBal
+	MessageEx "Bank card: %.0f caps of your balance can be spent here (1 percent fee on what you use)." iBal
+end

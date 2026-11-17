@@ -58,6 +58,10 @@ begin Function {}
 			player.AuxVarSetFlt "_wmaRisk" 1
 		endif
 	endif
+	if eval (player.AuxVarGetFlt "_wbSet") < 6
+		player.AuxVarSetFlt "_wbSet" 6
+		player.AuxVarSetFlt "_wbCardPay" 1	; pay by bank card at merchants (CardPay.txt)
+	endif
 	let rFn := CompileScript "WastelandBank/LegInit.txt"
 	call rFn
 	if eval (player.AuxVarGetFlt "_wbSet") < 2

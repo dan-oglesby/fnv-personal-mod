@@ -1,0 +1,42 @@
+; Wasteland Bank: settling a bank-card trade (JIP menu-close handler for the barter menu, 1053;
+; CardPay.txt added "*_wbCardB" caps of your balance when it opened). The caps you carried are spent
+; first: what's left beyond the bank's share stays in your pocket. If you spent into the bank's
+; share, that much leaves your balance, with a 1 percent fee (Fee.txt: the bank's revenue). If you
+; sold more than you bought, you simply keep the extra.
+int iMenu
+int iB
+int iNow
+int iUsed
+float fBal
+float fFee
+ref rCaps
+ref rFee
+
+begin Function {iMenu}
+	if iMenu != 1053
+		return
+	endif
+	let iB := player.AuxVarGetFlt "*_wbCardB"
+	if iB <= 0
+		return
+	endif
+	player.AuxVarSetFlt "*_wbCardB" 0
+	let rCaps := BuildRef 0 15	; Caps001
+	let iNow := player.GetItemCount rCaps
+	if iNow >= iB
+		player.RemoveItem rCaps iB 1	; the bank's share goes back, unspent
+		return
+	endif
+	; all your own caps and part of the bank's were spent
+	if iNow > 0
+		player.RemoveItem rCaps iNow 1
+	endif
+	let iUsed := iB - iNow
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let fBal -= iUsed
+	player.AuxVarSetFlt "_wbBal" fBal
+	let fFee := iUsed * 0.01
+	let rFee := CompileScript "WastelandBank/Fee.txt"
+	call rFee fFee
+	MessageEx "Bank card: %.0f caps paid from your balance (fee %.0f)." iUsed fFee
+end
