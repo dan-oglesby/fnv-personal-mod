@@ -299,6 +299,10 @@ let rChk := CompileScript "WastelandBank/LoanBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/MEAct.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/MEMenu.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -541,4 +545,25 @@ else
 	; the Mojave Express catalogue closing: what you took is your order
 	let ref rCatClose := CompileScript "WastelandBank/CatClose.txt"
 	SetOnMenuCloseEventHandler rCatClose 1 1008
+	; opening a Mojave Express dropbox opens the bank's Mojave Express menu (MEAct.txt): handlers
+	; filtered to each of the game's five dropboxes (FalloutNV.esm vMEGoodSpringsRef 1438253,
+	; vMEPrimmREF1 1530499, vMENovacRef 1438254, vMEFreesideRef 1438256, vMEVegasRef 1438257),
+	; removed first so a reload doesn't add them twice
+	let ref rMEAct := CompileScript "WastelandBank/MEAct.txt"
+	let array_var aMEBox := Ar_List 1438253, 1530499, 1438254, 1438256, 1438257
+	let int iMEK := 0
+	let int iMEId := 0
+	let ref rMEBox := player
+	while iMEK < 5
+		let iMEId := aMEBox[iMEK]
+		let rMEBox := BuildRef 0 iMEId
+		if eval IsFormValid rMEBox
+			RemoveEventHandler "OnActivate" rMEAct "first"::rMEBox
+			RemoveEventHandler "OnActivate" rMEAct "second"::rMEBox
+			SetEventHandler "OnActivate" rMEAct "first"::rMEBox
+			SetEventHandler "OnActivate" rMEAct "second"::rMEBox
+		endif
+		let iMEK += 1
+	loop
+	let aMEBox := Ar_Null
 endif

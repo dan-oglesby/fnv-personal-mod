@@ -120,6 +120,10 @@ SELL_CONT, SELL_REF = 0x807, 0x808     # the couriers' consignment box (things t
 # Mojave Express (2026-11-17): the catalogue you order from, and the orders in transit until you
 # collect them at a dropbox; both in the same cell. Their object IDs follow the bank notes.
 CAT_CONT, CAT_REF, SHIP_CONT, SHIP_REF = 0x80B, 0x80C, 0x80D, 0x80E
+# The game's Mojave Express Dropbox (vMojaveExpressBox 0x14B05F), overridden with the couriers'
+# empty activation script, so opening a dropbox shows the bank's Mojave Express menu (MEAct.txt)
+# instead of the vanilla shipping messages. Copied from FalloutNV.esm with only the script changed.
+ME_BOX = 0x14B05F
 # Wasteland Bank notes (2026-11-16): the bank's own paper money. Face value 10 and 100 caps at
 # issue; their worth follows the bank's share price (BankNotes.txt sets it on load and daily).
 # Paper weight as NCR notes; the vanilla $20 NCR note's model and icons.
@@ -223,6 +227,12 @@ def bank_plugin(edid, name, model, icon, small_icon):
         cont += record("CONT", 0, 0x01000000 | objid,
                        sub("EDID", z(ed)) + sub("OBND", bytes(12)) + sub("FULL", z(nm))
                        + sub("MODL", z(VAULT_MODEL)) + sub("DATA", struct.pack("<Bf", 0, 0.0)))
+    box = _vanilla_records("CONT", {ME_BOX})
+    if box is None:
+        return None
+    bflags, bsubs = box[ME_BOX]
+    cont += record("CONT", bflags, ME_BOX,
+                   b"".join(sub(t, struct.pack("<I", COURIER_SCRIPT) if t == "SCRI" else d) for t, d in bsubs))
     cell_id = 0x01000000 | VAULT_CELL
     cell = record("CELL", 0, cell_id,
                   sub("EDID", z("WBVaultCell")) + sub("FULL", z("Wasteland Bank Vault"))
@@ -241,7 +251,7 @@ def bank_plugin(edid, name, model, icon, small_icon):
     block, subblock = VAULT_CELL % 10, (VAULT_CELL // 10) % 10
     cells = _grup(b"CELL", 0, _grup(struct.pack("<i", block), 2,
                                     _grup(struct.pack("<i", subblock), 3, cell + children)))
-    n_records = 1 + len(COURIERS) + 4 + len(BANK_NOTES) + 1 + 4
+    n_records = 1 + len(COURIERS) + 5 + len(BANK_NOTES) + 1 + 4
     header = record("TES4", 0, 0,
                     sub("HEDR", struct.pack("<fiI", 1.34, n_records, SHIP_REF + 1))
                     + sub("CNAM", z("fnv-personal-mod"))

@@ -24,7 +24,7 @@ begin Function {iForce}
 		player.AuxVarSetFlt "*_wbMEVisit" 1
 		if eval (player.AuxVarGetFlt "_wbMESeen") == 0
 			player.AuxVarSetFlt "_wbMESeen" 1
-			MessageBoxEx "Mojave Express%rYour bank's goods go through these dropboxes: the vault, ammo and supplies, selling, and catalogue orders. Open them from your bank card's main menu while you're here. Each visit, the dropbox tops up your ammo and aid from the vault."
+			MessageBoxEx "Mojave Express%rYour bank's goods go through these dropboxes: the vault, ammo and supplies, selling, and catalogue orders. Open the dropbox, or use your bank card's main menu while you're here. Each visit, the dropbox tops up your ammo and aid from the vault."
 		endif
 		if eval (player.AuxVarGetFlt "_wbArrAmmo") > 0 || (player.AuxVarGetFlt "_wbRefillN") > 0
 			let rFn := CompileScript "WastelandBank/BankAmmo.txt"

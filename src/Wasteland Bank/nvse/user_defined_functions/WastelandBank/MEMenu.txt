@@ -1,6 +1,7 @@
 ; Wasteland Bank: the Mojave Express services, at any of the game's five dropboxes (Goodsprings,
 ; Primm, Novac, Freeside, the Vegas Boulevard station: MENear.txt) (2026-11-17). Goods live here
-; now; money and investments stay with the courier squads. Opened from the bank card's main menu.
+; now; money and investments stay with the courier squads. Opened by opening a dropbox (MEAct.txt)
+; or from the bank card's main menu.
 ;   the vault (Vault.txt), ammo and supplies (Ammo.txt), selling (Sell.txt), the catalogue
 ;   (Catalogue.txt). Vault traffic is charged by weight, loose ammo is reboxed for 5 percent.
 int iNear
@@ -13,7 +14,7 @@ begin Function {}
 	let rFn := CompileScript "WastelandBank/MENear.txt"
 	let iNear := call rFn
 	if iNear < 0
-		MessageBoxEx "Mojave Express%rYour goods are handled at the Mojave Express dropboxes: Goodsprings, Primm, Novac, Freeside, and the Vegas Boulevard station. The vault, ammo and supplies, selling and the catalogue open there from your bank card."
+		MessageBoxEx "Mojave Express%rYour goods are handled at the Mojave Express dropboxes: Goodsprings, Primm, Novac, Freeside, and the Vegas Boulevard station. Open any dropbox (or your bank card next to one) for the vault, ammo and supplies, selling and the catalogue."
 		return
 	endif
 	if iNear == 0
