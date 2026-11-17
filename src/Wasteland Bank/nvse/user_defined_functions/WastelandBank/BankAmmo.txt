@@ -1,0 +1,267 @@
+; Wasteland Bank: ammo through the couriers and the vault (2026-11-16). The vault (WBVaultRef
+; 0x000806) holds whatever you store, ammo included; the couriers bring it and take it, charged
+; by weight like any vault traffic (Rate.txt 1, caps a pound). iMode:
+;   0 count only: returns the rounds the vault holds of the ammo in your weapon
+;   1 bring four magazines (at least 40 rounds) of the ammo in your weapon, less what you carry
+;     (if the vault has none of that kind, another kind the weapon takes)
+;   2 bring a magazine for every carried weapon you have no ammo for at all (the first kind the
+;     vault has)
+;   3 store the ammo no weapon you carry takes
+;   4 sell the ammo no weapon you carry takes (SellOne.txt, SellDone.txt: half the market value,
+;     less the couriers' cut, paid a day later)
+;   5 the standing order, when a squad arrives: 1, then 2, then 3
+; Returns the rounds moved (mode 0: the count).
+int iMode
+int iPlug
+int iNum
+int iIdx
+int iN
+int iK
+int iClip
+int iWant
+int iHave
+int iGot
+int iMoved
+int iPass
+float fLb
+float fWt
+float fV
+ref rVault
+ref rW
+ref rItem
+ref rList
+ref rAmmo
+ref rCur
+ref rFn
+array_var aMove
+array_var aCnt
+array_var aWeap
+array_var aVol
+array_var aEntry
+int iLc
+
+begin Function {iMode}
+	SetFunctionValue 0
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rVault := BuildRef iPlug 2054	; WBVaultRef
+	if eval (IsFormValid rVault) == 0
+		return
+	endif
+	let iMoved := 0
+	let fLb := 0
+	let rW := player.GetEquippedObject 5
+	let rCur := 0
+	let iClip := 0
+	if eval IsFormValid rW
+		if eval (GetType rW) == 40
+			let rList := GetWeaponAmmo rW
+			if eval IsFormValid rList
+				let iClip := GetWeaponClipRounds rW
+				let rCur := GetPlayerCurrentAmmo
+				if eval (IsFormValid rCur) == 0 && (GetType rList) == 41
+					let rCur := rList
+				endif
+			endif
+		endif
+	endif
+	if iMode == 0
+		if eval IsFormValid rCur
+			let iHave := rVault.GetItemCount rCur
+			SetFunctionValue iHave
+		endif
+		return
+	endif
+
+	; 1. four magazines for the weapon in hand
+	if iMode == 1 || iMode == 5
+		if eval IsFormValid rCur
+			let iWant := iClip * 4
+			if iWant < 40
+				let iWant := 40
+			endif
+			let iHave := player.GetItemCount rCur
+			let iGot := iWant - iHave
+			if iGot > 0
+				let iN := rVault.GetItemCount rCur
+				if eval iN == 0 && iHave == 0 && (GetType rList) == 85
+					; another kind the weapon takes
+					let iLc := ListGetCount rList
+					let iK := 0
+					while iK < iLc && iN == 0
+						let rAmmo := ListGetNthForm rList iK
+						let iK += 1
+						if eval IsFormValid rAmmo
+							let iN := rVault.GetItemCount rAmmo
+							if iN > 0
+								let rCur := rAmmo
+							endif
+						endif
+					loop
+				endif
+				if iGot > iN
+					let iGot := iN
+				endif
+				if iGot > 0
+					rVault.RemoveItemTarget rCur player iGot 0
+					let fWt := GetWeight rCur
+					let fLb += iGot * fWt
+					let iMoved += iGot
+				endif
+			endif
+		endif
+	endif
+
+	; carried weapons and the ammo they take (marked on the ammo form for this pass)
+	let iPass := player.AuxVarGetFlt "*_wbAmPass"
+	let iPass += 1
+	player.AuxVarSetFlt "*_wbAmPass" iPass
+	let aWeap := Ar_Construct "array"
+	let iNum := player.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := player.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		if eval (GetType rItem) != 40
+			continue
+		endif
+		let rList := GetWeaponAmmo rItem
+		if eval (IsFormValid rList) == 0
+			continue
+		endif
+		Ar_Append aWeap rItem
+		if eval (GetType rList) == 85
+			let iN := ListGetCount rList
+			let iK := 0
+			while iK < iN
+				let rAmmo := ListGetNthForm rList iK
+				let iK += 1
+				if eval IsFormValid rAmmo
+					AuxVarSetFlt "*_wbAmT" iPass 0 rAmmo
+				endif
+			loop
+		else
+			AuxVarSetFlt "*_wbAmT" iPass 0 rList
+		endif
+	loop
+
+	; 2. a magazine for each carried weapon with no ammo at all
+	if iMode == 2 || iMode == 5
+		foreach aEntry <- aWeap
+			let rItem := aEntry["value"]
+			if eval rItem == rW
+				continue
+			endif
+			let rList := GetWeaponAmmo rItem
+			let iClip := GetWeaponClipRounds rItem
+			if iClip < 1
+				let iClip := 1
+			endif
+			let iN := 1
+			if eval (GetType rList) == 85
+				let iN := ListGetCount rList
+			endif
+			let iHave := 0
+			let iK := 0
+			while iK < iN
+				let rAmmo := rList
+				if eval (GetType rList) == 85
+					let rAmmo := ListGetNthForm rList iK
+				endif
+				let iK += 1
+				if eval IsFormValid rAmmo
+					let iHave += player.GetItemCount rAmmo
+				endif
+			loop
+			let iK := 0
+			while iK < iN && iHave == 0
+				let rAmmo := rList
+				if eval (GetType rList) == 85
+					let rAmmo := ListGetNthForm rList iK
+				endif
+				let iK += 1
+				if eval IsFormValid rAmmo
+					let iGot := rVault.GetItemCount rAmmo
+					if iGot > iClip
+						let iGot := iClip
+					endif
+					if iGot > 0
+						rVault.RemoveItemTarget rAmmo player iGot 0
+						let fWt := GetWeight rAmmo
+						let fLb += iGot * fWt
+						let iMoved += iGot
+						let iHave := iGot
+					endif
+				endif
+			loop
+		loop
+	endif
+
+	; 3 and 4. the ammo no carried weapon takes: listed, then stored or sold
+	if iMode == 3 || iMode == 4 || iMode == 5
+		let aMove := Ar_Construct "array"
+		let aCnt := Ar_Construct "array"
+		let iNum := player.GetNumItems
+		let iIdx := 0
+		while iIdx < iNum
+			let rItem := player.GetInventoryObject iIdx
+			let iIdx += 1
+			if eval (IsFormValid rItem) == 0
+				continue
+			endif
+			if eval (GetType rItem) != 41
+				continue
+			endif
+			if eval (IsQuestItem rItem) || (AuxVarGetFlt "*_wbAmT" 0 rItem) == iPass
+				continue
+			endif
+			let iN := player.GetItemCount rItem
+			if iN > 0
+				Ar_Append aMove rItem
+				Ar_Append aCnt iN
+			endif
+		loop
+		if iMode == 4
+			let aVol := Ar_List 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+			let rFn := CompileScript "WastelandBank/SellOne.txt"
+			let fV := 0
+			let iK := 0
+			while iK < Ar_Size aMove
+				let rItem := aMove[iK]
+				let iN := aCnt[iK]
+				let iK += 1
+				let fWt := call rFn rItem iN player aVol
+				let fV += fWt
+				let iMoved += iN
+			loop
+			let rFn := CompileScript "WastelandBank/SellDone.txt"
+			call rFn fV aVol iMoved
+		else
+			let iK := 0
+			while iK < Ar_Size aMove
+				let rItem := aMove[iK]
+				let iN := aCnt[iK]
+				let iK += 1
+				player.RemoveItemTarget rItem rVault iN 0
+				let fWt := GetWeight rItem
+				let fLb += iN * fWt
+				let iMoved += iN
+			loop
+		endif
+	endif
+
+	; the vault's weight fee for what the couriers carried
+	if fLb > 0
+		let rFn := CompileScript "WastelandBank/Rate.txt"
+		let fV := call rFn 1
+		let fV *= fLb
+		let rFn := CompileScript "WastelandBank/Fee.txt"
+		call rFn fV
+	endif
+	SetFunctionValue iMoved
+	let aWeap := Ar_Null
+	let aMove := Ar_Null
+	let aCnt := Ar_Null
+end

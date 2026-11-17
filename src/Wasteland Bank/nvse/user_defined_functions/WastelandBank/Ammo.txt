@@ -1,0 +1,22 @@
+; Wasteland Bank: ammo through the couriers (BankAmmo.txt). Store ammo in the vault, have it
+; brought back as you need it, or sell what no weapon of yours takes. The standing order
+; ("_wbAmmoOrder") has every arriving squad bring magazines from the vault and take your spare ammo
+; back with them.
+int iVault
+float fRate
+string_var sOrder
+ref rFn
+ref rCb
+
+begin Function {}
+	let rFn := CompileScript "WastelandBank/BankAmmo.txt"
+	let iVault := call rFn 0
+	let rFn := CompileScript "WastelandBank/Rate.txt"
+	let fRate := call rFn 1
+	let sOrder := "off"
+	if eval (player.AuxVarGetFlt "_wbAmmoOrder") == 1
+		let sOrder := "on: each squad brings magazines from the vault and takes your spare ammo back"
+	endif
+	let rCb := CompileScript "WastelandBank/AmmoBtn.txt"
+	MessageBoxExAlt rCb "^Ammo at the bank^The vault holds %.0f rounds of the ammo in your weapon. Carrying costs %.2f caps a pound each way.%rStanding order: %z.|Bring four magazines for the weapon in hand|Bring a magazine for each weapon I have no ammo for|Store the ammo none of my weapons take|Sell the ammo none of my weapons take|Standing order on or off|Back" iVault fRate sOrder
+end

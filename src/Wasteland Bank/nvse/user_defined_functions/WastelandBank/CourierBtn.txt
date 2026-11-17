@@ -1,5 +1,5 @@
-; Wasteland Bank: courier menu buttons (0 Deposit, 1 Withdraw, 2 Convert, 3 Vault, 4 Sell,
-; 5 Investments (Invest.txt), 6 Loans, 7 Send them off, 8 Back to the main menu). Converting currency is charged the cash fee on the
+; Wasteland Bank: courier menu buttons (0 Deposit, 1 Withdraw, 2 Convert, 3 Vault, 4 Ammo,
+; 5 Sell, 6 Investments (Invest.txt), 7 Loans, 8 Send them off, 9 Back to the main menu). Converting currency is charged the cash fee on the
 ; caps it makes.
 int iBtn
 int iMade
@@ -31,18 +31,21 @@ begin Function {iBtn}
 		let rNext := CompileScript "WastelandBank/Vault.txt"
 		call rNext
 	elseif iBtn == 4
-		let rNext := CompileScript "WastelandBank/Sell.txt"
+		let rNext := CompileScript "WastelandBank/Ammo.txt"
 		call rNext
 	elseif iBtn == 5
-		let rNext := CompileScript "WastelandBank/Invest.txt"
+		let rNext := CompileScript "WastelandBank/Sell.txt"
 		call rNext
 	elseif iBtn == 6
-		let rNext := CompileScript "WastelandBank/Loan.txt"
+		let rNext := CompileScript "WastelandBank/Invest.txt"
 		call rNext
 	elseif iBtn == 7
+		let rNext := CompileScript "WastelandBank/Loan.txt"
+		call rNext
+	elseif iBtn == 8
 		let rNext := CompileScript "WastelandBank/SqLeave.txt"
 		call rNext 0
-	elseif iBtn == 8
+	elseif iBtn == 9
 		let rNext := CompileScript "WastelandBank/Open.txt"
 		call rNext
 	endif

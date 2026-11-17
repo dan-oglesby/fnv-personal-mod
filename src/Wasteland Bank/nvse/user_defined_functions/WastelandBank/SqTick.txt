@@ -79,6 +79,14 @@ begin Function {}
 		player.AuxVarSetFlt "_wbSqCash" fFee
 		let rFn := CompileScript "WastelandBank/Deliver.txt"
 		call rFn
+		; the standing ammo order: magazines from the vault, spare ammo back to it (BankAmmo.txt)
+		if eval (player.AuxVarGetFlt "_wbAmmoOrder") == 1
+			let rFn := CompileScript "WastelandBank/BankAmmo.txt"
+			let iAmt := call rFn 5
+			if iAmt > 0
+				MessageEx "The couriers sorted your ammo with the vault: %.0f rounds moved." iAmt
+			endif
+		endif
 		let rFee := CompileScript "WastelandBank/Fee.txt"
 		if eval (player.AuxVarGetFlt "_wbAutoConv") == 1
 			let rFn := CompileScript "WastelandBank/ConvertNow.txt"

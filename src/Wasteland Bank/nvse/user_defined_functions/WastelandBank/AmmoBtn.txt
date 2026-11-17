@@ -1,0 +1,33 @@
+; Wasteland Bank: ammo buttons (0 four magazines for the weapon in hand, 1 a magazine per weapon
+; with none, 2 store spare ammo, 3 sell spare ammo, 4 standing order on or off, 5 back).
+int iBtn
+int iMode
+int iN
+float fX
+ref rFn
+
+begin Function {iBtn}
+	if iBtn == 5
+		let rFn := CompileScript "WastelandBank/Courier.txt"
+		call rFn
+		return
+	endif
+	if iBtn == 4
+		let fX := player.AuxVarGetFlt "_wbAmmoOrder"
+		let fX := 1 - fX
+		player.AuxVarSetFlt "_wbAmmoOrder" fX
+	else
+		let iMode := iBtn + 1
+		let rFn := CompileScript "WastelandBank/BankAmmo.txt"
+		let iN := call rFn iMode
+		if iBtn != 3
+			if iN > 0
+				MessageEx "The couriers moved %.0f rounds." iN
+			else
+				MessageEx "Nothing to move."
+			endif
+		endif
+	endif
+	let rFn := CompileScript "WastelandBank/Ammo.txt"
+	call rFn
+end
