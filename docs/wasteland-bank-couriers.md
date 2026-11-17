@@ -24,7 +24,7 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
     out is carried by the squad, at **1 cap per pound each way**;
   - loans are paid out and repaid in cash, so through the squad too.
   Auto-deposit and auto-convert happen when a squad arrives, not on their own.
-- **Cash on hand** (to build: phase 1's withdraw has no limit yet): the account manager sees that
+- **Cash on hand** (built with phase 2a): the account manager sees that
   every squad carries a float of 2,500 caps, drawn from your balance (less if your balance is
   less). That's the most you can withdraw from a squad called the ordinary way; a larger sum is
   ordered when calling and delivered by a squad at least 24 hours later, like cash-out orders
@@ -55,8 +55,8 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
     stake grows by itself, slowly;
   - **as you own more, the float thins:** volatility and the price rise with your share of the
     company, while the dividend per share stays about the same (so its yield falls);
-  - the stake's size and cost (open): a controlling stake as a mid-game goal, around 20,000 to
-    30,000 caps at the start.
+  - the stake's size and cost (built): 1,000 shares at a 50-cap start, so control (501 shares)
+    costs about 25,000 caps at first, more as the price rises with your stake.
 
 - **Currency accounts:** keep your balance in caps, NCR dollars or denarii (the squad converts
   between them at the usual fee), so holding a currency is a choice and a bet. **Each pays its own
