@@ -1,0 +1,24 @@
+; Wasteland Bank: your standing with a faction, as a tier, from its reputation (rRep, a REPU form;
+; fame and infamy run to about 100): -1 Vilified (infamy 50 or more and above fame), 0 Neutral,
+; 1 Accepted (fame 15 or more), 2 Liked (40), 3 Idolized (75). A simplification of the game's
+; fame-by-infamy grid, on the same scale as LegRep.txt.
+ref rRep
+float fFame
+float fInf
+int iTier
+
+begin Function {rRep}
+	let fFame := GetReputation rRep 0
+	let fInf := GetReputation rRep 1
+	let iTier := 0
+	if fInf >= 50 && fInf > fFame
+		let iTier := -1
+	elseif fFame >= 75
+		let iTier := 3
+	elseif fFame >= 40
+		let iTier := 2
+	elseif fFame >= 15
+		let iTier := 1
+	endif
+	SetFunctionValue iTier
+end

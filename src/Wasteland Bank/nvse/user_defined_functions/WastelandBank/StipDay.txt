@@ -1,0 +1,149 @@
+; Wasteland Bank: what the Dam's winner owes the Courier (2026-11-17), once a game day (ExDay.txt).
+; The day the battle is won (DamWon.txt) the winner settles up, and from then on every 7 days:
+; - The NCR: the Republic's Hero's Annuity (a policy, WastelandBank.esp WBAnnuityNCR 0x819), weekly
+;   NCR dollars into your NCR-dollar account by your standing with the Republic (StipWeek.txt), four
+;   weeks' back pay up front. The NCR still taxes your profits (Tax.txt), annuity included.
+; - The Legion: the Legate's Grant (WBAnnuityLegion 0x81A), the same in denarii.
+; - Mr. House: a stake, not a salary. Lucky 38 shares (a certificate, WBLucky38Shares 0x81B) worth
+;   10,000 / 25,000 / 50,000 / 100,000 caps by your standing on the Strip (RepNVTheStrip 1150817),
+;   valued at RobCo's price (ticker 8, "_stU" units) and paying 1 percent of their value a week.
+; - An independent Vegas: nobody owes you; you are the government. A weekly share of the Strip's
+;   revenue less the upkeep of keeping it running (StipStrip.txt).
+; Payments go only to the holder of the papers: on you or in your bank vault. Papers sold to the
+; bank (Stipend.txt) pay no more ("_stSold"). Vilified by the winner, the payment is suspended.
+; State: "_stWin" the winner paid for, "_stLast" the last payday, "_stNoPaper" a missed week noted.
+int iDay
+int iWin
+int iTier
+int iPlug
+int iId
+int iN
+float fV
+float fP
+float fK
+ref rFn
+ref rBook
+ref rVault
+ref rRep
+
+begin Function {iDay}
+	let rFn := CompileScript "WastelandBank/DamWon.txt"
+	let iWin := call rFn
+	if iWin == 0
+		return
+	endif
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rVault := BuildRef iPlug 2054	; WBVaultRef 0x806
+	let iId := 2072 + iWin	; the winner's papers: 0x819 NCR, 0x81A Legion, 0x81B House
+	let rBook := BuildRef iPlug iId
+
+	; the day of the victory: settling up
+	if eval (player.AuxVarGetFlt "_stWin") == 0
+		player.AuxVarSetFlt "_stWin" iWin
+		player.AuxVarSetFlt "_stLast" iDay
+		if iWin == 1 || iWin == 2
+			player.AddItem rBook 1 1
+			let rFn := CompileScript "WastelandBank/StipWeek.txt"
+			let fV := call rFn iWin
+			let fV *= 4
+			if iWin == 1
+				let fP := player.AuxVarGetFlt "_wbBalN"
+				let fP += fV
+				player.AuxVarSetFlt "_wbBalN" fP
+				MessageBoxEx "The Republic remembers%rFor services at Hoover Dam, the NCR grants you the Hero's Annuity: a policy that pays its holder every week, more the better the Republic thinks of you. Four weeks' back pay, %.0f NCR dollars, is in your NCR-dollar account. Keep the policy on you or in your bank vault." fV
+			else
+				let fP := player.AuxVarGetFlt "_wbBalL"
+				let fP += fV
+				player.AuxVarSetFlt "_wbBalL" fP
+				MessageBoxEx "Caesar's gratitude%rFor services at the Dam, the Legion grants you a Legate's Grant: a weekly stipend in denarii to its holder, as long as Rome holds you in honour. Four weeks' worth, %.0f denarii, is in your denarius account. Keep the grant on you or in your bank vault." fV
+			endif
+		elseif iWin == 3
+			let rRep := BuildRef 0 1150817	; RepNVTheStrip
+			let rFn := CompileScript "WastelandBank/RepTier.txt"
+			let iTier := call rFn rRep
+			let fV := 10000
+			if iTier == 1
+				let fV := 25000
+			elseif iTier == 2
+				let fV := 50000
+			elseif iTier == 3
+				let fV := 100000
+			endif
+			let rFn := CompileScript "WastelandBank/ExPrice.txt"
+			let fP := call rFn 8
+			if fP < 1
+				let fP := 1
+			endif
+			let fK := fV / fP
+			player.AuxVarSetFlt "_stU" fK
+			player.AuxVarSetFlt "_stU0" fK	; the stake as granted, for the record
+			player.AuxVarSetFlt "_stP0" fP	; and the price it was granted at
+			player.AddItem rBook 1 1
+			MessageBoxEx "Mr. House settles his accounts%rMr. House does not pay salaries. He pays in equity: Lucky 38 shares worth %.0f caps, valued at RobCo's price and paying 1 percent of their value every week. The certificate is yours, on you or in your bank vault." fV
+		else
+			MessageBoxEx "New Vegas is yours%rNobody owes you now: you are the government. Every week the Strip's revenue comes to you, less the upkeep of keeping it running. Securitrons, order on the Strip and the city's fortunes all count."
+		endif
+		return
+	endif
+
+	; paydays, every 7 days after
+	if eval iDay - (player.AuxVarGetFlt "_stLast") < 7
+		return
+	endif
+	let fP := player.AuxVarGetFlt "_stLast"
+	let fP += 7
+	player.AuxVarSetFlt "_stLast" fP
+	let iWin := player.AuxVarGetFlt "_stWin"
+	if iWin == 4
+		let rFn := CompileScript "WastelandBank/StipStrip.txt"
+		call rFn
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_stSold") == 1
+		return
+	endif
+	let iN := player.GetItemCount rBook
+	if eval IsFormValid rVault
+		let iN += rVault.GetItemCount rBook
+	endif
+	if iN < 1
+		if eval (player.AuxVarGetFlt "_stNoPaper") == 0
+			player.AuxVarSetFlt "_stNoPaper" 1
+			MessageEx "No payment this week: it goes only to whoever holds the papers, on them or in their bank vault."
+		endif
+		return
+	endif
+	player.AuxVarSetFlt "_stNoPaper" 0
+	let rFn := CompileScript "WastelandBank/StipWeek.txt"
+	let fV := call rFn iWin
+	if fV <= 0
+		MessageEx "The winner holds you in contempt: this week's payment is suspended."
+		return
+	endif
+	if iWin == 1
+		let fP := player.AuxVarGetFlt "_wbBalN"
+		let fP += fV
+		player.AuxVarSetFlt "_wbBalN" fP
+		let rFn := CompileScript "WastelandBank/ExRate.txt"
+		let fK := call rFn
+		MessageEx "Hero's Annuity: %.0f NCR dollars paid to your account." fV
+	elseif iWin == 2
+		let fP := player.AuxVarGetFlt "_wbBalL"
+		let fP += fV
+		player.AuxVarSetFlt "_wbBalL" fP
+		let rFn := CompileScript "WastelandBank/ExPrice.txt"
+		let fK := call rFn 15
+		let fK *= 4
+		MessageEx "Legate's Grant: %.0f denarii paid to your account." fV
+	else
+		let fP := player.AuxVarGetFlt "_wbBal"
+		let fP += fV
+		player.AuxVarSetFlt "_wbBal" fP
+		let fK := 1
+		MessageEx "Lucky 38 dividend: %.0f caps paid to your balance." fV
+	endif
+	; counted toward the month's profits, in caps (so the NCR's tax sees it)
+	let fP := player.AuxVarGetFlt "_wbProfM"
+	let fP += fV * fK
+	player.AuxVarSetFlt "_wbProfM" fP
+end

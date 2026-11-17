@@ -1,0 +1,80 @@
+; Wasteland Bank: an independent New Vegas's week (StipDay.txt; 2026-11-17). You are the government:
+; the Strip's revenue comes to you, less the upkeep of keeping it running.
+; - Revenue: 2,500 caps, times how New Vegas is doing (the Vegas Total Market Fund, ticker 17, against
+;   its start of 100) and how the Strip sees you (RepNVTheStrip 1150817: 0.5 Vilified, 0.75 Neutral,
+;   1 Accepted, 1.25 Liked, 1.5 Idolized).
+; - Upkeep: 800 caps; 0.6 times that with the Securitron army upgraded (exchange event 10), three
+;   times with it destroyed (11): someone else has to keep the peace, and they want paying.
+; - A major disturbance (10 percent a week, 25 with the army destroyed, and the first week after
+;   violence on the Strip, event 9): half the revenue, and 1,000 caps more upkeep.
+; The net goes to your balance; a loss comes out of it, and what it can't cover becomes a loan.
+; The week's figures are kept for the menu ("_stGross", "_stUpk", "_stDist").
+int iTier
+int iDist
+float fGross
+float fUpk
+float fNet
+float fK
+float fBal
+float fLoan
+float fRoll
+ref rFn
+ref rRep
+
+begin Function {}
+	let rFn := CompileScript "WastelandBank/ExPrice.txt"
+	let fK := call rFn 17
+	let fGross := 2500 * fK / 100
+	let rRep := BuildRef 0 1150817	; RepNVTheStrip
+	let rFn := CompileScript "WastelandBank/RepTier.txt"
+	let iTier := call rFn rRep
+	if iTier < 0
+		let fGross *= 0.5
+	elseif iTier == 0
+		let fGross *= 0.75
+	elseif iTier == 2
+		let fGross *= 1.25
+	elseif iTier == 3
+		let fGross *= 1.5
+	endif
+	let fUpk := 800
+	let fRoll := 10
+	if eval (player.AuxVarGetFlt "_wxE" 11) == 1
+		let fUpk *= 3
+		let fRoll := 25
+	elseif eval (player.AuxVarGetFlt "_wxE" 10) == 1
+		let fUpk *= 0.6
+	endif
+	let iDist := 0
+	if eval (player.AuxVarGetFlt "_wxE" 9) == 1 && (player.AuxVarGetFlt "_stViol") == 0
+		player.AuxVarSetFlt "_stViol" 1
+		let iDist := 1
+	elseif eval (GetRandomPercent) < fRoll
+		let iDist := 1
+	endif
+	if iDist == 1
+		let fGross *= 0.5
+		let fUpk += 1000
+	endif
+	let fNet := fGross - fUpk
+	player.AuxVarSetFlt "_stGross" fGross
+	player.AuxVarSetFlt "_stUpk" fUpk
+	player.AuxVarSetFlt "_stDist" iDist
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let fBal += fNet
+	if fBal < 0
+		let fLoan := player.AuxVarGetFlt "_wbLoan"
+		let fLoan -= fBal
+		player.AuxVarSetFlt "_wbLoan" fLoan
+		let fBal := 0
+	endif
+	player.AuxVarSetFlt "_wbBal" fBal
+	let fBal := player.AuxVarGetFlt "_wbProfM"
+	let fBal += fNet
+	player.AuxVarSetFlt "_wbProfM" fBal
+	if iDist == 1
+		MessageBoxEx "The Strip's books%rA major disturbance on the Strip this week: takings halved and security costs up. Revenue %.0f caps, upkeep %.0f, net %.0f." fGross fUpk fNet
+	else
+		MessageEx "The Strip's books: revenue %.0f caps, upkeep %.0f, net %.0f." fGross fUpk fNet
+	endif
+end

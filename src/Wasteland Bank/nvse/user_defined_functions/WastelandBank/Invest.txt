@@ -12,6 +12,8 @@
 ;   Fund manager (5): holdings by sector
 ;   Kingpin (6): operations
 ;   owning more than half the bank: running it
+;   once the Dam is won (StipDay.txt "_stWin"): the Dam papers (Stipend.txt, code 11), named for
+;   what the winner gave you
 float fFees
 float fWlth
 int iStage
@@ -92,6 +94,20 @@ begin Function {}
 	if iStage >= 6
 		let sBtns := sBtns + "|Operations"
 		player.AuxVarSetFlt "*_wbInvC" 8 iN
+		let iN += 1
+	endif
+	if eval (player.AuxVarGetFlt "_stWin") > 0
+		let iTier := player.AuxVarGetFlt "_stWin"
+		if iTier == 1
+			let sBtns := sBtns + "|Hero's Annuity"
+		elseif iTier == 2
+			let sBtns := sBtns + "|Legate's Grant"
+		elseif iTier == 3
+			let sBtns := sBtns + "|Lucky 38 shares"
+		else
+			let sBtns := sBtns + "|The Strip's books"
+		endif
+		player.AuxVarSetFlt "*_wbInvC" 11 iN
 		let iN += 1
 	endif
 	let sBtns := sBtns + "|Back"

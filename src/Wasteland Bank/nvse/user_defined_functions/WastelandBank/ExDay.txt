@@ -66,6 +66,9 @@ begin Function {iDay}
 	call rWeek iDay
 	let rWeek := CompileScript "WastelandBank/LegDay.txt"
 	call rWeek iDay
+	; what the Dam's winner owes you (StipDay.txt)
+	let rWeek := CompileScript "WastelandBank/StipDay.txt"
+	call rWeek iDay
 	if (iDay % 7) == 3
 		let rWeek := CompileScript "WastelandBank/OpsWeek.txt"
 		call rWeek iDay

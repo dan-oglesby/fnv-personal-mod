@@ -1,0 +1,30 @@
+; Wasteland Bank: who won the Battle of Hoover Dam (2026-11-17). Returns 0 not yet, 1 the NCR,
+; 2 the Legion, 3 Mr. House, 4 an independent New Vegas: each side's battle quest completed
+; (FalloutNV.esm: Eureka! vHDBattleController 1257589, Veni, Vidi, Vici VHDLegionBattle 1276601,
+; All or Nothing VHDHouseBattle 1393204, No Gods, No Masters VHDIndependentBattle 1393203). The
+; quests before them (For the Republic, Part 2; The House Always Wins, VIII; Wild Card: Finishing
+; Touches; Arizona Killer) only start the battle. You can only still be playing after one with a
+; mod that lets the game go on past the ending.
+int iWin
+ref rQ
+
+begin Function {}
+	let iWin := 0
+	let rQ := BuildRef 0 1257589
+	if eval GetQuestCompleted rQ
+		let iWin := 1
+	endif
+	let rQ := BuildRef 0 1276601
+	if eval GetQuestCompleted rQ
+		let iWin := 2
+	endif
+	let rQ := BuildRef 0 1393204
+	if eval GetQuestCompleted rQ
+		let iWin := 3
+	endif
+	let rQ := BuildRef 0 1393203
+	if eval GetQuestCompleted rQ
+		let iWin := 4
+	endif
+	SetFunctionValue iWin
+end

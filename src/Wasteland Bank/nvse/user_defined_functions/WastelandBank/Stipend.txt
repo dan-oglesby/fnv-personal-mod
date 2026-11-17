@@ -1,0 +1,89 @@
+; Wasteland Bank: the Dam papers (Investments, once the Dam is won; StipDay.txt; 2026-11-17). What
+; the winner pays you, and for the annuity, the grant and the Lucky 38 shares, an offer from the
+; bank to buy the papers outright:
+;   the Hero's Annuity or the Legate's Grant: 40 weeks of this week's payment, in their own money
+;   (none while the payments are suspended); Lucky 38 shares: 90 percent of their value now.
+; An independent Vegas has no papers to sell: the menu shows last week's books.
+; "*_stSell" 1 when the first button is the sale (StipendBtn.txt).
+int iWin
+int iN
+int iPlug
+int iId
+float fWk
+float fOffer
+float fV
+float fGross
+float fUpk
+string_var sName
+string_var sCur
+string_var sBody
+ref rFn
+ref rBook
+ref rVault
+ref rCb
+
+begin Function {}
+	let iWin := player.AuxVarGetFlt "_stWin"
+	let rCb := CompileScript "WastelandBank/StipendBtn.txt"
+	player.AuxVarSetFlt "*_stSell" 0
+	if iWin == 4
+		let fGross := player.AuxVarGetFlt "_stGross"
+		let fUpk := player.AuxVarGetFlt "_stUpk"
+		let fV := fGross - fUpk
+		let sBody := sv_Construct "You govern New Vegas: every week the Strip's revenue comes to you, less the upkeep of running it.%r%rLast week: revenue %.0f caps, upkeep %.0f, net %.0f." fGross fUpk fV
+		if eval (player.AuxVarGetFlt "_stDist") == 1
+			let sBody := sBody + (sv_Construct " A major disturbance on the Strip cut the takings.")
+		endif
+		MessageBoxExAlt rCb "^The Strip's books^%z|Back" sBody
+		return
+	endif
+	let sName := "the Hero's Annuity"
+	let sCur := "NCR dollars"
+	if iWin == 2
+		let sName := "the Legate's Grant"
+		let sCur := "denarii"
+	elseif iWin == 3
+		let sName := "Lucky 38 shares"
+		let sCur := "caps"
+	endif
+	if eval (player.AuxVarGetFlt "_stSold") == 1
+		let sBody := sv_Construct "You sold %z to the bank. It pays you nothing more." sName
+		MessageBoxExAlt rCb "^The Dam papers^%z|Back" sBody
+		return
+	endif
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let iId := 2072 + iWin
+	let rBook := BuildRef iPlug iId
+	let rVault := BuildRef iPlug 2054	; WBVaultRef 0x806
+	let iN := player.GetItemCount rBook
+	if eval IsFormValid rVault
+		let iN += rVault.GetItemCount rBook
+	endif
+	let rFn := CompileScript "WastelandBank/StipWeek.txt"
+	let fWk := call rFn iWin
+	if iWin == 3
+		let fOffer := fWk * 100 * 0.9
+		let fV := fWk * 100
+		let sBody := sv_Construct "Your Lucky 38 shares are worth %.0f caps at RobCo's price, and pay %.0f caps this week (1 percent of their value)." fV fWk
+	else
+		let fOffer := fWk * 40
+		if fWk > 0
+			let sBody := sv_Construct "%z pays %.0f %z a week at your present standing." sName fWk sCur
+		else
+			let sBody := sv_Construct "%z is suspended: the winner holds you in contempt." sName
+		endif
+	endif
+	if iN < 1
+		let sBody := sBody + (sv_Construct "%r%rYou don't hold the papers: payments go only to their holder, on you or in your bank vault.")
+		MessageBoxExAlt rCb "^The Dam papers^%z|Back" sBody
+		return
+	endif
+	if fOffer <= 0
+		MessageBoxExAlt rCb "^The Dam papers^%z|Back" sBody
+		return
+	endif
+	let sBody := sBody + (sv_Construct "%r%rThe bank will buy the papers outright for %.0f %z. Once sold, they pay you nothing more." fOffer sCur)
+	player.AuxVarSetFlt "*_stSell" 1
+	player.AuxVarSetFlt "*_stOffer" fOffer
+	MessageBoxExAlt rCb "^The Dam papers^%z|Sell to the bank|Back" sBody
+end

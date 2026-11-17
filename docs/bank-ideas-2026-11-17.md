@@ -128,6 +128,28 @@ c0^1.5), so a full repair from nothing costs about the item's value (`_wbFixRate
 stretch costs the most per point; the value is the current base value, so Wasteland Market's prices
 count. The condition is set on the worn item, so weapon mods stay. No layaway, no time away.
 
+## The Dam papers: what the winner owes the Courier (built 2026-11-17)
+
+The day the battle is won (the battle quests: Eureka!, Veni Vidi Vici, All or Nothing, No Gods No
+Masters), the winner settles up; every 7 days after, it pays the holder of the papers (on you or in
+your bank vault). Needs a mod that lets play go on after the ending.
+- **NCR:** the Hero's Annuity, a policy (a book) paying NCR dollars weekly by your standing with
+  the Republic: 250 / 625 / 1,250 / 2,500 for Neutral to Idolized, suspended if Vilified; four
+  weeks' back pay up front. The NCR still taxes your profits, the annuity included.
+- **Legion:** the Legate's Grant, the same in denarii (25 / 60 / 125 / 250).
+- **House:** a stake, not a salary: a Lucky 38 share certificate worth 10,000 to 100,000 caps by your
+  standing on the Strip, valued at RobCo's price and paying 1 percent of its value a week.
+- **Independent Vegas:** you are the government. Weekly revenue (2,500 caps times the Vegas Total
+  Market Fund's level and the Strip's view of you) less upkeep (800; 0.6x with the Securitron army
+  upgraded, 3x with it destroyed). A major disturbance (10 percent a week, 25 with the army gone,
+  and the week after violence on the Strip) halves the takings and adds 1,000 in upkeep. A losing
+  week comes out of your balance, then becomes a loan.
+- **Selling:** the bank buys the annuity or the grant for 40 weeks of the current payment, and the
+  shares for 90 percent of their value (Investments > the papers' name).
+
+Also fixed: the Legion treasury's default, the NCR's tax and the weekly report now wait for the
+battle itself to be won, not the quest that starts it; the report's currency lines are in caps.
+
 ## Kept for later (not building now)
 
 - **Insurance** (on Mojave Express shipments and courier cash, with robbery events): parked.

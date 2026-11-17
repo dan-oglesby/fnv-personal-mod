@@ -183,6 +183,10 @@ let rChk := CompileScript "WastelandBank/CvTick.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/DamWon.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/Deliver.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -531,6 +535,10 @@ let rChk := CompileScript "WastelandBank/RepTick.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/RepTier.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/Report.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -608,6 +616,26 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/StageInfo.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/StipDay.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/StipStrip.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/StipWeek.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Stipend.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/StipendBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif

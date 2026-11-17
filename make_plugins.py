@@ -146,6 +146,11 @@ MANIFEST = (0x812, "WBCaravanManifest", "Caravan Manifest")
 # (DefaultFollowPlayerFar 0x1554DC); waiting is a script package on top (GuardBtn.txt).
 GUARDS = [(0x817, "WBGuardA", 971986), (0x818, "WBGuardB", 971987)]
 GUARD_NAME, GUARD_PACKAGE = "Hired Guard", 0x1554DC
+# The Dam papers (2026-11-17): what the winner owes the Courier (StipDay.txt). Books copied from
+# vanilla's Wasteland Survival Guide (MS03SurvivalGuideBookItem 808500: its model and icon), with
+# the policy as their text; no skill, worthless to traders, light.
+PAPER_BOOK = 808500
+PAPERS = [(2073, 'WBAnnuityNCR', "Hero's Annuity", "REPUBLIC OF NEW CALIFORNIA<br>Office of Veterans and Special Services<br><br>HERO'S ANNUITY<br><br>In recognition of services rendered to the Republic at Hoover Dam, the Republic grants the holder of this policy a weekly annuity in NCR dollars, paid through Wasteland Bank to the holder's NCR-dollar account.<br><br>Schedule, by the holder's standing with the Republic, per week:<br>Neutral: $250<br>Accepted: $625<br>Liked: $1,250<br>Idolized: $2,500<br>Vilified: payments suspended.<br><br>Payment is made to the holder only. This policy may be sold to Wasteland Bank. Annuity income is subject to the Republic's tax on profits.<br><br>Countersigned, Office of the President."), (2074, 'WBAnnuityLegion', "Legate's Grant", "BY THE WILL OF CAESAR<br><br>LEGATE'S GRANT<br><br>For service to Rome at the Dam, the bearer of this grant is owed a weekly stipend in denarii, paid through Wasteland Bank to the bearer's denarius account, for as long as Rome holds the bearer in honour.<br><br>Per week, by the bearer's standing with the Legion:<br>Neutral: 25 denarii<br>Accepted: 60 denarii<br>Liked: 125 denarii<br>Idolized: 250 denarii<br>Vilified: nothing.<br><br>The stipend goes to the bearer alone. The grant may be sold to Wasteland Bank.<br><br>Ave, true to Caesar."), (2075, 'WBLucky38Shares', 'Lucky 38 Share Certificate', "THE LUCKY 38<br>Office of the Chief Executive<br><br>SHARE CERTIFICATE<br><br>The holder owns a stake in Mr. House's enterprises on the Strip, issued for services at Hoover Dam.<br><br>The stake is valued at the price of RobCo Industries stock and pays its holder one percent of its value every week, through Wasteland Bank.<br><br>Mr. House does not pay salaries. He pays returns.<br><br>Transferable. Wasteland Bank will buy it at ninety percent of its value.")]
 REPS = [(0x813, "WBRepCaravan", 971993, "Caravan Agent", True),
         (0x814, "WBRepPublicanus", 1177872, "Publicanus", False)]
 COLLECTORS = [(0x80F, "WBCollectorA", 0x165066), (0x810, "WBCollectorB", 0x165064), (0x811, "WBCollectorC", 0x165065)]
@@ -260,6 +265,24 @@ def bank_plugin(edid, name, model, icon, small_icon):
         cont += record("CONT", 0, 0x01000000 | objid,
                        sub("EDID", z(ed)) + sub("OBND", bytes(12)) + sub("FULL", z(nm))
                        + sub("MODL", z(VAULT_MODEL)) + sub("DATA", struct.pack("<Bf", 0, 0.0)))
+    book = _vanilla_records("BOOK", {PAPER_BOOK})
+    if book is None:
+        return None
+    bkflags, bksubs = book[PAPER_BOOK]
+    books = b""
+    for objid, ed, nm, text in PAPERS:
+        body = b""
+        for t, d in bksubs:
+            if t == "EDID":
+                d = z(ed)
+            elif t == "FULL":
+                d = z(nm)
+            elif t == "DESC":
+                d = z(text)
+            elif t == "DATA":
+                d = struct.pack("<BbIf", 0, -1, 0, 0.5)
+            body += sub(t, d)
+        books += record("BOOK", 0, 0x01000000 | objid, body)
     box = _vanilla_records("CONT", {ME_BOX})
     if box is None:
         return None
@@ -290,13 +313,13 @@ def bank_plugin(edid, name, model, icon, small_icon):
     block, subblock = VAULT_CELL % 10, (VAULT_CELL // 10) % 10
     cells = _grup(b"CELL", 0, _grup(struct.pack("<i", block), 2,
                                     _grup(struct.pack("<i", subblock), 3, cell + children)))
-    n_records = 1 + len(COURIERS) + len(COLLECTORS) + len(REPS) + len(GUARDS) + 5 + len(BANK_NOTES) + 1 + 1 + 4 + 2
+    n_records = 1 + len(COURIERS) + len(COLLECTORS) + len(REPS) + len(GUARDS) + len(PAPERS) + 5 + len(BANK_NOTES) + 1 + 1 + 4 + 2
     header = record("TES4", 0, 0,
-                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, 0x819))
+                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, 0x81C))
                     + sub("CNAM", z("fnv-personal-mod"))
                     + sub("MAST", z("FalloutNV.esm"))
                     + sub("DATA", bytes(8)))
-    return (header + card_group + _grup(b"CONT", 0, cont) + _grup(b"MISC", 0, notes)
+    return (header + card_group + _grup(b"BOOK", 0, books) + _grup(b"CONT", 0, cont) + _grup(b"MISC", 0, notes)
             + _grup(b"NPC_", 0, npcs) + cells)
 
 

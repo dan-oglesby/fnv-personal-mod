@@ -1,0 +1,54 @@
+; Wasteland Bank: the Dam papers' buttons (Stipend.txt): with a sale on offer ("*_stSell" 1), 0 sell
+; to the bank and 1 back; otherwise 0 back. Selling takes the papers (from you first, else from
+; your vault) and pays the offer ("*_stOffer") into the account in the papers' money.
+int iBtn
+int iWin
+int iPlug
+int iId
+float fOffer
+float fP
+ref rBook
+ref rVault
+ref rFn
+
+begin Function {iBtn}
+	if eval iBtn == 0 && (player.AuxVarGetFlt "*_stSell") == 1
+		let iWin := player.AuxVarGetFlt "_stWin"
+		let iPlug := GetModIndex "WastelandBank.esp"
+		let iId := 2072 + iWin
+		let rBook := BuildRef iPlug iId
+		let rVault := BuildRef iPlug 2054	; WBVaultRef 0x806
+		if eval (player.GetItemCount rBook) > 0
+			player.RemoveItem rBook 1 1
+		elseif eval IsFormValid rVault
+			if eval (rVault.GetItemCount rBook) > 0
+				rVault.RemoveItem rBook 1 1
+			else
+				return
+			endif
+		else
+			return
+		endif
+		let fOffer := player.AuxVarGetFlt "*_stOffer"
+		if iWin == 1
+			let fP := player.AuxVarGetFlt "_wbBalN"
+			let fP += fOffer
+			player.AuxVarSetFlt "_wbBalN" fP
+			MessageBoxEx "The Dam papers%rThe bank buys the Hero's Annuity for %.0f NCR dollars, paid into your NCR-dollar account." fOffer
+		elseif iWin == 2
+			let fP := player.AuxVarGetFlt "_wbBalL"
+			let fP += fOffer
+			player.AuxVarSetFlt "_wbBalL" fP
+			MessageBoxEx "The Dam papers%rThe bank buys the Legate's Grant for %.0f denarii, paid into your denarius account." fOffer
+		else
+			let fP := player.AuxVarGetFlt "_wbBal"
+			let fP += fOffer
+			player.AuxVarSetFlt "_wbBal" fP
+			MessageBoxEx "The Dam papers%rThe bank buys your Lucky 38 shares for %.0f caps, paid into your balance." fOffer
+		endif
+		player.AuxVarSetFlt "_stSold" 1
+		return
+	endif
+	let rFn := CompileScript "WastelandBank/Invest.txt"
+	call rFn
+end

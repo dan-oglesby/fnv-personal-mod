@@ -1,0 +1,56 @@
+; Wasteland Bank: the week's payment on the Dam papers (2026-11-17), in the paper's own money, by your
+; standing with the winner now (RepTier.txt): 0 if Vilified (suspended).
+;   iWin 1, the Republic's Hero's Annuity, NCR dollars (RepNVNCR 1000414): 250 / 625 / 1,250 /
+;     2,500 a week for Neutral / Accepted / Liked / Idolized (100 to 1,000 caps at the old 0.4 rate)
+;   iWin 2, the Legate's Grant, denarii (RepNVCaesarsLegion 1000413): 25 / 60 / 125 / 250
+;   iWin 3, Lucky 38 shares: 1 percent of the stake's value (units "_stU" x RobCo's price, ticker 8),
+;     in caps; Mr. House pays his shareholders whatever their standing on the Strip.
+int iWin
+int iTier
+float fV
+ref rRep
+ref rFn
+
+begin Function {iWin}
+	let fV := 0
+	if iWin == 3
+		let rFn := CompileScript "WastelandBank/ExPrice.txt"
+		let fV := call rFn 8
+		let fV *= player.AuxVarGetFlt "_stU"
+		let fV *= 0.01
+		SetFunctionValue fV
+		return
+	endif
+	if iWin == 1
+		let rRep := BuildRef 0 1000414	; RepNVNCR
+	elseif iWin == 2
+		let rRep := BuildRef 0 1000413	; RepNVCaesarsLegion
+	else
+		SetFunctionValue 0
+		return
+	endif
+	let rFn := CompileScript "WastelandBank/RepTier.txt"
+	let iTier := call rFn rRep
+	if iTier < 0
+		let fV := 0
+	elseif iWin == 1
+		let fV := 250
+		if iTier == 1
+			let fV := 625
+		elseif iTier == 2
+			let fV := 1250
+		elseif iTier == 3
+			let fV := 2500
+		endif
+	else
+		let fV := 25
+		if iTier == 1
+			let fV := 60
+		elseif iTier == 2
+			let fV := 125
+		elseif iTier == 3
+			let fV := 250
+		endif
+	endif
+	SetFunctionValue fV
+end

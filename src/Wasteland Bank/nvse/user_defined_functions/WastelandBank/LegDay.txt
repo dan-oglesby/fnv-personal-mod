@@ -1,7 +1,6 @@
 ; Wasteland Bank: the Legion treasury's game day (from ExDay.txt).
-; - The Dam: once the NCR, House or an independent Vegas has won it (For the Republic, Part 2
-;   1270118; House Always Wins VIII 1341579; Wild Card: Finishing Touches 1409661, FalloutNV.esm,
-;   completed), the treasury defaults: every loan and contract becomes one debt ("_ltOwed"), of
+; - The Dam: once the NCR, House or an independent Vegas has won it (DamWon.txt, the battle
+;   quests; 2026-11-17, before which the quests that start the battle counted), the treasury defaults: every loan and contract becomes one debt ("_ltOwed"), of
 ;   which a quarter can be recovered at first, falling to nothing over 30 days ("_ltRec").
 ; - Vilified by the Legion: it repudiates everything it owes you.
 ; - Every 7th day: coupons (2 percent a week on loans; contracts 4 percent times their frontier
@@ -39,16 +38,9 @@ begin Function {iDay}
 
 	; the Dam
 	let iDone := 0
-	let rQ := BuildRef 0 1270118
-	if eval GetQuestCompleted rQ
-		let iDone := 1
-	endif
-	let rQ := BuildRef 0 1341579
-	if eval GetQuestCompleted rQ
-		let iDone := 1
-	endif
-	let rQ := BuildRef 0 1409661
-	if eval GetQuestCompleted rQ
+	let rFn := CompileScript "WastelandBank/DamWon.txt"
+	let iK := call rFn
+	if iK == 1 || iK == 3 || iK == 4
 		let iDone := 1
 	endif
 	if iDone == 1

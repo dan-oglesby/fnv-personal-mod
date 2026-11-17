@@ -80,21 +80,16 @@ begin Function {iWk}
 
 	; the war
 	let sWar := sv_Construct "THE WAR%r"
-	let iN := 0
-	let rQ := BuildRef 0 1270118	; For the Republic, Part 2
-	if eval GetQuestCompleted rQ
+	let rFn := CompileScript "WastelandBank/DamWon.txt"
+	let iN := call rFn
+	if iN == 1
 		let sWar := sWar + (sv_Construct "Hoover Dam is in the Republic's hands.%r")
-		let iN := 1
-	endif
-	let rQ := BuildRef 0 1341579	; House Always Wins VIII
-	if eval GetQuestCompleted rQ
+	elseif iN == 2
+		let sWar := sWar + (sv_Construct "Caesar's Legion holds Hoover Dam, and the road to Vegas is open.%r")
+	elseif iN == 3
 		let sWar := sWar + (sv_Construct "Mr. House holds Hoover Dam, and the Strip with it.%r")
-		let iN := 1
-	endif
-	let rQ := BuildRef 0 1409661	; Wild Card: Finishing Touches
-	if eval GetQuestCompleted rQ
+	elseif iN == 4
 		let sWar := sWar + (sv_Construct "Hoover Dam has fallen to an independent New Vegas.%r")
-		let iN := 1
 	endif
 	if iN == 0
 		if eval (player.AuxVarGetFlt "_wxE" 29) == 1
@@ -108,9 +103,11 @@ begin Function {iWk}
 	if eval (player.AuxVarGetFlt "_ltDefault") == 1
 		let sWar := sWar + (sv_Construct "The Legion treasury has defaulted on its debts.%r")
 	endif
+	let rFn := CompileScript "WastelandBank/ExRate.txt"
+	let fNcr := call rFn	; caps per NCR dollar
 	let rFn := CompileScript "WastelandBank/ExPrice.txt"
-	let fNcr := call rFn 14
 	let fDen := call rFn 15
+	let fDen *= 4	; caps per denarius (vanilla 4)
 	let sLine := sv_Construct "The NCR dollar: %.2f caps" fNcr
 	let fOld := player.AuxVarGetFlt "_wbRepFx" 0
 	if fOld > 0
