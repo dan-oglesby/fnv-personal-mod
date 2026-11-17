@@ -10,8 +10,8 @@
 ; 1426986. Two magazines of the ammo loaded in the weapon in your hands are always left alone.
 ;   iDo 0: returns the steps of charge your ammo could give (nothing used)
 ;   iDo 2: returns how many cells of fuel you carry (nothing used)
-; With "_fpCellOne" 1 (the default since 2026-11-17) each spent cell is ejected at your feet,
-; like a battery, instead of going into your pack.
+; Spent cells always go into your pack as drained cells. "_fpCellOne" (Tick.txt) only decides
+; whether cells load one at a time or a fifth of a battery at once.
 ;   iDo 1: uses ammo until fNeed steps are covered or none is left; returns the steps given, and
 ;          the cells used in "*_fpCellN"
 float fNeed
@@ -78,11 +78,7 @@ begin Function {fNeed, iDo}
 				player.RemoveItem rItem iTake 1
 				let iId := aDrain[iK]
 				let rDrain := BuildRef 0 iId
-				if eval (player.AuxVarGetFlt "_fpCellOne") == 1
-					player.PlaceAtMe rDrain iTake	; ejected at your feet
-				else
-					player.AddItem rDrain iTake 1
-				endif
+				player.AddItem rDrain iTake 1
 				let fGot += iTake * fStep
 				let iUsed += iTake
 			endif

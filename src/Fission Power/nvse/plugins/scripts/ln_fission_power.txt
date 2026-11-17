@@ -22,9 +22,9 @@
 ; With no fission batteries left, energy weapon ammo powers the suit (2026-11-17, Cells.txt): each
 ; cell worth its vanilla value against a battery's 75 caps (an energy cell about 267 steps), least
 ; energy-dense first, two magazines of your weapon's loaded ammo kept back, spent cells returned
-; drained. player.AuxVarSetFlt "_fpAmmo" 0 = batteries only. By default each cell runs on its own and
-; is ejected at your feet when spent; player.AuxVarSetFlt "_fpCellOne" 0 refuels a fifth of a
-; battery at a time instead, drained cells into your pack. Smart Loot keeps energy ammo as fuel.
+; drained. player.AuxVarSetFlt "_fpAmmo" 0 = batteries only. By default each cell runs on its own,
+; with a click and a count when it's spent; player.AuxVarSetFlt "_fpCellOne" 0 refuels a fifth of a
+; battery at a time instead. Drained cells go into your pack. Smart Loot keeps energy ammo as fuel.
 ; The suit also holds water (2026-11-17, SuitWater.txt): it takes in the water you carry while it
 ; has room (clean first; irradiated water filtered at more power) and in Hardcore gives you a
 ; Purified Water as thirst nears its first stage. The worn suit weighs more by its processor

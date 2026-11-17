@@ -110,8 +110,8 @@ begin Function {}
 		; battery at a time; spent cells come back as drained cells ("_fpAmmo" 0 = batteries only)
 		if eval fLeft <= 0 && (player.AuxVarGetFlt "_fpAmmo") == 1
 			let rCell := CompileScript "FissionPower/Cells.txt"
-			; one cell at a time, each spent one ejected with a click ("_fpCellOne" 1, the default), or
-			; a fifth of a battery at once with the drained cells into your pack (0)
+			; one cell at a time, each spent one popped out with a click and a count ("_fpCellOne" 1, the
+			; default), or a fifth of a battery at once (0); drained cells go into your pack either way
 			let fNeed := fLife * 0.2 - fLeft
 			if eval (player.AuxVarGetFlt "_fpCellOne") == 1
 				let fNeed := 1 - fLeft
@@ -133,7 +133,7 @@ begin Function {}
 						PlaySound rSnd
 					endif
 					let fGot := call rCell 0 2
-					MessageEx "Cell spent and ejected. %.0f cells of fuel left." fGot
+					MessageEx "Cell spent, into your pack as a drained cell. %.0f cells of fuel left." fGot
 				else
 					MessageEx "No fission batteries: the suit drained %.0f energy weapon cells for power." iCells
 				endif
