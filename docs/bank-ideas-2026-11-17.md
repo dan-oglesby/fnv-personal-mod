@@ -69,7 +69,8 @@ Cottonwood Cove to Nipton and to Searchlight Airport, in denarii from the denari
 A Legion caravan is a veteran, an explorer, a recruit and a pack brahmin; NCR troopers ambush it,
 and its danger rises with the NCR dollar. They replace the publicani contracts (contracts already
 bought run out as before). Both representatives are placed by script the first time you come near
-and talking to one opens their menu.
+and talking to one opens their menu. The Caravan Agent can't die; the Publicanus can (he keeps the
+Legion's factions, so he fights with the Cove), and once he's dead the Legion's caravans are over.
 
 ## The fence: Gomorrah's books (to explore further)
 

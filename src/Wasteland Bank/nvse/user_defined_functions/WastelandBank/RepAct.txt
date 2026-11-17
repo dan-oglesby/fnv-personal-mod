@@ -1,10 +1,14 @@
 ; Wasteland Bank: xNVSE OnActivate handler for the representatives (RepTick.txt; filtered to each as
 ; either argument). They have no dialogue (an empty OnActivate script); talking to one opens their
-; caravans (Caravans.txt): "*_cvSide" 0 the Caravan Agent's runs, 1 the Publicanus's.
+; caravans (Caravans.txt): "*_cvSide" 0 the Caravan Agent's runs, 1 the Publicanus's. The
+; Publicanus dead, activating him opens his body to loot (the game's own activation, which his
+; empty script would otherwise block); "*_wbRepLoot" (game days) keeps that from firing this
+; handler again in a loop.
 ref rFirst
 ref rSecond
 ref rRep
 ref rNext
+float fT
 
 begin Function {rFirst, rSecond}
 	if eval rFirst != player && rSecond != player
@@ -16,6 +20,15 @@ begin Function {rFirst, rSecond}
 	else
 		let rRep := player.AuxVarGetRef "_wbRepLg"
 		if eval rFirst == rRep || rSecond == rRep
+			if eval rRep.GetDead
+				if eval GameDaysPassed < (player.AuxVarGetFlt "*_wbRepLoot")
+					return
+				endif
+				let fT := GameDaysPassed + 0.0005
+				player.AuxVarSetFlt "*_wbRepLoot" fT
+				rRep.Activate player
+				return
+			endif
 			player.AuxVarSetFlt "*_cvSide" 1
 		else
 			return

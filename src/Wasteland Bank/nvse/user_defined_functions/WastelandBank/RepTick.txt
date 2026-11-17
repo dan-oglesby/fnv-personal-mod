@@ -2,7 +2,9 @@
 ; marker of the place its business is done: the Caravan Agent (WastelandBank.esp 0x813) at the
 ; Crimson Caravan Company (marker 977968, FalloutNV.esm), and the Publicanus (0x814) at Cottonwood
 ; Cove (1225671). Placed the first time you come within about 40 m outdoors, kept in your save
-; ("_wbRepCv", "_wbRepLg"), and placed again if ever lost. Talking to one opens their business
+; ("_wbRepCv", "_wbRepLg"), and placed again if ever lost. The Caravan Agent can't die; the
+; Publicanus can (he keeps the Legion's factions and falls with the Cove): once he's dead
+; ("_wbRepLgDead") no one takes his place, and the Legion's caravans are over. Talking to one opens their business
 ; (RepAct.txt): its handlers are filtered to each and set once a game session ("*_wbRepHCv",
 ; "*_wbRepHLg"; separate names, not one indexed list, since either may come first). The Publicanus
 ; isn't placed once the Legion's business with you is over ("_ltClosed").
@@ -46,7 +48,10 @@ begin Function {}
 			SetEventHandler "OnActivate" rFn "second"::rRep
 			player.AuxVarSetFlt "*_wbRepHLg" 1
 		endif
-	elseif eval (player.AuxVarGetFlt "_ltClosed") == 0
+		if eval rRep.GetDead
+			player.AuxVarSetFlt "_wbRepLgDead" 1
+		endif
+	elseif eval (player.AuxVarGetFlt "_ltClosed") == 0 && (player.AuxVarGetFlt "_wbRepLgDead") == 0
 		let rMark := BuildRef 0 1225671	; Cottonwood Cove's map marker
 		let rBase := BuildRef iPlug 2068	; WBRepPublicanus 0x814
 		if eval (IsFormValid rMark) && (IsFormValid rBase)
