@@ -1,0 +1,51 @@
+; After the Dam: twice a second of play (2026-11-17).
+; - Until the end slides begin (the VEnding quest, FalloutNV.esm 1424129, not running), notes every
+;   5 seconds which companions are in the world ("_adEn" 0-10, in Resume.txt's order): the slides
+;   disable all of them, and only these come back.
+; - When the slides hand over to the game's fade to the credits (the FadeToCreditsTimer quest
+;   1548668 starts; its script fades to black for about 8 seconds, then quits to the main menu),
+;   the game goes on instead (Resume.txt). Once per game ("_adDone").
+int iN
+int iK
+ref rQ
+ref rRef
+array_var aIds
+array_var aEntry
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_adDone") == 1
+		return
+	endif
+	let rQ := BuildRef 0 1548668	; FadeToCreditsTimer
+	if eval GetQuestRunning rQ
+		let rQ := CompileScript "AfterDam/Resume.txt"
+		call rQ
+		return
+	endif
+	let rQ := BuildRef 0 1424129	; VEnding
+	if eval GetQuestRunning rQ
+		return
+	endif
+	let iN := player.AuxVarGetFlt "*_adT"
+	let iN += 1
+	player.AuxVarSetFlt "*_adT" iN
+	if iN < 10
+		return
+	endif
+	player.AuxVarSetFlt "*_adT" 0
+	let aIds := Ar_List 617422, 1104107, 942341, 930473, 1300528, 1269529, 1104095, 1520337, 1520336, 1520335, 1397979
+	let iK := 0
+	foreach aEntry <- aIds
+		let iN := aEntry["value"]
+		let rRef := BuildRef 0 iN
+		let iN := 0
+		if eval IsFormValid rRef
+			if eval (rRef.GetDisabled) == 0
+				let iN := 1
+			endif
+		endif
+		player.AuxVarSetFlt "_adEn" iN iK
+		let iK += 1
+	loop
+	let aIds := Ar_Null
+end

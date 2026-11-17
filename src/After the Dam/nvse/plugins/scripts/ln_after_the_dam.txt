@@ -1,0 +1,29 @@
+; After the Dam (2026-11-17): play goes on after the ending. When the end slides finish, instead of
+; fading to the credits and quitting, the game puts things back (saving, controls, the companions
+; who were with you) and you wake on the road by Boulder City, at the developers' own unused
+; post-game start. Nothing else about the world changes. Scripts only, no plugin; don't use it with
+; another post-ending mod.
+;
+; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE and JIP LN.
+
+let int iBad := 0
+let ref rChk := CompileScript "AfterDam/Always.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "AfterDam/Tick.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "AfterDam/Resume.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+if iBad > 0
+	print "After the Dam: a script failed to compile (see nvse.log), so the ending will play as normal"
+else
+	; twice a second: flags 4 + 16, not in menus, not while paused (the slides are gameplay)
+	let ref rTick := CompileScript "AfterDam/Tick.txt"
+	let ref rTrue := CompileScript "AfterDam/Always.txt"
+	CallWhilePerSeconds 0.5 rTick rTrue 20
+endif

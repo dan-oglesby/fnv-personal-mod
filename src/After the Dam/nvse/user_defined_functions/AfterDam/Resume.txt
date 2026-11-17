@@ -1,0 +1,49 @@
+; After the Dam: the game goes on after the end slides (2026-11-17). The slides (VEndingScript, the
+; VEnding quest) disable the companions, clear chem effects, turn off the Pip-Boy radio and disguise
+; notices, put the game in character-generation mode (no saving), lock the controls and move you to
+; the slide room; the last slide starts FadeToCreditsTimer, which fades to black and quits. Here:
+; - the fade is stopped and its image-space effects taken off (FadeToBlackPermanent 1524753,
+;   FadeToBlackISFX 158148);
+; - saving and the controls come back, and disguise notices (DisguiseFactionPulseQuest 1315240);
+; - the companions who were in the world before the slides are enabled again (Tick.txt's "_adEn":
+;   Boone 617422, Arcade 1104107, Raul 942341, Veronica 930473, Lily 1300528, Cass 1269529,
+;   Rex 1104095, ED-E 1520337 / 1520336 / 1520335, the Securitron escort 1397979);
+; - you wake at the developers' own post-game start, VPostGameStartMarker (1441648), on the road
+;   by Boulder City (their unused VEndingBinksSCRIPT moved the player there: "we'll continue
+;   playing").
+int iN
+int iK
+ref rQ
+ref rRef
+array_var aIds
+array_var aEntry
+
+begin Function {}
+	player.AuxVarSetFlt "_adDone" 1
+	let rQ := BuildRef 0 1548668	; FadeToCreditsTimer
+	StopQuest rQ
+	let rRef := BuildRef 0 1524753	; FadeToBlackPermanent
+	RemoveImageSpaceModifier rRef
+	let rRef := BuildRef 0 158148	; FadeToBlackISFX
+	RemoveImageSpaceModifier rRef
+	SetInCharGen 0
+	EnablePlayerControls
+	let rQ := BuildRef 0 1315240	; DisguiseFactionPulseQuest
+	StartQuest rQ
+	let aIds := Ar_List 617422, 1104107, 942341, 930473, 1300528, 1269529, 1104095, 1520337, 1520336, 1520335, 1397979
+	let iK := 0
+	foreach aEntry <- aIds
+		let iN := aEntry["value"]
+		let rRef := BuildRef 0 iN
+		if eval (player.AuxVarGetFlt "_adEn" iK) == 1 && (IsFormValid rRef)
+			rRef.Enable
+		endif
+		let iK += 1
+	loop
+	let aIds := Ar_Null
+	let rRef := BuildRef 0 1441648	; VPostGameStartMarker
+	if eval IsFormValid rRef
+		player.MoveTo rRef
+	endif
+	MessageBoxEx "After the Dam%rThe story's told, but the Mojave goes on. Whatever you made of it is yours to live in now."
+end

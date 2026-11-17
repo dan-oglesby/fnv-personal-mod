@@ -1,0 +1,4 @@
+; After the Dam: condition for the check (always run; xNVSE clears it on load).
+begin Function {}
+	SetFunctionValue 1
+end
