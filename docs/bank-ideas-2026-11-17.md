@@ -30,9 +30,10 @@ stages, deaths of named characters, your karma and reputations, money and time. 
 **Influence.** Most bets are about what you do, so you can win them by playing for them; the odds
 account for that (an easy feat for your build pays little).
 
-**Decisions for Dan:** which bet families to start with (suggest: feats, bounties and journeys,
-which are easy to score from counters; the war later), stake sizes, and whether the book is only at
-the casinos or also with the couriers.
+**Decided:** start with bounties, including generated bounties on specific characters, a small
+quest each ("kill the Viper leader at the camp by the Sloan quarry by day N"): the script picks a
+target (a named or leader-type enemy and where it is), marks it, and pays on its death before the
+deadline. The book lives at the casino cashier windows; the couriers take bets remotely.
 
 ## Caravan ventures (to explore further)
 
@@ -47,8 +48,9 @@ Fund a caravan run as a silent partner. Mechanics to settle:
 - **Your hand in it:** clearing the threats on a route (a known raider camp) before it leaves cuts
   the danger and raises your share; escorting a run yourself (meeting it at a waypoint) pays a bonus.
 - **Ties:** returns move the caravan companies' stocks; a lost caravan hurts Crimson Caravan's price.
-Open question for Dan: should runs be fire-and-forget (letters only), or physical (the caravan
-actually walks the road and can be met)? Physical is much bigger.
+**Decided:** physical caravans and large investments. You get an optional quest (and a quest
+item) to escort your caravan to its destination: walk it there and it pays a high return for
+certain; don't, and it travels on its own at the route's ordinary odds.
 
 ## The fence: Gomorrah's books (to explore further)
 
@@ -61,7 +63,7 @@ The couriers won't touch stolen goods; the Omertas will.
   Gomorrah's tables into clean balance, for a cut.
 - **A stake in the books:** at the Kingpin stage, buy into Gomorrah's books (a share of the fence's
   take), which ties into operations; the Omertas' story (their plot against the Strip) can wipe it.
-Open question: should the fence need the Omertas' trust (their quest line), or be open to anyone?
+**Decided:** only once the Omertas trust you.
 
 ## Kept for later (not building now)
 
