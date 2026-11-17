@@ -1,58 +1,30 @@
-; Wasteland Bank: investment buttons (0 exchange, 1 war bonds, 2 currency accounts, 3 bank notes,
-; 4 managed account, 5 Legion treasury, 6 the bank's fees for its controlling owner, 7 holdings by
-; sector, 8 operations, 9 back). Each opens at its wealth stage (Stage.txt): currency accounts 1,
-; war bonds 2, the Legion treasury 3, the managed account 4 (or with money already in it), holdings
-; by sector 5, operations 6. The exchange can always be looked at; trading has its own stages.
+; Wasteland Bank: investment buttons. Invest.txt lists only the services your stage has opened and
+; notes which service each button is ("*_wbInvC": 0 exchange, 1 war bonds, 2 currency accounts,
+; 3 bank notes, 4 managed account, 5 Legion treasury, 6 running the bank, 7 holdings by sector,
+; 8 operations, 9 back).
 int iBtn
-int iNeed
-int iOk
+int iCode
 ref rNext
-ref rStage
 
 begin Function {iBtn}
-	let iNeed := 0
-	if iBtn == 1
-		let iNeed := 2
-	elseif iBtn == 2
-		let iNeed := 1
-	elseif iBtn == 4
-		let iNeed := 4
-		if eval (player.AuxVarGetFlt "_wmaVal") > 0 || (player.AuxVarGetFlt "_wmaOut") > 0
-			let iNeed := 0
-		endif
-	elseif iBtn == 5
-		let iNeed := 3
-	elseif iBtn == 7
-		let iNeed := 5
-	elseif iBtn == 8
-		let iNeed := 6
-	endif
-	if iNeed > 0
-		let rStage := CompileScript "WastelandBank/Stage.txt"
-		let iOk := call rStage iNeed 0
-		if iOk == 0
-			let rNext := CompileScript "WastelandBank/Invest.txt"
-			call rNext
-			return
-		endif
-	endif
-	if iBtn == 0
+	let iCode := player.AuxVarGetFlt "*_wbInvC" iBtn
+	if iCode == 0
 		let rNext := CompileScript "WastelandBank/ExMenu.txt"
-	elseif iBtn == 1
+	elseif iCode == 1
 		let rNext := CompileScript "WastelandBank/Bonds.txt"
-	elseif iBtn == 2
+	elseif iCode == 2
 		let rNext := CompileScript "WastelandBank/Accounts.txt"
-	elseif iBtn == 3
+	elseif iCode == 3
 		let rNext := CompileScript "WastelandBank/BankNotes.txt"
-	elseif iBtn == 4
+	elseif iCode == 4
 		let rNext := CompileScript "WastelandBank/Managed.txt"
-	elseif iBtn == 5
+	elseif iCode == 5
 		let rNext := CompileScript "WastelandBank/Legion.txt"
-	elseif iBtn == 6
+	elseif iCode == 6
 		let rNext := CompileScript "WastelandBank/OwnerFees.txt"
-	elseif iBtn == 7
+	elseif iCode == 7
 		let rNext := CompileScript "WastelandBank/Sectors.txt"
-	elseif iBtn == 8
+	elseif iCode == 8
 		let rNext := CompileScript "WastelandBank/Ops.txt"
 	else
 		let rNext := CompileScript "WastelandBank/Courier.txt"

@@ -16,6 +16,8 @@ int iRep
 string_var sState
 ref rFn
 ref rCb
+string_var sBtns
+int iB
 
 begin Function {}
 	let rFn := CompileScript "WastelandBank/LegInit.txt"
@@ -52,6 +54,25 @@ begin Function {}
 	elseif iRep == 2
 		let sState := "The Legion holds you Vilified: it pays you nothing."
 	endif
+	; buttons that apply (2026-11-17), noted in "*_ltBtn" for LegionBtn.txt (0 lend 100, 1 lend
+	; 1,000, 2 contracts from the Financier stage, 3 collect after a default, 4 back)
+	player.AuxVarErase "*_ltBtn"
+	let sBtns := "|Lend 100 denarii for 30 days|Lend 1,000 denarii for 30 days"
+	player.AuxVarSetFlt "*_ltBtn" 0 0
+	player.AuxVarSetFlt "*_ltBtn" 1 1
+	let iB := 2
+	if eval (player.AuxVarGetFlt "_wbStage") >= 4
+		let sBtns := sBtns + "|Publicani contracts"
+		player.AuxVarSetFlt "*_ltBtn" 2 iB
+		let iB += 1
+	endif
+	if eval (player.AuxVarGetFlt "_ltDefault") == 1 && (player.AuxVarGetFlt "_ltClosed") == 0
+		let sBtns := sBtns + "|Collect what can be recovered"
+		player.AuxVarSetFlt "*_ltBtn" 3 iB
+		let iB += 1
+	endif
+	let sBtns := sBtns + "|Back"
+	player.AuxVarSetFlt "*_ltBtn" 4 iB
 	let rCb := CompileScript "WastelandBank/LegionBtn.txt"
-	MessageBoxExAlt rCb "^Legion treasury^Your denarius account: %.0f denarii.%rLent: %.0f denarii in %.0f loan(s), 2 percent a week.%rIn publicani contracts: %.0f denarii.%r%z|Lend 100 denarii for 30 days|Lend 1,000 denarii for 30 days|Publicani contracts|Collect what can be recovered|Back" fAcct fLoans iN fCons sState
+	MessageBoxExAlt rCb "^Legion treasury^Your denarius account: %.0f denarii.%rLent: %.0f denarii in %.0f loan(s), 2 percent a week.%rIn publicani contracts: %.0f denarii.%r%z%z" fAcct fLoans iN fCons sState sBtns
 end

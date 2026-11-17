@@ -1,14 +1,29 @@
-; Wasteland Bank: the couriers' investment services (from the courier menu).
+; Wasteland Bank: the couriers' investment services (from the courier menu). Only what your wealth
+; stage has opened is listed (2026-11-17); the menu says what the next stage brings. Each button's
+; service is noted in "*_wbInvC" (button number -> service: 0 exchange, 1 war bonds, 2 currency
+; accounts, 3 bank notes, 4 managed account, 5 Legion treasury, 6 running the bank, 7 holdings by
+; sector, 8 operations, 9 back), which InvestBtn.txt reads.
+;   always: the exchange (to look at; trading has its own stages), bank notes
+;   Saver (1): currency accounts, the managed account
+;   Investor (2): NCR War Bonds
+;   Speculator (3): the Legion treasury
+;   Fund manager (5): holdings by sector
+;   Kingpin (6): operations
+;   owning more than half the bank: running it
 float fFees
 float fWlth
-float fNext
 int iStage
 int iNext
+int iN
+int iTier
 string_var sStage
 string_var sNext
-ref rInfo
-int iTier
+string_var sAt
+string_var sWhat
 string_var sTier
+string_var sBody
+string_var sBtns
+ref rInfo
 ref rFn
 ref rCb
 
@@ -27,12 +42,61 @@ begin Function {}
 	let iStage := player.AuxVarGetFlt "_wbStage"
 	let rInfo := CompileScript "WastelandBank/StageInfo.txt"
 	let sStage := call rInfo iStage 0
-	let sNext := "the top"
+	let sBody := sv_Construct "Wealth: %.0f caps, a %z." fWlth sStage
 	if iStage < 6
 		let iNext := iStage + 1
 		let sNext := call rInfo iNext 0
-		let sNext := sNext + " at " + (call rInfo iNext 1) + " caps"
+		let sAt := call rInfo iNext 1
+		let sWhat := call rInfo iNext 2
+		let sBody := sBody + (sv_Construct "%rNext: %z at %z caps. %z" sNext sAt sWhat)
 	endif
+	let sBody := sBody + (sv_Construct "%rCustomer tier: %z (the bank has earned %.0f caps from you, Trader from 2,500, Mogul from 15,000)." sTier fFees)
+
+	player.AuxVarErase "*_wbInvC"
+	let iN := 0
+	let sBtns := "|Wasteland Exchange"
+	player.AuxVarSetFlt "*_wbInvC" 0 iN
+	let iN += 1
+	if iStage >= 2
+		let sBtns := sBtns + "|NCR War Bonds"
+		player.AuxVarSetFlt "*_wbInvC" 1 iN
+		let iN += 1
+	endif
+	if iStage >= 1
+		let sBtns := sBtns + "|Currency accounts"
+		player.AuxVarSetFlt "*_wbInvC" 2 iN
+		let iN += 1
+	endif
+	let sBtns := sBtns + "|Wasteland Bank notes"
+	player.AuxVarSetFlt "*_wbInvC" 3 iN
+	let iN += 1
+	if eval iStage >= 1 || (player.AuxVarGetFlt "_wmaVal") > 0 || (player.AuxVarGetFlt "_wmaOut") > 0
+		let sBtns := sBtns + "|Managed account"
+		player.AuxVarSetFlt "*_wbInvC" 4 iN
+		let iN += 1
+	endif
+	if iStage >= 3
+		let sBtns := sBtns + "|Legion treasury"
+		player.AuxVarSetFlt "*_wbInvC" 5 iN
+		let iN += 1
+	endif
+	if eval (player.AuxVarGetFlt "_wxH" 16) > 500
+		let sBtns := sBtns + "|Run the bank"
+		player.AuxVarSetFlt "*_wbInvC" 6 iN
+		let iN += 1
+	endif
+	if iStage >= 5
+		let sBtns := sBtns + "|Holdings by sector"
+		player.AuxVarSetFlt "*_wbInvC" 7 iN
+		let iN += 1
+	endif
+	if iStage >= 6
+		let sBtns := sBtns + "|Operations"
+		player.AuxVarSetFlt "*_wbInvC" 8 iN
+		let iN += 1
+	endif
+	let sBtns := sBtns + "|Back"
+	player.AuxVarSetFlt "*_wbInvC" 9 iN
 	let rCb := CompileScript "WastelandBank/InvestBtn.txt"
-	MessageBoxExAlt rCb "^Investments^Wealth: %.0f caps, a %z. Next: %z.%rCustomer tier: %z (the bank has earned %.0f caps from you, Trader from 2,500, Mogul from 15,000).|Wasteland Exchange (trade)|NCR War Bonds|Currency accounts|Wasteland Bank notes|Managed account|Legion treasury|Run the bank (controlling owners)|Holdings by sector|Operations|Back" fWlth sStage sNext sTier fFees
+	MessageBoxExAlt rCb "^Investments^%z%z" sBody sBtns
 end

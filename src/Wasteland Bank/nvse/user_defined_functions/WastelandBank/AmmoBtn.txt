@@ -1,31 +1,52 @@
-; Wasteland Bank: ammo buttons (0 four magazines for the weapon in hand, 1 a magazine per weapon
-; with none, 2 store spare ammo, 3 sell spare ammo, 4 standing order on or off, 5 back).
+; Wasteland Bank: ammo and supplies buttons (0 top up to 300, 1 a magazine per weapon with none,
+; 2 store spare ammo, 3 sell spare ammo, 4 sell all of this ammo, 5 sell this ammo over 500, 6 buy
+; this ammo to 500, 7 arrival ammo off > top up > top up and take spares, 8 arrival aid items kept
+; off > 1 > 2 > 3 > 5, 9 back). Buttons 0-6 are BankAmmo.txt modes 1-7.
 int iBtn
 int iMode
 int iN
-float fX
+int iV
 ref rFn
 
 begin Function {iBtn}
-	if iBtn == 5
+	if iBtn == 9
 		let rFn := CompileScript "WastelandBank/Courier.txt"
 		call rFn
 		return
 	endif
-	if iBtn == 4
-		let fX := player.AuxVarGetFlt "_wbAmmoOrder"
-		let fX := 1 - fX
-		player.AuxVarSetFlt "_wbAmmoOrder" fX
+	if iBtn == 7
+		let iV := player.AuxVarGetFlt "_wbArrAmmo"
+		let iV += 1
+		if iV > 2
+			let iV := 0
+		endif
+		player.AuxVarSetFlt "_wbArrAmmo" iV
+	elseif iBtn == 8
+		let iV := player.AuxVarGetFlt "_wbRefillN"
+		if iV < 1
+			let iV := 1
+		elseif iV < 2
+			let iV := 2
+		elseif iV < 3
+			let iV := 3
+		elseif iV < 5
+			let iV := 5
+		else
+			let iV := 0
+		endif
+		player.AuxVarSetFlt "_wbRefillN" iV
 	else
 		let iMode := iBtn + 1
 		let rFn := CompileScript "WastelandBank/BankAmmo.txt"
 		let iN := call rFn iMode
-		if iBtn != 3
+		if iBtn <= 2
 			if iN > 0
 				MessageEx "The couriers moved %.0f rounds." iN
 			else
 				MessageEx "Nothing to move."
 			endif
+		elseif iN == 0
+			MessageEx "Nothing to do."
 		endif
 	endif
 	let rFn := CompileScript "WastelandBank/Ammo.txt"

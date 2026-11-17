@@ -13,6 +13,7 @@ float fLb
 float fWt
 float fRate
 float fFee
+float fBox
 ref rVault
 ref rItem
 ref rFee
@@ -33,6 +34,7 @@ begin Function {iMenu}
 	endif
 	let iPass := player.AuxVarGetFlt "*_wbVPass"
 	let fLb := 0
+	let fBox := 0
 	; what's in the vault now, against what was there (items marked done as they're counted)
 	let iN := rVault.GetNumItems
 	let iIdx := 0
@@ -49,6 +51,12 @@ begin Function {iMenu}
 		endif
 		AuxVarSetFlt "*_wbVP" 0 0 rItem
 		let iDiff := iCnt - iWas
+		if iDiff > 0
+			if eval (GetType rItem) == 41
+				let fWt := GetValue rItem
+				let fBox += iDiff * fWt	; loose ammo put in: reboxed
+			endif
+		endif
 		if iDiff < 0
 			let iDiff := 0 - iDiff
 		endif
@@ -72,6 +80,12 @@ begin Function {iMenu}
 			let fLb += iWas * fWt
 		endif
 	loop
+	if fBox > 0
+		let fFee := fBox * 0.05
+		let rFee := CompileScript "WastelandBank/Fee.txt"
+		call rFee fFee
+		MessageEx "Reboxing loose ammo: %.0f caps." fFee
+	endif
 	if fLb <= 0
 		return
 	endif

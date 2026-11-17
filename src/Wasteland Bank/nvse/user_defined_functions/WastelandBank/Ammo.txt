@@ -1,22 +1,45 @@
-; Wasteland Bank: ammo through the couriers (BankAmmo.txt). Store ammo in the vault, have it
-; brought back as you need it, or sell what no weapon of yours takes. The standing order
-; ("_wbAmmoOrder") has every arriving squad bring magazines from the vault and take your spare ammo
-; back with them.
+; Wasteland Bank: ammo and supplies through the couriers (BankAmmo.txt). "This ammo" is the kind in
+; the weapon in your hands. On arrival, squads can top it up to 300 rounds from the vault and bring
+; a magazine for any weapon with none ("_wbArrAmmo" 1), also taking your spare ammo back to the
+; vault (2), and keep "_wbRefillN" of every aid item the vault holds (food, water, cigarettes,
+; medicine). Loose ammo handed over is reboxed for 5 percent of its value.
 int iVault
+int iHave
+int iArr
+int iKeep
 float fRate
-string_var sOrder
+string_var sArr
+string_var sKeep
+string_var sBody
 ref rFn
+ref rCur
 ref rCb
 
 begin Function {}
 	let rFn := CompileScript "WastelandBank/BankAmmo.txt"
 	let iVault := call rFn 0
+	let iHave := 0
+	let rCur := GetPlayerCurrentAmmo
+	if eval IsFormValid rCur
+		let iHave := player.GetItemCount rCur
+	endif
 	let rFn := CompileScript "WastelandBank/Rate.txt"
 	let fRate := call rFn 1
-	let sOrder := "off"
-	if eval (player.AuxVarGetFlt "_wbAmmoOrder") == 1
-		let sOrder := "on: each squad brings magazines from the vault and takes your spare ammo back"
+	let iArr := player.AuxVarGetFlt "_wbArrAmmo"
+	if iArr == 0
+		let sArr := "off"
+	elseif iArr == 1
+		let sArr := "top up"
+	else
+		let sArr := "top up and take spares"
+	endif
+	let iKeep := player.AuxVarGetFlt "_wbRefillN"
+	if iKeep == 0
+		let sKeep := "off"
+	else
+		let sKeep := sv_Construct "%.0f of each" iKeep
 	endif
 	let rCb := CompileScript "WastelandBank/AmmoBtn.txt"
-	MessageBoxExAlt rCb "^Ammo at the bank^The vault holds %.0f rounds of the ammo in your weapon. Carrying costs %.2f caps a pound each way.%rStanding order: %z.|Bring four magazines for the weapon in hand|Bring a magazine for each weapon I have no ammo for|Store the ammo none of my weapons take|Sell the ammo none of my weapons take|Standing order on or off|Back" iVault fRate sOrder
+	let sBody := sv_Construct "This ammo: %.0f carried, %.0f in the vault.%rVault carrying %.2f caps a pound each way. Loose ammo handed over is reboxed for 5 percent of its value.%rOn arrival: ammo %z, aid items %z." iHave iVault fRate sArr sKeep
+	MessageBoxExAlt rCb "^Ammo and supplies^%z|Top up this ammo to 300 from the vault|A magazine for each weapon with none|Store ammo none of my weapons take|Sell ammo none of my weapons take|This ammo: sell all of it|This ammo: sell what's over 500|This ammo: buy up to 500|On arrival, ammo: change|On arrival, aid items kept: change|Back" sBody
 end

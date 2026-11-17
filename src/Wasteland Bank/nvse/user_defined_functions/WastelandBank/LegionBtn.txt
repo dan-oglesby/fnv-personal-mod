@@ -12,6 +12,7 @@ float fLeg
 ref rFn
 
 begin Function {iBtn}
+	let iBtn := player.AuxVarGetFlt "*_ltBtn" iBtn	; Legion.txt lists only the buttons that apply
 	if iBtn == 4
 		let rFn := CompileScript "WastelandBank/Invest.txt"
 		call rFn

@@ -143,15 +143,16 @@ mod stays local, generated into an untracked file and never committed to this pu
 
 Built: your total wealth (balance, currency accounts, shares less shorts, the managed account,
 money on its way, carried caps and bank notes, less any loan) opens the bank step by step, with a
-window at every new stage listing what it opens. A stage once reached is kept.
+window at every new stage listing what it opens. A stage once reached is kept. Menus list only
+what your stage has opened (2026-11-17).
 
 | Stage | Wealth | Opens |
 |---|---|---|
 | Wastelander | start | account, couriers, vault, selling, loans, bank notes |
-| Saver | 1,000 | currency accounts |
+| Saver | 1,000 | currency accounts, the managed account (Steady, Bold), so the bank earns early |
 | Investor | 5,000 | buying on the exchange, the funds, NCR War Bonds |
 | Speculator | 20,000 | short selling, auto-invest, Legion treasury loans |
-| Financier | 75,000 | the managed account, publicani contracts |
+| Financier | 75,000 | publicani contracts, the managed account's All in setting |
 | Fund manager | 250,000 | the Hedge fund setting (whole sectors), holdings by sector |
 | Kingpin | 1,000,000 | operations: weekly runs on flagged factions, House pushing back |
 
@@ -172,3 +173,15 @@ percent of your wealth and a month without operations.
   shorting caps while crashing it). Getting caught carries fines and reputation damage.
 - House intervenes against your team when its moves cut against his interest; your team's chance
   of beating him grows with the size of your account.
+
+## Ammo and supplies (built 2026-11-17)
+
+The courier menu's Ammo and supplies page. "This ammo" is the kind in the weapon in your hands.
+- From the vault: top it up to 300 rounds; a magazine for each carried weapon with no ammo.
+- Store or sell the ammo none of your weapons take; sell all of this ammo, or what's over 500
+  (vault first); buy it up to 500 at market value plus the couriers' cut.
+- On arrival (on by default): this ammo to 300 and a magazine for weapons with none, optionally
+  taking spare ammo back to the vault; and N of every aid item the vault holds (food, water,
+  cigarettes, medicine; N = 1 by default, off, 1, 2, 3 or 5).
+- Loose ammo handed to the team (stored, sold, put in the vault or the consignment box) is
+  reboxed for 5 percent of its value. Vault traffic is charged by weight as before.

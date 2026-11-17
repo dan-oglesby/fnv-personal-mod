@@ -4,11 +4,27 @@
 int iBtn
 int iT
 int iEx
+int iStage
 ref rTrade
 ref rNext
 
 begin Function {iBtn}
 	let iT := player.AuxVarGetFlt "_wxCurT"
+	; shorter button lists before the Speculator and Investor stages (ExStock.txt)
+	let iStage := player.AuxVarGetFlt "_wbStage"
+	if eval iStage < 3 && (player.AuxVarGetFlt "_wxH" iT) >= 0
+		if iStage == 2
+			if iBtn >= 5
+				let iBtn += 2
+			endif
+		else
+			if iBtn <= 1
+				let iBtn += 3
+			else
+				let iBtn += 5
+			endif
+		endif
+	endif
 	let rTrade := CompileScript "WastelandBank/ExTrade.txt"
 	if iBtn == 8
 		let iEx := player.AuxVarGetFlt "_wxCurEx"

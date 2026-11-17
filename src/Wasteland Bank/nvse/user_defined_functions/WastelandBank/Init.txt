@@ -46,6 +46,18 @@ begin Function {}
 			let iK += 1
 		loop
 	endif
+	if eval (player.AuxVarGetFlt "_wbSet") < 5
+		player.AuxVarSetFlt "_wbSet" 5
+		player.AuxVarSetFlt "_wbArrAmmo" 1
+		if eval (player.AuxVarGetFlt "_wbAmmoOrder") == 1
+			player.AuxVarSetFlt "_wbArrAmmo" 2
+		endif
+		player.AuxVarSetFlt "_wbRefillN" 1
+		player.AuxVarSetFlt "_wbAmmoTo" 300
+		if eval (player.AuxVarGetFlt "_wbStage") < 4 && (player.AuxVarGetFlt "_wmaRisk") > 1
+			player.AuxVarSetFlt "_wmaRisk" 1
+		endif
+	endif
 	let rFn := CompileScript "WastelandBank/LegInit.txt"
 	call rFn
 	if eval (player.AuxVarGetFlt "_wbSet") < 2

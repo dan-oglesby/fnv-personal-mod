@@ -11,6 +11,7 @@ int iBack
 int iId
 float fGross
 float fV
+float fBox
 ref rBox
 ref rItem
 ref rOne
@@ -64,6 +65,7 @@ begin Function {iMenu}
 	let aVol := Ar_List 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 	let rOne := CompileScript "WastelandBank/SellOne.txt"
 	let fGross := 0
+	let fBox := 0
 	let iN := 0
 	let iBack := 0
 	let iIdx := 0
@@ -79,6 +81,10 @@ begin Function {iMenu}
 			let iBack += iCnt
 			continue
 		endif
+		if eval (GetType rItem) == 41
+			let fV := GetValue rItem
+			let fBox += iCnt * fV	; loose ammo: reboxed before it's sold
+		endif
 		let fV := call rOne rItem iCnt rBox aVol
 		let fGross += fV
 		let iN += iCnt
@@ -88,4 +94,10 @@ begin Function {iMenu}
 	endif
 	let rOne := CompileScript "WastelandBank/SellDone.txt"
 	call rOne fGross aVol iN
+	if fBox > 0
+		let fV := fBox * 0.05
+		let rOne := CompileScript "WastelandBank/Fee.txt"
+		call rOne fV
+		MessageEx "Reboxing loose ammo: %.0f caps." fV
+	endif
 end
