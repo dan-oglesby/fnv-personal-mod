@@ -14,6 +14,10 @@ begin Function {iWhy}
 		let sName := "a shortage"
 	elseif iWhy == 5
 		let sName := "traders are bringing in stock"
+	elseif iWhy == 6
+		let sName := "a caravan came in"
+	elseif iWhy == 7
+		let sName := "a caravan was lost on the road"
 	endif
 	SetFunctionValue sName
 end

@@ -25,6 +25,10 @@ if eval IsModLoaded "WastelandMarket.esp"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
 	endif
+	let rChk := CompileScript "WastelandMarket/Shock.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
 	let rChk := CompileScript "WastelandMarket/Classify.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1

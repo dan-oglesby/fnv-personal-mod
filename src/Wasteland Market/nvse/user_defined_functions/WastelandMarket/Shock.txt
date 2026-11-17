@@ -1,0 +1,32 @@
+; Wasteland Market: moves a category's price by fMove from outside the market (2026-11-17; Wasteland
+; Bank's caravans, WastelandBank/CvEnd.txt: a caravan that comes in floods its cargo's category, a
+; lost one makes it scarce), within the price range, notes why (iWhy, WhyName.txt) and applies the
+; new prices everywhere (Apply.txt).
+int iCat
+int iWhy
+float fMove
+float fP
+float fRange
+ref rFn
+
+begin Function {iCat, fMove, iWhy}
+	if iCat < 0 || iCat > 9
+		return
+	endif
+	let fRange := player.AuxVarGetFlt "_wmRange"
+	let fRange /= 100
+	let fP := player.AuxVarGetFlt "_wmP" iCat
+	if fP <= 0
+		return	; the market hasn't started yet
+	endif
+	let fP += fMove
+	if fP > 1 + fRange
+		let fP := 1 + fRange
+	elseif fP < 1 - fRange
+		let fP := 1 - fRange
+	endif
+	player.AuxVarSetFlt "_wmP" fP iCat
+	player.AuxVarSetFlt "_wmWhy" iWhy iCat
+	let rFn := CompileScript "WastelandMarket/Apply.txt"
+	call rFn
+end

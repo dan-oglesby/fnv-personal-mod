@@ -7,7 +7,8 @@
 ; Back a run with a large stake (CvStake.txt). It sets out 6 hours later from its starting point;
 ; be there within a day to escort it yourself (it walks the road with you, and may be ambushed): get
 ; it to its destination and it pays a high return, for certain. Otherwise it travels on its own and
-; the route's odds decide (CvTick.txt, CvEnd.txt). One venture at a time, with either.
+; the route's odds decide (CvTick.txt, CvEnd.txt). One venture at a time, with either. With
+; Wasteland Market each route shows its cargo and what it's selling for (CvEnd.txt).
 ;   on its own: succeeds 1 - 0.7 x danger of the time, paying 15 percent + 50 x danger; fails and
 ;   only 30 percent is salvaged. Escorted to the end: 60 percent + 60 x danger. Danger: CvDanger.txt.
 int iSide
@@ -16,6 +17,12 @@ int iFirst
 int iLast
 int iState
 int iOk
+int iCat
+int iMkt
+float fMk
+string_var sCat
+ref rRoute
+ref rCatN
 float fD
 float fP
 float fWin
@@ -103,6 +110,12 @@ begin Function {}
 	else
 		let sBody := "Back a caravan run. Escort it yourself for a high, certain return, or let it take its chances."
 	endif
+	let iMkt := 0
+	if eval IsModLoaded "WastelandMarket.esp"
+		let iMkt := 1
+		let rRoute := CompileScript "WastelandBank/CvRoute.txt"
+		let rCatN := CompileScript "WastelandMarket/CatName.txt"
+	endif
 	let sBtns := ""
 	let iR := iFirst
 	while iR <= iLast
@@ -113,6 +126,15 @@ begin Function {}
 		let sName := call rName iR
 		let fDpct := fD * 100
 		let sBody := sBody + (sv_Construct "%r%z: danger %.0f. Alone: %.0f percent chance of +%.0f percent. Escorted: +%.0f percent." sName fDpct fP fWin fEsc)
+		if iMkt == 1
+			let iCat := call rRoute iR 5
+			let fMk := player.AuxVarGetFlt "_wmP" iCat
+			if fMk > 0
+				let sCat := call rCatN iCat
+				let fMk *= 100
+				let sBody := sBody + (sv_Construct " Cargo: %z, selling at %.0f percent of normal." sCat fMk)
+			endif
+		endif
 		let sBtns := sBtns + "|" + sName
 		let iR += 1
 	loop

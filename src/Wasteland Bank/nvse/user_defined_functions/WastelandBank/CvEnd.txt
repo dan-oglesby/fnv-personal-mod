@@ -5,6 +5,11 @@
 ; the Crimson Caravan Company move its stock (CRIM, ticker 1): a success up 2 percent, a loss down 4.
 ; The Legion's runs ("_cvCur" 1) pay into the denarius account, counted in caps at the denarius's
 ; price (4 caps at par, ExPrice.txt 15).
+; With Wasteland Market (2026-11-17), the run and the market talk to each other. A run that comes
+; in sells its cargo (CvRoute.txt 5) at that category's going price: the gain over the stake is
+; times the price (half the gain when it's 50 percent down, one and a half times at 50 up). Then
+; its arrival floods the category (down), or its loss makes it scarce (up): 5 percent for the
+; smallest stake, rising to 15 for 20,000 caps or more (WastelandMarket/Shock.txt).
 int iOut
 int iR
 int iPlug
@@ -14,6 +19,14 @@ float fPay
 float fS
 float fP
 float fK
+float fV
+float fMk
+float fMove
+float fCapsIn
+int iCat
+int iMkt
+string_var sCat
+string_var sMkt
 int iCur
 string_var sCur
 string_var sName
@@ -38,6 +51,22 @@ begin Function {iOut}
 		let fPay := fStake * 0.3
 		let sWhat := "was lost on the road. Some of the goods were salvaged"
 	endif
+	; the market: the cargo's going price
+	let sMkt := ""
+	let iMkt := 0
+	let rFn := CompileScript "WastelandBank/CvRoute.txt"
+	let iCat := call rFn iR 5
+	let fMk := player.AuxVarGetFlt "_wmP" iCat
+	if eval (IsModLoaded "WastelandMarket.esp") && fMk > 0
+		let iMkt := 1
+		let rFn := CompileScript "WastelandMarket/CatName.txt"
+		let sCat := call rFn iCat
+		if iOut == 0 || iOut == 2
+			let fPay := fStake + (fPay - fStake) * fMk
+			let fV := fMk * 100
+			let sMkt := sv_Construct " Its cargo (%z) sold at %.0f percent of the normal price." sCat fV
+		endif
+	endif
 	let iCur := player.AuxVarGetFlt "_cvCur"
 	let sCur := "caps"
 	let fK := 1
@@ -57,6 +86,30 @@ begin Function {iOut}
 	let fP := player.AuxVarGetFlt "_wbProfM"
 	let fP += (fPay - fStake) * fK
 	player.AuxVarSetFlt "_wbProfM" fP
+	; and the run moves the market
+	if iMkt == 1
+		let fCapsIn := fStake
+		if iCur == 1
+			let fCapsIn *= 4
+		endif
+		let fMove := (fCapsIn - 2000) / 18000
+		if fMove < 0
+			let fMove := 0
+		elseif fMove > 1
+			let fMove := 1
+		endif
+		let fMove := 0.05 + 0.1 * fMove
+		let fV := fMove * 100
+		let rFn := CompileScript "WastelandMarket/Shock.txt"
+		if iOut == 0 || iOut == 2
+			let fMove := 0 - fMove
+			call rFn iCat fMove 6
+			let sMkt := sMkt + (sv_Construct " Its arrival brings %z prices down %.0f percent." sCat fV)
+		else
+			call rFn iCat fMove 7
+			let sMkt := sMkt + (sv_Construct " Its loss drives %z prices up %.0f percent." sCat fV)
+		endif
+	endif
 	if iR <= 1
 		let fS := player.AuxVarGetFlt "_wxS" 1
 		if iOut == 0 || iOut == 2
@@ -75,7 +128,7 @@ begin Function {iOut}
 	endif
 	let rFn := CompileScript "WastelandBank/CvName.txt"
 	let sName := call rFn iR
-	MessageBoxEx "Caravan venture%rYour caravan, %z, %z. %.0f %z paid into your account (you put in %.0f)." sName sWhat fPay sCur fStake
+	MessageBoxEx "Caravan venture%rYour caravan, %z, %z. %.0f %z paid into your account (you put in %.0f).%z" sName sWhat fPay sCur fStake sMkt
 	if iOut == 2
 		player.AuxVarSetFlt "*_cvLinger" 0
 		player.AuxVarSetFlt "_cvState" 4	; they linger, then go (CvTick.txt)
