@@ -1,5 +1,9 @@
 # Wasteland Bank: courier squads, the vault and government debt (plan, 2026-11-16)
 
+**The idea underneath:** the currency you hold is an implicit bet on how the war ends. Caps ride
+on House or an independent Vegas, NCR dollars on the NCR, denarii on the Legion, and the news that
+moves the war moves the rates.
+
 Money gets weight, so a fortune can't sit in your pocket, and the bank stops being a teleporter:
 every movement of physical cash or goods goes through a **courier squad** you call with the bank
 card. The squad is the bank's only counter. There are no fixed tellers or brokers anywhere.
@@ -41,6 +45,8 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
   dividend. With control, the bank's settings gain the fee levels: the cash fee, the vault rate per
   pound and the loan rate.
 
+- **Currency accounts:** keep your balance in caps, NCR dollars or denarii (the squad converts
+  between them at the usual fee), so holding a currency is a choice and a bet.
 - **A Vegas index fund:** one ticker on the New Vegas exchange that holds the whole market across
   the exchanges (index-style investing in a single purchase).
 - **Currency effects of your investing:** net buying of NCR assets (war bonds, Hub-listed stocks)
@@ -67,6 +73,7 @@ Lending to Caesar instead of an equity market (the Legion has none; Rome ran on 
 ## Phase 4 (to research): faction presence follows faction fortunes
 
 NCR and Legion patrols, vanilla and from spawn mods such as Increased Wasteland Spawns, become
-rarer the worse each government is doing (their currency and news state), and caps gain value as
-House or an independent Vegas does well. First step: find how those patrols are spawned (leveled
+rarer the worse each government is doing (their currency and news state), and caps gain against
+both as House or an independent Vegas does well (the House and Yes Man paths already move the
+rates; this would make it consistent). First step: find how those patrols are spawned (leveled
 lists and their chance of none, encounter markers) and whether that can be scaled at run time.
