@@ -8,6 +8,9 @@
 ;   that, the bank card does, while you're within about 15 m (SqHere.txt).
 ; - On arrival they take care of auto-deposit (caps over "_wbKeep") and auto-convert, if those are
 ;   on, with the usual fee.
+; - They carry "_wbSqFloat" caps of your balance (2,500 for an ordinary call, more if ordered a
+;   day ahead), never more than the balance holds: "_wbSqCash", the most you can withdraw.
+;   They also bring any cash-out order that is due (Deliver.txt).
 ; - They leave once you're about 60 m away, or after 3 game hours once you're 15 m away.
 int iState
 int iPlug
@@ -62,6 +65,18 @@ begin Function {}
 		player.AuxVarSetFlt "_wbSqMet" 0
 		player.AuxVarSetFlt "_wbSqState" 2
 		MessageEx "A Wasteland Bank courier squad has arrived."
+		let fFee := player.AuxVarGetFlt "_wbSqFloat"
+		if fFee <= 0
+			let fFee := 2500
+		endif
+		let fBal := player.AuxVarGetFlt "_wbBal"
+		let fBal := Floor fBal
+		if fFee > fBal
+			let fFee := fBal
+		endif
+		player.AuxVarSetFlt "_wbSqCash" fFee
+		let rFn := CompileScript "WastelandBank/Deliver.txt"
+		call rFn
 		let rFee := CompileScript "WastelandBank/Fee.txt"
 		if eval (player.AuxVarGetFlt "_wbAutoConv") == 1
 			let rFn := CompileScript "WastelandBank/ConvertNow.txt"

@@ -291,6 +291,22 @@ let rChk := CompileScript "WastelandBank/SellOne.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/Bonds.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/BondsBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Deliver.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SqCallBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 if iBad > 0
 	print "Wasteland Bank: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
 	MessageEx "Wasteland Bank is switched off: a script failed to compile"

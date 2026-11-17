@@ -1,6 +1,6 @@
 ; Wasteland Bank: withdraw buttons (0 100, 1 500, 2 1000, 3 all, 4 back). Never more than the
 ; whole caps in the balance, less the courier fee ("_wbFeePct" percent, charged after through
-; Fee.txt); interest fractions stay in the bank.
+; Fee.txt), and never more than the squad carries ("_wbSqCash"); interest fractions stay in the bank.
 int iBtn
 int iAmt
 int iWhole
@@ -31,12 +31,22 @@ begin Function {iBtn}
 	if iAmt > iWhole
 		let iAmt := iWhole
 	endif
+	let fFee := player.AuxVarGetFlt "_wbSqCash"
+	if iAmt > fFee
+		let iAmt := fFee
+		if iAmt < 1
+			MessageEx "The couriers have no more cash with them. Order a larger sum when you call."
+		endif
+	endif
 	if iAmt > 0
 		let rCaps := BuildRef 0 15	; Caps001
 		let fBal := player.AuxVarGetFlt "_wbBal"
 		let fBal -= iAmt
 		player.AuxVarSetFlt "_wbBal" fBal
 		player.AddItem rCaps iAmt 1
+		let fFee := player.AuxVarGetFlt "_wbSqCash"
+		let fFee -= iAmt
+		player.AuxVarSetFlt "_wbSqCash" fFee
 		print "Wasteland Bank: withdrew " + $iAmt + " caps"
 		let fFee := iAmt * fPct / 100
 		let rNext := CompileScript "WastelandBank/Fee.txt"

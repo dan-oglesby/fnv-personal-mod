@@ -1,0 +1,53 @@
+; Wasteland Bank: when a courier squad arrives (SqTick.txt), it brings any cash-out order that is
+; due ("_wbOutAt" passed): "_wbOutNcrD" NCR dollars as $100, $20 and $5 notes (FalloutNV.esm
+; 1287384, 1287383, 1287382). Anything under $5 is credited to your balance in caps at today's rate.
+float fD
+float fRate
+float fRest
+float fNow
+int iD
+int iN
+ref rItem
+ref rFn
+
+begin Function {}
+	let fD := player.AuxVarGetFlt "_wbOutNcrD"
+	if fD <= 0
+		return
+	endif
+	let fNow := GameDaysPassed
+	if eval fNow < (player.AuxVarGetFlt "_wbOutAt")
+		MessageEx "Your NCR notes aren't ready yet: they come with a squad called after a day."
+		return
+	endif
+	let iD := Floor fD
+	let fRest := fD - iD
+	let iN := Floor (iD / 100)
+	if iN > 0
+		let rItem := BuildRef 0 1287384	; $100
+		player.AddItem rItem iN 1
+		let iD -= iN * 100
+	endif
+	let iN := Floor (iD / 20)
+	if iN > 0
+		let rItem := BuildRef 0 1287383	; $20
+		player.AddItem rItem iN 1
+		let iD -= iN * 20
+	endif
+	let iN := Floor (iD / 5)
+	if iN > 0
+		let rItem := BuildRef 0 1287382	; $5
+		player.AddItem rItem iN 1
+		let iD -= iN * 5
+	endif
+	let fRest += iD
+	if fRest > 0
+		let rFn := CompileScript "WastelandBank/ExRate.txt"
+		let fRate := call rFn
+		let fRest *= fRate
+		let rFn := CompileScript "WastelandBank/ExCash.txt"
+		call rFn fRest
+	endif
+	player.AuxVarSetFlt "_wbOutNcrD" 0
+	MessageEx "The couriers brought your war bond cash-out: %.0f NCR dollars in notes." fD
+end

@@ -1,0 +1,39 @@
+; Wasteland Bank: call buttons (0 ordinary squad, 1-3 bring 5,000 / 10,000 / 25,000 caps, 4 bring
+; the whole balance, 5 cancel). "_wbSqFloat" is the caps the squad is asked to carry (taken from your
+; balance when they arrive, never more than it holds); "_wbSqAt" the arrival time.
+int iBtn
+float fHours
+float fFloat
+float fNow
+float fAt
+
+begin Function {iBtn}
+	if iBtn == 5
+		return
+	endif
+	let fHours := GetRandomPercent
+	let fHours := 1 + fHours / 100
+	let fFloat := 2500
+	if iBtn > 0
+		let fHours += 23
+		if iBtn == 1
+			let fFloat := 5000
+		elseif iBtn == 2
+			let fFloat := 10000
+		elseif iBtn == 3
+			let fFloat := 25000
+		else
+			let fFloat := 1000000000
+		endif
+	endif
+	let fNow := GameDaysPassed
+	let fAt := fNow + fHours / 24
+	player.AuxVarSetFlt "_wbSqAt" fAt
+	player.AuxVarSetFlt "_wbSqFloat" fFloat
+	player.AuxVarSetFlt "_wbSqState" 1
+	if iBtn == 0
+		MessageEx "Courier squad called. They'll find you in about %.1f hours." fHours
+	else
+		MessageEx "Courier squad ordered with a larger sum. They'll find you in about %.0f hours." fHours
+	endif
+end

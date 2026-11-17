@@ -1,7 +1,8 @@
 ; Wasteland Exchange: trade through the bank balance. iAct 1 = buy fAmt caps' worth, 2 = sell fAmt
 ; of your shares (0.5 = half, 1 = all), 3 = short fAmt caps' worth, 4 = cover the whole short.
 ; Buying and covering pay the ask (price + 1.5%); selling and shorting get the bid (price - 1.5%).
-; Shares are fractional. Your own trades don't move the price.
+; Shares are fractional. Your own trades don't move the price. Trades go through a courier squad
+; (2026-11-16): with none here (SqHere.txt), nothing is traded. Prices can be read any time.
 ; Shorting needs margin: after the trade, equity (balance + shares - cost to cover shorts) must be
 ; at least half of all your short positions. Weekly checks cover everything if it drops under 30%.
 int iT
@@ -22,8 +23,16 @@ float fEq
 ref rPrice
 ref rTot
 ref rCash
+ref rHere
+int iHere
 
 begin Function {iT, iAct, fAmt}
+	let rHere := CompileScript "WastelandBank/SqHere.txt"
+	let iHere := call rHere
+	if iHere == 0
+		MessageEx "Trades go through the bank's couriers: call a squad from the bank card."
+		return
+	endif
 	if eval (player.AuxVarGetFlt "_wxX" iT) == 1
 		MessageEx "That stock is delisted."
 		return

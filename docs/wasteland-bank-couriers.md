@@ -80,7 +80,8 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
     some randomness so no two runs match;
   - risk dial: Steady (index-like, no leverage), Bold, or High roller (the default: concentrated
     bets on margin up to 2x, which can double the account or wipe most of it out);
-  - a weekly report as a message ("up 14 percent: long Gomorrah on the Benny news, short NCR War
+  - the trader is only a correspondent, not a character (decided): a weekly report as a message
+    from "your account manager" ("up 14 percent: long Gomorrah on the Benny news, short NCR War
     Bonds before the Dam");
   - fees of 2 percent a month plus 20 percent of new profits (above the account's previous high), the
     bank's revenue like the courier fees;
@@ -97,11 +98,12 @@ Lending to Caesar instead of an equity market (the Legion has none; Rome ran on 
   the principal back at the end. Fixed in denarii, so their worth in caps follows the denarius.
 - **Publicani contracts:** a few offered at a time, each sold once: grain for the Fort, Arizona
   tribute, the caravan roads. Payouts follow the frontier news (a march on the Dam pays a bonus; the
-  Khans breaking with Caesar hurts the roads; Caesar's death voids them).
-- Needs Legion reputation of at least Accepted. Vilified: they repudiate what they owe you.
+  Khans breaking with Caesar hurts the roads); only losing the Dam voids them.
+- Needs Legion reputation of at least Accepted (a floor that stays). Vilified: they repudiate what
+  they owe you.
 - No secondary market; leaving a loan early costs a heavy penalty. Paid in denarii and aurei.
-- **Default** (Lanius killed: missed coupons; Caesar dead or the Dam lost: default): 75% is lost at
-  once, and what's left shrinks to nothing over 30 days. When the last payout is collected, the
+- **Default only over the Dam** (decided: nothing else touches the treasury's risk, not Lanius or
+  Caesar's death): if the Legion loses the battle for the Dam, 75% is lost at once, and what's left shrinks to nothing over 30 days. When the last payout is collected, the
   Legion's business ends with a short goodbye: their paymaster has fled down the river.
 - Denarii handed to a squad go into treasury loans, and cash-out orders work as in phase 2.
 

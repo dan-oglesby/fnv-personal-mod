@@ -1,0 +1,103 @@
+; Wasteland Bank: war bond buttons (0 invest the NCR dollars you carry, 1 cash out half, 2 cash out
+; all, 3 back).
+; - Invest: the notes go to the couriers, are worth today's rate in caps, the usual fee comes off,
+;   and the rest buys NCR War Bonds (ExTrade.txt, at the ask like any purchase).
+; - Cash out: the bonds are sold now (at the bid), the fee comes off, and the rest is turned into
+;   NCR dollars at today's rate, to be delivered as notes by a squad at least a day later
+;   ("_wbOutNcrD" dollars, due "_wbOutAt"; Deliver.txt).
+int iBtn
+int iN
+int iDollars
+int iIdx
+int iId
+float fV
+float fFee
+float fPct
+float fRate
+float fBefore
+float fGot
+float fOut
+float fAt
+ref rItem
+ref rFn
+ref rNext
+array_var aIds
+array_var aDen
+
+begin Function {iBtn}
+	let rNext := CompileScript "WastelandBank/Courier.txt"
+	if iBtn == 3
+		call rNext
+		return
+	endif
+	let rFn := CompileScript "WastelandBank/ExRate.txt"
+	let fRate := call rFn
+	let fPct := player.AuxVarGetFlt "_wbFeePct"
+	if iBtn == 0
+		let aIds := Ar_List 1287382, 1534662, 1287383, 1534664, 1287384, 1534665
+		let aDen := Ar_List 5, 5, 20, 20, 100, 100
+		let iDollars := 0
+		let iIdx := 0
+		while iIdx < 6
+			let iId := aIds[iIdx]
+			let rItem := BuildRef 0 iId
+			let iN := player.GetItemCount rItem
+			if iN > 0
+				player.RemoveItem rItem iN 1
+				let iId := aDen[iIdx]
+				let iDollars += iN * iId
+			endif
+			let iIdx += 1
+		loop
+		if iDollars < 1
+			MessageEx "You aren't carrying any NCR dollars."
+			call rNext
+			return
+		endif
+		let fV := iDollars * fRate
+		let rFn := CompileScript "WastelandBank/ExCash.txt"
+		call rFn fV
+		let fFee := fV * fPct / 100
+		let rFn := CompileScript "WastelandBank/Fee.txt"
+		call rFn fFee
+		let fV -= fFee
+		let rFn := CompileScript "WastelandBank/ExTrade.txt"
+		call rFn 13 1 fV
+	else
+		if eval (player.AuxVarGetFlt "_wxH" 13) <= 0
+			MessageEx "You don't hold any NCR War Bonds."
+			call rNext
+			return
+		endif
+		let fBefore := player.AuxVarGetFlt "_wbBal"
+		let rFn := CompileScript "WastelandBank/ExTrade.txt"
+		if iBtn == 1
+			call rFn 13 2 0.5
+		else
+			call rFn 13 2 1
+		endif
+		let fGot := player.AuxVarGetFlt "_wbBal"
+		let fGot -= fBefore
+		if fGot <= 0
+			call rNext
+			return
+		endif
+		; the proceeds leave the balance and travel as NCR notes, less the fee
+		let fV := player.AuxVarGetFlt "_wbBal"
+		let fV -= fGot
+		player.AuxVarSetFlt "_wbBal" fV
+		let fFee := fGot * fPct / 100
+		let fV := player.AuxVarGetFlt "_wbFees"
+		let fV += fFee
+		player.AuxVarSetFlt "_wbFees" fV
+		let fGot -= fFee
+		let fOut := player.AuxVarGetFlt "_wbOutNcrD"
+		let fOut += fGot / fRate
+		player.AuxVarSetFlt "_wbOutNcrD" fOut
+		let fAt := GameDaysPassed
+		let fAt += 1
+		player.AuxVarSetFlt "_wbOutAt" fAt
+		MessageEx "Cash-out ordered: %.0f NCR dollars, delivered by a courier squad called a day from now or later." fOut
+	endif
+	call rNext
+end

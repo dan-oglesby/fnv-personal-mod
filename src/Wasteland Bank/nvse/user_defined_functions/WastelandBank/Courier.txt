@@ -17,5 +17,5 @@ begin Function {}
 	let fPct := player.AuxVarGetFlt "_wbFeePct"
 	let fRate := player.AuxVarGetFlt "_wbVaultRate"
 	let rCb := CompileScript "WastelandBank/CourierBtn.txt"
-	MessageBoxExAlt rCb "^Bank Couriers^Balance: %.0f caps.  Carrying: %.0f caps.%rLoan owed: %.0f caps.%rFee: %.1f percent of the cash they move, and %.1f caps a pound for the vault, each way.|Deposit caps|Withdraw caps|Convert currency and casino chips|Vault storage|Sell things for me|Loans|Send them off|Back" fBal iCarry fLoan fPct fRate
+	MessageBoxExAlt rCb "^Bank Couriers^Balance: %.0f caps.  Carrying: %.0f caps.%rLoan owed: %.0f caps.%rFee: %.1f percent of the cash they move, and %.1f caps a pound for the vault, each way.|Deposit caps|Withdraw caps|Convert currency and casino chips|Vault storage|Sell things for me|NCR War Bonds|Loans|Send them off|Back" fBal iCarry fLoan fPct fRate
 end

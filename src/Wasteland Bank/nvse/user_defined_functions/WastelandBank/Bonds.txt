@@ -1,0 +1,47 @@
+; Wasteland Bank: NCR War Bonds through the couriers (ticker 13, NCRB). Hand them the NCR dollars
+; you carry and they're invested in war bonds; or order your bonds cashed out, delivered as NCR notes
+; by a squad at least a day later (Deliver.txt).
+float fH
+float fP
+float fV
+float fRate
+float fOut
+int iDollars
+int iN
+ref rPrice
+ref rRate
+ref rItem
+ref rCb
+
+begin Function {}
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let fP := call rPrice 13
+	let fH := player.AuxVarGetFlt "_wxH" 13
+	let fV := fH * fP
+	let rRate := CompileScript "WastelandBank/ExRate.txt"
+	let fRate := call rRate
+	; NCR dollars you carry: $5, $20, $100 notes (1287382-1287384) and their caravan-money twins
+	; (1534662, 1534664, 1534665)
+	let iDollars := 0
+	let rItem := BuildRef 0 1287382
+	let iN := player.GetItemCount rItem
+	let iDollars += iN * 5
+	let rItem := BuildRef 0 1534662
+	let iN := player.GetItemCount rItem
+	let iDollars += iN * 5
+	let rItem := BuildRef 0 1287383
+	let iN := player.GetItemCount rItem
+	let iDollars += iN * 20
+	let rItem := BuildRef 0 1534664
+	let iN := player.GetItemCount rItem
+	let iDollars += iN * 20
+	let rItem := BuildRef 0 1287384
+	let iN := player.GetItemCount rItem
+	let iDollars += iN * 100
+	let rItem := BuildRef 0 1534665
+	let iN := player.GetItemCount rItem
+	let iDollars += iN * 100
+	let fOut := player.AuxVarGetFlt "_wbOutNcrD"
+	let rCb := CompileScript "WastelandBank/BondsBtn.txt"
+	MessageBoxExAlt rCb "^NCR War Bonds^You hold %.0f caps of war bonds.%rYou carry %.0f NCR dollars (%.3f caps each).%rOrdered, not yet delivered: %.0f NCR dollars.|Invest the NCR dollars I carry|Cash out half (NCR notes, in a day)|Cash out all (NCR notes, in a day)|Back" fV iDollars fRate fOut
+end

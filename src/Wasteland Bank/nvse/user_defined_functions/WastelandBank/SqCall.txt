@@ -1,10 +1,13 @@
-; Wasteland Bank: call a courier squad (from the main menu). It arrives 1 to 2 game hours later
-; (SqTick.txt). Calling again while one is on its way or here just says so.
+; Wasteland Bank: call a courier squad (from the main menu). An ordinary call arrives in 1 to 2 game
+; hours carrying a float of 2,500 caps from your balance, the most you can withdraw from it. A
+; larger sum takes a day to arrange: that squad comes about 24 hours later (SqCallBtn.txt).
+; Calling again while one is on its way or here just says so.
 float fNow
-float fHours
 float fAt
 int iState
 int iMin
+float fBal
+ref rCb
 
 begin Function {}
 	let iState := player.AuxVarGetFlt "_wbSqState"
@@ -21,11 +24,7 @@ begin Function {}
 		MessageEx "The courier squad is already here."
 		return
 	endif
-	let fHours := GetRandomPercent
-	let fHours := 1 + fHours / 100
-	let fNow := GameDaysPassed
-	let fAt := fNow + fHours / 24
-	player.AuxVarSetFlt "_wbSqAt" fAt
-	player.AuxVarSetFlt "_wbSqState" 1
-	MessageEx "Courier squad called. They'll find you in about %.1f hours." fHours
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let rCb := CompileScript "WastelandBank/SqCallBtn.txt"
+	MessageBoxExAlt rCb "^Call a courier squad^An ordinary squad comes in 1 to 2 hours with up to 2,500 caps of your balance for withdrawals. A larger sum takes a day to arrange.%rBalance: %.0f caps.|Call a squad now|Bring 5,000 caps (in a day)|Bring 10,000 caps (in a day)|Bring 25,000 caps (in a day)|Bring my whole balance (in a day)|Cancel" fBal
 end
