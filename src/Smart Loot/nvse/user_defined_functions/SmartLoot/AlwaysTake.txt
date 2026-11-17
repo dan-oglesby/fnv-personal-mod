@@ -5,7 +5,9 @@
 ;   Denarius (mangled) 0x173236; pre-war money 0x034067; the caravan-money versions of the notes and
 ;   coins 0x176AC4-9; casino chips: Gomorrah 0x139FE0, The Tops 0x144C3B, Ultra-Luxe 0x144C3C,
 ;   Vikki and Vance 0x144C3D, Atomic Wrangler 0x144C3E; NCR Dogtag 0x123054, Irradiated NCR Dogtag
-;   0x13FE77. Plus Dead Money's Sierra Madre Chip (DeadMoney.esm 0x011236) if Dead Money is loaded.
+;   0x13FE77; skill magazines (2026-11-16): Salesman Weekly 0x0EC4A4, Future Weapons Today to
+;   Programmer's Digest 0x0EC4A6-0x0EC4B1, True Police Stories 0x135689. Plus Dead Money's Sierra
+;   Madre Chip (DeadMoney.esm 0x011236) if Dead Money is loaded.
 int iPlug
 int iIdx
 int iId
@@ -28,6 +30,17 @@ begin Function {}
 		let iIdx += 1
 	loop
 	let aIds := Ar_List 1286112, 1330235, 1330236, 1330237, 1330238, 1192020, 1310327
+	let iIdx := 0
+	while iIdx < Ar_Size aIds
+		let iId := aIds[iIdx]
+		let rItem := BuildRef 0 iId
+		if eval IsFormValid rItem
+			ListAddForm rList rItem
+		endif
+		let iIdx += 1
+	loop
+	; skill magazines
+	let aIds := Ar_List 967844, 967846, 967847, 967848, 967849, 967850, 967851, 967852, 967853, 967854, 967855, 967856, 967857, 1267337
 	let iIdx := 0
 	while iIdx < Ar_Size aIds
 		let iId := aIds[iIdx]
