@@ -1,0 +1,13 @@
+; Wasteland Bank: Mojave Express away from a dropbox (MEMenu.txt): 0 order from the catalogue for
+; courier delivery (Catalogue.txt with "*_wbCatDeliv" 1), 1 close.
+int iBtn
+ref rNext
+
+begin Function {iBtn}
+	if iBtn != 0
+		return
+	endif
+	player.AuxVarSetFlt "*_wbCatDeliv" 1
+	let rNext := CompileScript "WastelandBank/Catalogue.txt"
+	call rNext
+end

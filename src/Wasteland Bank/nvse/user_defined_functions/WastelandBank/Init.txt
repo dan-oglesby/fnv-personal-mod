@@ -84,6 +84,10 @@ begin Function {}
 			player.AuxVarSetFlt "_wbSellCut" 10	; the cut the out-of-order version 2 never set
 		endif
 	endif
+	if eval (player.AuxVarGetFlt "_wbSet") < 9
+		player.AuxVarSetFlt "_wbSet" 9
+		player.AuxVarSetFlt "_wbDelivCut" 25	; courier delivery's commission, percent of the goods' value (CatClose.txt)
+	endif
 	let rFn := CompileScript "WastelandBank/LegInit.txt"
 	call rFn
 end

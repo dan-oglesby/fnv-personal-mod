@@ -13,6 +13,7 @@ begin Function {}
 	if player.GetDead
 		return
 	endif
+	player.AuxVarSetFlt "*_wmEdView" 0	; the newest edition first
 	let rOpen := CompileScript "WastelandMarket/Open.txt"
 	call rOpen
 end

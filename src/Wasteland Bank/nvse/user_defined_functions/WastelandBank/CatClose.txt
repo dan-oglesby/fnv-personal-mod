@@ -3,6 +3,9 @@
 ; your pockets into transit (WBInTransitRef 0x80E), and you pay its market value plus the couriers'
 ; cut (Rate.txt 2) and shipping by weight (the vault rate, Rate.txt 1), from your balance. It's
 ; ready a day later ("_wbShipAt"; MEPick.txt). Anything you put into the catalogue comes back.
+; Courier delivery ("*_wbCatOpen" 2; 2026-11-17): the order goes to WBDeliveryRef (0x816) instead,
+; for its value plus the delivery commission ("_wbDelivCut" percent) and no shipping. A squad is
+; called if none is coming, and hands it over when they reach you ("_wbDelivAt"; SqGive.txt).
 int iMenu
 int iPlug
 int iN
@@ -10,6 +13,8 @@ int iTaken
 int iItems
 int iLeft
 int iHave
+int iMode
+int iState
 float fV
 float fWt
 float fBase
@@ -29,13 +34,17 @@ begin Function {iMenu}
 	if iMenu != 1008
 		return
 	endif
-	if eval (player.AuxVarGetFlt "*_wbCatOpen") == 0
+	let iMode := player.AuxVarGetFlt "*_wbCatOpen"
+	if iMode == 0
 		return
 	endif
 	player.AuxVarSetFlt "*_wbCatOpen" 0
 	let iPlug := GetModIndex "WastelandBank.esp"
 	let rCat := BuildRef iPlug 2060	; WBCatalogueRef
 	let rShip := BuildRef iPlug 2062	; WBInTransitRef
+	if iMode == 2
+		let rShip := BuildRef iPlug 2070	; WBDeliveryRef 0x816
+	endif
 	if eval (IsFormValid rCat) == 0 || (IsFormValid rShip) == 0
 		return
 	endif
@@ -78,6 +87,28 @@ begin Function {iMenu}
 	; anything else you put into the catalogue comes back
 	rCat.RemoveAllItems player 1
 	if iItems < 1
+		return
+	endif
+	if iMode == 2
+		let fV := 0 - fBase
+		let rFn := CompileScript "WastelandBank/ExCash.txt"
+		call rFn fV
+		let fCut := player.AuxVarGetFlt "_wbDelivCut"
+		let fV := fBase * fCut / 100
+		let rFn := CompileScript "WastelandBank/Fee.txt"
+		call rFn fV
+		let fV += fBase
+		let iState := player.AuxVarGetFlt "_wbSqState"
+		if iState == 0
+			let rFn := CompileScript "WastelandBank/SqCallBtn.txt"
+			call rFn 0
+		endif
+		let fAt := GameDaysPassed
+		if iState != 2
+			let fAt := player.AuxVarGetFlt "_wbSqAt"
+		endif
+		player.AuxVarSetFlt "_wbDelivAt" fAt
+		MessageBoxEx "Courier delivery%rOrdered %.0f item(s) for %.0f caps, commission included. A courier squad is bringing them to you." iItems fV
 		return
 	endif
 	let rFn := CompileScript "WastelandBank/Rate.txt"

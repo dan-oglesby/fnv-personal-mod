@@ -201,6 +201,8 @@ begin Function {}
 		return
 	endif
 	if fD <= 256
+		let rFn := CompileScript "WastelandBank/SqGive.txt"
+		call rFn
 		if eval (player.AuxVarGetFlt "_wbSqMet") == 0
 			player.AuxVarSetFlt "_wbSqMet" 1
 			let rFn := CompileScript "WastelandBank/Courier.txt"

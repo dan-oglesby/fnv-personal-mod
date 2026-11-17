@@ -120,6 +120,9 @@ SELL_CONT, SELL_REF = 0x807, 0x808     # the couriers' consignment box (things t
 # Mojave Express (2026-11-17): the catalogue you order from, and the orders in transit until you
 # collect them at a dropbox; both in the same cell. Their object IDs follow the bank notes.
 CAT_CONT, CAT_REF, SHIP_CONT, SHIP_REF = 0x80B, 0x80C, 0x80D, 0x80E
+# Courier delivery (2026-11-17): catalogue orders a courier squad carries out to you, wherever you
+# are, until they hand them over (CatClose.txt, SqGive.txt). Same cell.
+DELIV_CONT, DELIV_REF = 0x815, 0x816
 # The game's Mojave Express Dropbox (vMojaveExpressBox 0x14B05F), overridden with the couriers'
 # empty activation script, so opening a dropbox shows the bank's Mojave Express menu (MEAct.txt)
 # instead of the vanilla shipping messages. Copied from FalloutNV.esm with only the script changed.
@@ -244,7 +247,8 @@ def bank_plugin(edid, name, model, icon, small_icon):
                             + sub("DATA", struct.pack("<if", face, 0.0022)))
                      for objid, ed, nm, face in BANK_NOTES)
     for objid, ed, nm in ((CAT_CONT, "WBCatalogue", "Mojave Express Catalogue"),
-                          (SHIP_CONT, "WBInTransit", "Mojave Express: in transit")):
+                          (SHIP_CONT, "WBInTransit", "Mojave Express: in transit"),
+                          (DELIV_CONT, "WBDelivery", "Courier delivery: on its way")):
         cont += record("CONT", 0, 0x01000000 | objid,
                        sub("EDID", z(ed)) + sub("OBND", bytes(12)) + sub("FULL", z(nm))
                        + sub("MODL", z(VAULT_MODEL)) + sub("DATA", struct.pack("<Bf", 0, 0.0)))
@@ -269,7 +273,8 @@ def bank_plugin(edid, name, model, icon, small_icon):
     ref += record("REFR", 0x400, 0x01000000 | SELL_REF,
                   sub("EDID", z("WBConsignRef")) + sub("NAME", struct.pack("<I", 0x01000000 | SELL_CONT))
                   + sub("DATA", struct.pack("<6f", 0.0, 64.0, 0.0, 0.0, 0.0, 0.0)))
-    for objid, ed, base, y in ((CAT_REF, "WBCatalogueRef", CAT_CONT, 128.0), (SHIP_REF, "WBInTransitRef", SHIP_CONT, 192.0)):
+    for objid, ed, base, y in ((CAT_REF, "WBCatalogueRef", CAT_CONT, 128.0), (SHIP_REF, "WBInTransitRef", SHIP_CONT, 192.0),
+                               (DELIV_REF, "WBDeliveryRef", DELIV_CONT, 256.0)):
         ref += record("REFR", 0x400, 0x01000000 | objid,
                       sub("EDID", z(ed)) + sub("NAME", struct.pack("<I", 0x01000000 | base))
                       + sub("DATA", struct.pack("<6f", 0.0, y, 0.0, 0.0, 0.0, 0.0)))
@@ -277,9 +282,9 @@ def bank_plugin(edid, name, model, icon, small_icon):
     block, subblock = VAULT_CELL % 10, (VAULT_CELL // 10) % 10
     cells = _grup(b"CELL", 0, _grup(struct.pack("<i", block), 2,
                                     _grup(struct.pack("<i", subblock), 3, cell + children)))
-    n_records = 1 + len(COURIERS) + len(COLLECTORS) + len(REPS) + 5 + len(BANK_NOTES) + 1 + 1 + 4
+    n_records = 1 + len(COURIERS) + len(COLLECTORS) + len(REPS) + 5 + len(BANK_NOTES) + 1 + 1 + 4 + 2
     header = record("TES4", 0, 0,
-                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, 0x815))
+                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, 0x817))
                     + sub("CNAM", z("fnv-personal-mod"))
                     + sub("MAST", z("FalloutNV.esm"))
                     + sub("DATA", bytes(8)))

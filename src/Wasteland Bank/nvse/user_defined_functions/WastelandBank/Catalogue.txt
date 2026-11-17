@@ -4,9 +4,12 @@
 ; is your order (CatClose.txt). Orders cost their market value plus the couriers' cut, and shipping
 ; by weight; you collect them at any dropbox, or from a courier squad, a day later (MEPick.txt).
 ; The catalogue (WastelandBank.esp WBCatalogueRef 0x80C) is restocked every time it opens.
+; Courier delivery ("*_wbCatDeliv" 1, from MEAwayBtn.txt; 2026-11-17): opens anywhere, and the
+; order is carried out to you by a courier squad ("*_wbCatOpen" 2; CatClose.txt).
 int iPlug
 int iNear
 int iHere
+int iDeliv
 int iN
 ref rCat
 ref rItem
@@ -15,9 +18,11 @@ array_var aItems
 array_var aEntry
 
 begin Function {}
+	let iDeliv := player.AuxVarGetFlt "*_wbCatDeliv"
+	player.AuxVarSetFlt "*_wbCatDeliv" 0
 	let rFn := CompileScript "WastelandBank/MENear.txt"
 	let iNear := call rFn
-	if iNear < 0
+	if iNear < 0 && iDeliv == 0
 		MessageBoxEx "Mojave Express%rThe catalogue is at every Mojave Express dropbox (Goodsprings, Primm, Novac, Freeside, and the Vegas Boulevard station)."
 		return
 	endif
@@ -37,7 +42,12 @@ begin Function {}
 		rCat.AddItem rItem iN 1
 	loop
 	let aItems := Ar_Null
-	player.AuxVarSetFlt "*_wbCatOpen" 1
-	MessageEx "Take what you want to order. Charged when you close the catalogue."
+	if iDeliv == 1
+		player.AuxVarSetFlt "*_wbCatOpen" 2
+		MessageEx "Take what you want delivered. Charged, commission included, when you close the catalogue."
+	else
+		player.AuxVarSetFlt "*_wbCatOpen" 1
+		MessageEx "Take what you want to order. Charged when you close the catalogue."
+	endif
 	rCat.Activate player 1
 end

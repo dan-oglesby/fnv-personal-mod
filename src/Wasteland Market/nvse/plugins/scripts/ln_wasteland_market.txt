@@ -77,6 +77,10 @@ if eval IsModLoaded "WastelandMarket.esp"
 	if eval (IsFormValid rChk) == 0
 		let iMenuBad += 1
 	endif
+	let rChk := CompileScript "WastelandMarket/Body.txt"
+	if eval (IsFormValid rChk) == 0
+		let iMenuBad += 1
+	endif
 	let rChk := CompileScript "WastelandMarket/OnEquip.txt"
 	if eval (IsFormValid rChk) == 0
 		let iMenuBad += 1

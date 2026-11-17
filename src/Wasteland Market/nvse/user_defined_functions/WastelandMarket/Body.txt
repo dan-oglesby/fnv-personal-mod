@@ -1,0 +1,67 @@
+; Wasteland Market: the market page's text, returned as a string (2026-11-17; was the body of
+; Open.txt): every category whose price is at least 3 percent off normal, which way, by how much and
+; why, the latest market event if it was in the last 7 days, and how many traders you deal with.
+; Used live by the pamphlet without Wasteland Bank, and by Wasteland Bank's weekly report
+; (WastelandBank/Report.txt). No percent signs: the text goes through format strings.
+int iC
+int iWhy
+int iPct
+int iMer
+int iShown
+int iEvC
+int iEvK
+float fP
+float fDays
+string_var sCat
+string_var sWhy
+string_var sDir
+string_var sBody
+string_var sEvt
+ref rCat
+ref rWhy
+
+begin Function {}
+	let rCat := CompileScript "WastelandMarket/CatName.txt"
+	let rWhy := CompileScript "WastelandMarket/WhyName.txt"
+	let sBody := ""
+	let iEvC := player.AuxVarGetFlt "_wmEvC"
+	if iEvC >= 0
+		let fDays := GameDaysPassed
+		let fDays -= player.AuxVarGetFlt "_wmEvD"
+		if fDays <= 7
+			let sCat := call rCat iEvC
+			let iEvK := player.AuxVarGetFlt "_wmEvK"
+			if iEvK == 0
+				let sEvt := sv_Construct "News: a scavenger hit a big haul of %z and flooded the market.%r%r" sCat
+			else
+				let sEvt := sv_Construct "News: a shortage of %z has traders scrambling.%r%r" sCat
+			endif
+			let sBody := sBody + sEvt
+		endif
+	endif
+	let iShown := 0
+	let iC := 0
+	while iC < 10
+		let fP := player.AuxVarGetFlt "_wmP" iC
+		let iPct := Floor ((fP - 1) * 100 + 0.5)
+		if iPct >= 3 || iPct <= -3
+			let sCat := call rCat iC
+			let iWhy := player.AuxVarGetFlt "_wmWhy" iC
+			let sWhy := call rWhy iWhy
+			let sDir := "up"
+			if iPct < 0
+				let sDir := "down"
+				let iPct := 0 - iPct
+			endif
+			let sBody := sBody + (sv_Construct "%z: %z %.0f percent (%z).%r" sCat sDir iPct sWhy)
+			let iShown += 1
+		endif
+		let iC += 1
+	loop
+	if iShown == 0
+		let sBody := sBody + (sv_Construct "All prices are normal.%r")
+	endif
+	let iMer := player.AuxVarGetFlt "_wmMerN"
+	let sBody := sBody + (sv_Construct "%rTraders you deal with: %.0f. They bring in stock of anything selling well above normal." iMer)
+	SetFunctionValue sBody
+end

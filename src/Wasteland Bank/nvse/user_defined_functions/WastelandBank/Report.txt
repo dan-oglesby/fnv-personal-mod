@@ -1,0 +1,186 @@
+; Wasteland Bank: this week's Mojave Market Report, handed over by a courier squad (SqGive.txt,
+; 2026-11-17). Needs Wasteland Market: the report is its Mojave Market Pamphlet, now a weekly paper
+; dated the day you got it. A week you don't meet a squad has no edition, so the pamphlet's news is
+; as fresh as your last meeting.
+;   The war: the Dam (marches on it, exchange events 26 and 29; who has taken it, the quests LegDay.txt
+;   checks), the NCR dollar and the denarius in caps (ExPrice.txt 14, 15) and how they've moved since
+;   your last report ("_wbRepFx" 0-1), the Legion treasury's default, and the Mojave Market Wire's
+;   headlines from the past 7 days (ExNews.txt).
+;   The markets: Wasteland Market's own page (WastelandMarket/Body.txt).
+; Editions are kept on the player for the pamphlet ("_wmEd" 0-3, newest first; "_wmEdN" how many).
+int iWk
+int iPlug
+int iD
+int iM
+int iY
+int iN
+int iK
+int iSlot
+int iId
+int iDay
+int iToday
+int iShown
+float fNcr
+float fDen
+float fOld
+float fPct
+string_var sMon
+string_var sDate
+string_var sWar
+string_var sMkt
+string_var sEd
+string_var sOld
+string_var sLine
+string_var sDir
+ref rFn
+ref rHead
+ref rQ
+ref rPam
+
+begin Function {iWk}
+	player.AuxVarSetFlt "_wbRepWk" iWk
+	if eval (IsModLoaded "WastelandMarket.esp") == 0
+		return
+	endif
+	let rFn := CompileScript "WastelandMarket/Body.txt"
+	if eval (IsFormValid rFn) == 0
+		return
+	endif
+	let sMkt := call rFn
+
+	; the date
+	let iD := GameDay
+	let iM := GameMonth
+	let iY := GameYear
+	let sMon := "December"
+	if iM == 0
+		let sMon := "January"
+	elseif iM == 1
+		let sMon := "February"
+	elseif iM == 2
+		let sMon := "March"
+	elseif iM == 3
+		let sMon := "April"
+	elseif iM == 4
+		let sMon := "May"
+	elseif iM == 5
+		let sMon := "June"
+	elseif iM == 6
+		let sMon := "July"
+	elseif iM == 7
+		let sMon := "August"
+	elseif iM == 8
+		let sMon := "September"
+	elseif iM == 9
+		let sMon := "October"
+	elseif iM == 10
+		let sMon := "November"
+	endif
+	let sDate := sv_Construct "%z %.0f, %.0f" sMon iD iY
+
+	; the war
+	let sWar := sv_Construct "THE WAR%r"
+	let iN := 0
+	let rQ := BuildRef 0 1270118	; For the Republic, Part 2
+	if eval GetQuestCompleted rQ
+		let sWar := sWar + (sv_Construct "Hoover Dam is in the Republic's hands.%r")
+		let iN := 1
+	endif
+	let rQ := BuildRef 0 1341579	; House Always Wins VIII
+	if eval GetQuestCompleted rQ
+		let sWar := sWar + (sv_Construct "Mr. House holds Hoover Dam, and the Strip with it.%r")
+		let iN := 1
+	endif
+	let rQ := BuildRef 0 1409661	; Wild Card: Finishing Touches
+	if eval GetQuestCompleted rQ
+		let sWar := sWar + (sv_Construct "Hoover Dam has fallen to an independent New Vegas.%r")
+		let iN := 1
+	endif
+	if iN == 0
+		if eval (player.AuxVarGetFlt "_wxE" 29) == 1
+			let sWar := sWar + (sv_Construct "Caesar's Legion is marching on Hoover Dam.%r")
+		elseif eval (player.AuxVarGetFlt "_wxE" 26) == 1
+			let sWar := sWar + (sv_Construct "The Republic is marching on the Legion.%r")
+		else
+			let sWar := sWar + (sv_Construct "The front at Hoover Dam holds, for now.%r")
+		endif
+	endif
+	if eval (player.AuxVarGetFlt "_ltDefault") == 1
+		let sWar := sWar + (sv_Construct "The Legion treasury has defaulted on its debts.%r")
+	endif
+	let rFn := CompileScript "WastelandBank/ExPrice.txt"
+	let fNcr := call rFn 14
+	let fDen := call rFn 15
+	let sLine := sv_Construct "The NCR dollar: %.2f caps" fNcr
+	let fOld := player.AuxVarGetFlt "_wbRepFx" 0
+	if fOld > 0
+		let fPct := (fNcr / fOld - 1) * 100
+		let sDir := "up"
+		if fPct < 0
+			let sDir := "down"
+			let fPct := 0 - fPct
+		endif
+		let sLine := sLine + (sv_Construct ", %z %.1f percent since your last report" sDir fPct)
+	endif
+	let sWar := sWar + sLine + (sv_Construct ".%r")
+	let sLine := sv_Construct "The denarius: %.2f caps" fDen
+	let fOld := player.AuxVarGetFlt "_wbRepFx" 1
+	if fOld > 0
+		let fPct := (fDen / fOld - 1) * 100
+		let sDir := "up"
+		if fPct < 0
+			let sDir := "down"
+			let fPct := 0 - fPct
+		endif
+		let sLine := sLine + (sv_Construct ", %z %.1f percent" sDir fPct)
+	endif
+	let sWar := sWar + sLine + (sv_Construct ".%r")
+	player.AuxVarSetFlt "_wbRepFx" fNcr 0
+	player.AuxVarSetFlt "_wbRepFx" fDen 1
+	; the wire's headlines from the past week, newest first (at most 5)
+	let iN := player.AuxVarGetFlt "_wxNewsN"
+	let iToday := Floor GameDaysPassed
+	let rHead := CompileScript "WastelandBank/ExHeadline.txt"
+	let iShown := 0
+	let iK := 0
+	while iK < 10 && iK < iN && iShown < 5
+		let iSlot := (iN - 1 - iK) % 10
+		let iDay := player.AuxVarGetFlt "_wxNewsDay" iSlot
+		if iToday - iDay <= 7
+			let iId := player.AuxVarGetFlt "_wxNewsId" iSlot
+			let sLine := call rHead iId
+			let sWar := sWar + (sv_Construct "- %z.%r" sLine)
+			let iShown += 1
+		endif
+		let iK += 1
+	loop
+
+	let sEd := sv_Construct "Dated %z.%r%r" sDate
+	let sEd := sEd + sWar + (sv_Construct "%rTHE MARKETS%r") + sMkt
+
+	; file it, newest first, four kept
+	let iN := player.AuxVarGetFlt "_wmEdN"
+	if iN < 4
+		; the new slot is filled by the shift below (slots fill in order: never from "")
+		let iN += 1
+		player.AuxVarSetFlt "_wmEdN" iN
+	endif
+	let iK := iN - 1
+	while iK > 0
+		let iSlot := iK - 1
+		let sOld := player.AuxVarGetStr "_wmEd" iSlot
+		player.AuxVarSetStr "_wmEd" sOld iK
+		let iK -= 1
+	loop
+	player.AuxVarSetStr "_wmEd" sEd 0
+	player.AuxVarSetFlt "*_wmEdView" 0
+
+	let iPlug := GetModIndex "WastelandMarket.esp"
+	let rPam := BuildRef iPlug 2048	; WMPamphlet 0x800
+	if eval IsFormValid rPam
+		if eval (player.GetItemCount rPam) == 0
+			player.AddItem rPam 1 1
+		endif
+	endif
+	MessageEx "The couriers hand you this week's Mojave Market Report, dated %z." sDate
+end

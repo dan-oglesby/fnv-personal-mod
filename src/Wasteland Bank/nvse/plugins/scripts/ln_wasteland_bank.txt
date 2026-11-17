@@ -375,6 +375,10 @@ let rChk := CompileScript "WastelandBank/MEAct.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/MEAwayBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/MEMenu.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -471,6 +475,10 @@ let rChk := CompileScript "WastelandBank/RepTick.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/Report.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/Sectors.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -516,6 +524,10 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/SqCallBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SqGive.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif

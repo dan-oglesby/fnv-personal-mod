@@ -1,4 +1,6 @@
-; Wasteland Bank: the Mojave Express services, at any of the game's five dropboxes (Goodsprings,
+; Wasteland Bank: the Mojave Express services, at any of the game's five dropboxes. Away from them,
+; courier delivery (2026-11-17): order from the catalogue and a courier squad carries it out to you,
+; for a commission ("_wbDelivCut", 25 percent of the goods' value; MEAwayBtn.txt, CatClose.txt). (Goodsprings,
 ; Primm, Novac, Freeside, the Vegas Boulevard station: MENear.txt) (2026-11-17). Goods live here
 ; now; money and investments stay with the courier squads. Opened by opening a dropbox (MEAct.txt)
 ; or from the bank card's main menu.
@@ -14,7 +16,10 @@ begin Function {}
 	let rFn := CompileScript "WastelandBank/MENear.txt"
 	let iNear := call rFn
 	if iNear < 0
-		MessageBoxEx "Mojave Express%rYour goods are handled at the Mojave Express dropboxes: Goodsprings, Primm, Novac, Freeside, and the Vegas Boulevard station. Open any dropbox (or your bank card next to one) for the vault, ammo and supplies, selling and the catalogue."
+		let fRate := player.AuxVarGetFlt "_wbDelivCut"
+		let rCb := CompileScript "WastelandBank/MEAwayBtn.txt"
+		let sAt := sv_Construct "Your goods are handled at the Mojave Express dropboxes: Goodsprings, Primm, Novac, Freeside, and the Vegas Boulevard station. Open any dropbox (or your bank card next to one) for the vault, ammo and supplies, selling and the catalogue."
+		MessageBoxExAlt rCb "^Mojave Express^%z%r%rAway from a dropbox, a courier squad can carry an order out to you, for a commission of %.0f percent of the goods' value.|Order for courier delivery|Close" sAt fRate
 		return
 	endif
 	if iNear == 0
