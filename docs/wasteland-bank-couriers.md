@@ -53,6 +53,21 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
   supports the NCR dollar a little, selling weakens it, and the same for Legion debt and the
   denarius. Small, building up over time and fading, so the rates still follow the faction story.
 
+- **Managed account: a trader betting for you, the high roller.** Hand part of your balance (through
+  the squad) to the bank's trader, who trades it on the real exchange prices:
+  - a separate portfolio, rebalanced every few days by rules that chase news and momentum: piling
+    into tickers on good news, shorting the ones on bad, betting on currencies with the war, with
+    some randomness so no two runs match;
+  - risk dial: Steady (index-like, no leverage), Bold, or High roller (the default: concentrated
+    bets on margin up to 2x, which can double the account or wipe most of it out);
+  - a weekly report as a message ("up 14 percent: long Gomorrah on the Benny news, short NCR War
+    Bonds before the Dam");
+  - fees of 2 percent a month plus 20 percent of new profits (above the account's previous high), the
+    bank's revenue like the courier fees;
+  - a stop: at 25 percent of what you put in, the trader closes everything and hands back what's
+    left; you can never owe more than you put in;
+  - withdrawals as cash-out orders, delivered by a squad at least 24 hours later.
+
 ## Phase 3: the Legion treasury
 
 Lending to Caesar instead of an equity market (the Legion has none; Rome ran on state loans and
