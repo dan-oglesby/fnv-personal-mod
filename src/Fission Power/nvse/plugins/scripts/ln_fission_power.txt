@@ -23,6 +23,12 @@
 ; cell worth its vanilla value against a battery's 75 caps (an energy cell about 267 steps), least
 ; energy-dense first, two magazines of your weapon's loaded ammo kept back, spent cells returned
 ; drained. player.AuxVarSetFlt "_fpAmmo" 0 = batteries only.
+; The suit also holds water (2026-11-17, SuitWater.txt): it takes in the water you carry while it
+; has room (clean first; irradiated water filtered at more power) and in Hardcore gives you a
+; Purified Water as thirst nears its first stage. The worn suit weighs more by its processor
+; ("_fpProc", 5 lb) and what its reservoirs hold (SuitWeight.txt).
+;   player.AuxVarSetFlt "_fpWaterMax" 600   water reservoir size, thirst points (default 400)
+;   player.AuxVarSetFlt "_fpFilter" 4       steps per point to filter irradiated water (default 2)
 ;
 ; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.4+ and JIP LN.
 
@@ -63,6 +69,18 @@ if eval IsModLoaded "FissionPower.esp"
 		let iBad += 1
 	endif
 	let rChk := CompileScript "FissionPower/Suit.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "FissionPower/SuitWater.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "FissionPower/SuitWeight.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "FissionPower/Thirst.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
 	endif

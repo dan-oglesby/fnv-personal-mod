@@ -46,6 +46,8 @@ begin Function {}
 	if eval (IsFormValid rSuit) == 0 || (IsPowerArmor rSuit) == 0
 		SetUIFloat "HUDMainMenu/_NMPower" -1
 		player.AuxVarSetFlt "*_fpHave" 0
+		let rCell := CompileScript "FissionPower/SuitWeight.txt"
+		call rCell rSuit 0	; a suit we made heavier gets its weight back
 		call rFn 0 rSuit
 		return
 	endif
@@ -151,7 +153,12 @@ begin Function {}
 	if fLeft > 0
 		let rSnd := CompileScript "FissionPower/Suit.txt"
 		call rSnd
+		let rSnd := CompileScript "FissionPower/SuitWater.txt"
+		call rSnd
 	endif
+	; the worn suit carries its processor and reservoirs (SuitWeight.txt)
+	let rSnd := CompileScript "FissionPower/SuitWeight.txt"
+	call rSnd rSuit 1
 	if fLeft > 0
 		call rFn 0 rSuit
 	else

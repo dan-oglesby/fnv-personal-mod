@@ -1,0 +1,116 @@
+; Fission Power: the suit's water reservoir (2026-11-17), once a second while you wear powered
+; armor (Tick.txt). It holds "_fpWater" points of thirst, up to "_fpWaterMax" (default 400).
+; 1. Every 10 seconds, if there's room for a whole bottle (Thirst.txt: water only), the suit takes
+;    one in: clean water first, the heaviest for what it gives. Pumping clean water costs "_fpPump"
+;    battery steps per point (default 0.25); irradiated water is filtered clean for "_fpFilter" a
+;    point (default 2).
+; 2. In Hardcore, out of combat, when thirst comes within the margin of its first penalty stage
+;    (Smart Loot's "_seEarly", or 50), the suit gives you 50 points of it as a Purified Water
+;    (FalloutNV.esm 86435). Off with "_fpFeed" 0, like the paste.
+int iT
+int iNum
+int iIdx
+int iDirty
+int iBestDirty
+float fWat
+float fMax
+float fMag
+float fScore
+float fBest
+float fBestMag
+float fWt
+float fCost
+float fLeft
+float fAt
+float fNeed
+ref rItem
+ref rBest
+ref rFn
+ref rStage
+ref rWater
+
+begin Function {}
+	let fWat := player.AuxVarGetFlt "_fpWater"
+	let fMax := player.AuxVarGetFlt "_fpWaterMax"
+	if fMax <= 0
+		let fMax := 400
+	endif
+
+	; 1. taking water in, every 10 seconds (five seconds after the food, so they take turns)
+	let iT := player.AuxVarGetFlt "*_fpWaterT"
+	let iT += 1
+	if iT >= 10
+		let iT := 0
+		let rFn := CompileScript "FissionPower/Thirst.txt"
+		let rBest := 0
+		let fBest := -1
+		let fBestMag := 0
+		let iBestDirty := 1
+		let iNum := player.GetNumItems
+		let iIdx := 0
+		while iIdx < iNum
+			let rItem := player.GetInventoryObject iIdx
+			let iIdx += 1
+			if eval (IsFormValid rItem) == 0
+				continue
+			endif
+			if eval (GetType rItem) != 47
+				continue
+			endif
+			let fMag := call rFn rItem
+			if fMag <= 0 || fMag > fMax - fWat
+				continue
+			endif
+			let iDirty := player.AuxVarGetFlt "*_fpDirty"
+			let fWt := GetWeight rItem
+			let fScore := fWt / fMag
+			; clean water before irradiated, then the heaviest for what it gives
+			if iDirty < iBestDirty || (iDirty == iBestDirty && fScore > fBest)
+				let fBest := fScore
+				let fBestMag := fMag
+				let iBestDirty := iDirty
+				let rBest := rItem
+			endif
+		loop
+		if eval IsFormValid rBest
+			player.RemoveItem rBest 1 1
+			let fWat += fBestMag
+			if iBestDirty == 1
+				let fCost := player.AuxVarGetFlt "_fpFilter"
+			else
+				let fCost := player.AuxVarGetFlt "_fpPump"
+			endif
+			let fLeft := player.AuxVarGetFlt "_fpLeft"
+			let fLeft -= fBestMag * fCost
+			if fLeft < 1
+				let fLeft := 1
+			endif
+			player.AuxVarSetFlt "_fpLeft" fLeft
+		endif
+	endif
+	player.AuxVarSetFlt "*_fpWaterT" iT
+
+	; 2. drinking
+	if eval fWat >= 50 && (player.AuxVarGetFlt "_fpFeed") == 1
+		if eval player.IsHardcore
+			if eval (player.IsInCombat) == 0
+				let rStage := BuildRef 0 1448193	; Water1 (0x161901)
+				let fAt := GetHardcoreStageThreshold rStage
+				if fAt <= 0
+					let fAt := 200
+				endif
+				let fNeed := player.AuxVarGetFlt "_seEarly"
+				if fNeed <= 0
+					let fNeed := 50
+				endif
+				if eval (player.GetAV Dehydration) >= fAt - fNeed
+					let rWater := BuildRef 0 86435	; Purified Water
+					player.AddItem rWater 1 1
+					player.EquipItem rWater 0 1
+					let fWat -= 50
+				endif
+			endif
+		endif
+	endif
+	player.AuxVarSetFlt "_fpWater" fWat
+end
