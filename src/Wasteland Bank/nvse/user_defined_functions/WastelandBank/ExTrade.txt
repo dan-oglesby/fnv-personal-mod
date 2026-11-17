@@ -46,6 +46,14 @@ begin Function {iT, iAct, fAmt}
 	elseif iAct == 3
 		let iNeed := 3
 	endif
+	if iAct == 1 && iT == 13
+		let rStage := CompileScript "WastelandBank/Allegiance.txt"
+		let iHere := call rStage 1
+		if iHere == 1
+			MessageEx "The NCR won't sell its war bonds to someone it holds Vilified."
+			return
+		endif
+	endif
 	if iNeed > 0
 		let rStage := CompileScript "WastelandBank/Stage.txt"
 		let iHere := call rStage iNeed 0

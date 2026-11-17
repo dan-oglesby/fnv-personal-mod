@@ -1,0 +1,56 @@
+; Wasteland Bank: the Mojave Sovereign Debt Fund's day (from ExDay.txt, after the prices; 2026-11-17).
+; The fund holds NCR War Bonds (ticker 13) and Legion treasury debt (the denarius, 15, times what the
+; Legion still honours), weighted toward the government you back (Allegiance.txt): from half and
+; half to 90/10. It's kept as an index ("_wxSovIdx") that moves by the day's returns at today's
+; weights, so a change of weights doesn't jump the price. ExPrice.txt prices it as start x index.
+; It starts from the old half-and-half price, so it carries on where it was.
+float fN
+float fL
+float fNy
+float fLy
+float fX
+float fShare
+float fR
+float fIdx
+float fRec
+ref rFn
+
+begin Function {}
+	let fX := player.AuxVarGetFlt "_wxL" 13
+	let fX += player.AuxVarGetFlt "_wxS" 13
+	let fX += player.AuxVarGetFlt "_wxW" 13
+	let fN := Exp fX
+	if eval (player.AuxVarGetFlt "_wxX" 13) == 1
+		let fN := 0
+	endif
+	let fX := player.AuxVarGetFlt "_wxL" 15
+	let fX += player.AuxVarGetFlt "_wxS" 15
+	let fX += player.AuxVarGetFlt "_wxW" 15
+	let fL := Exp fX
+	let fRec := 1
+	if eval (player.AuxVarGetFlt "_ltDefault") == 1
+		let fRec := player.AuxVarGetFlt "_ltRec"
+	endif
+	let fL *= fRec
+	let fIdx := player.AuxVarGetFlt "_wxSovIdx"
+	if fIdx <= 0
+		let fIdx := (fN + fL) / 2
+	else
+		let fNy := player.AuxVarGetFlt "_wxSovN"
+		let fLy := player.AuxVarGetFlt "_wxSovLg"
+		let rFn := CompileScript "WastelandBank/Allegiance.txt"
+		let fShare := call rFn 0
+		let fShare := 0.5 + 0.4 * fShare	; the NCR's share
+		let fR := 0
+		if fNy > 0
+			let fR += fShare * (fN / fNy - 1)
+		endif
+		if fLy > 0
+			let fR += (1 - fShare) * (fL / fLy - 1)
+		endif
+		let fIdx *= 1 + fR
+	endif
+	player.AuxVarSetFlt "_wxSovIdx" fIdx
+	player.AuxVarSetFlt "_wxSovN" fN
+	player.AuxVarSetFlt "_wxSovLg" fL
+end

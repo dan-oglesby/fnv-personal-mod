@@ -5,7 +5,8 @@
 ; - 17 VIDX, the Vegas Total Market Fund: holds every stock in proportion to its market cap (shares
 ;   outstanding "_wxSh" x price): start x total market cap now / total market cap at the start.
 ;   Delisted stocks count as nothing. (The international market, when it exists, joins it.)
-; - 18 SOVD, the Mojave Sovereign Debt Fund: start x half NCR War Bonds (13) against their start,
+; - 18 SOVD, the Mojave Sovereign Debt Fund: start x its running index (SovDay.txt, weighted toward
+;   the government you back, 2026-11-17); before its first day, half NCR War Bonds (13) against their start,
 ;   half Legion treasury debt: the denarius (15) times what the Legion still honours
 ;   ("_ltRec" once it has lost the Dam; Legion.txt).
 int iT
@@ -47,6 +48,15 @@ begin Function {iT}
 		SetFunctionValue fP
 		return
 	elseif iT == 18
+		; the sovereign fund's running index, weighted toward the government you back (SovDay.txt)
+		let fRec := player.AuxVarGetFlt "_wxSovIdx"
+		if fRec > 0
+			let fP := player.AuxVarGetFlt "_wxP0" 18
+			let fP *= fRec
+			SetFunctionValue fP
+			return
+		endif
+		; before its first day: half and half
 		let fX := player.AuxVarGetFlt "_wxL" 13
 		let fX += player.AuxVarGetFlt "_wxS" 13
 		let fX += player.AuxVarGetFlt "_wxW" 13

@@ -60,6 +60,8 @@ begin Function {iDay}
 		let rWeek := CompileScript "WastelandBank/ExWeekly.txt"
 		call rWeek
 	endif
+	let rWeek := CompileScript "WastelandBank/SovDay.txt"
+	call rWeek
 	let rWeek := CompileScript "WastelandBank/MaDay.txt"
 	call rWeek iDay
 	let rWeek := CompileScript "WastelandBank/LegDay.txt"

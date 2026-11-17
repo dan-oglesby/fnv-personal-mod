@@ -31,6 +31,10 @@ let rChk := CompileScript "WastelandBank/AccountsBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/Allegiance.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/Always.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -460,6 +464,10 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/SettingsBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SovDay.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif

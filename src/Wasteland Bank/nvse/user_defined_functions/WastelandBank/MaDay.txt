@@ -41,6 +41,7 @@ string_var sLong
 string_var sShort
 array_var aScore
 array_var aOk
+array_var aOld
 array_var aSec
 array_var aCnt
 int iSec
@@ -115,6 +116,14 @@ begin Function {iDay}
 	if eval (iDay % 3) == 0 || (player.AuxVarGetFlt "_wmaReb") == 1
 		player.AuxVarSetFlt "_wmaReb" 0
 		let iRisk := player.AuxVarGetFlt "_wmaRisk"
+		; this rebalance's trades move the currencies like yours (Flow.txt): yesterday's positions first
+		let aOld := Ar_Construct "array"
+		let iT := 0
+		while iT < 16
+			let fV := player.AuxVarGetFlt "_wmaW" iT
+			Ar_Append aOld fV
+			let iT += 1
+		loop
 		let aScore := Ar_Construct "array"
 		let aOk := Ar_Construct "array"
 		let iN := 0
@@ -291,6 +300,19 @@ begin Function {iDay}
 				endif
 			endif
 		endif
+		let rFn := CompileScript "WastelandBank/Flow.txt"
+		let iT := 0
+		while iT < 16
+			let fV := player.AuxVarGetFlt "_wmaW" iT
+			let fBest := aOld[iT]
+			let fV -= fBest
+			if fV != 0
+				let fV *= fVal
+				call rFn iT fV
+			endif
+			let iT += 1
+		loop
+		let aOld := Ar_Null
 		let aScore := Ar_Null
 		let aOk := Ar_Null
 	endif

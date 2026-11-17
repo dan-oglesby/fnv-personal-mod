@@ -1,0 +1,50 @@
+; Wasteland Bank: which government you back (2026-11-17), for its debt.
+;   iWhat 0: a lean from -1 (the Legion) to +1 (the NCR). Once you've taken a side's road to the Dam
+;            it's that side (+1 NCR, -1 Legion; House or an independent Vegas 0); before that it
+;            follows your standing: NCR fame less infamy against its 80, less the Legion's against
+;            its 100 (RepNVNCR 1000414, RepNVCaesarsLegion 1000413; Wasteland Exchange events 26-29
+;            mark the roads to the Dam).
+;   iWhat 1: 1 if the NCR holds you Vilified (infamy 40 or more, fame under 12): it won't sell you
+;            war bonds (as the Legion treasury won't deal with its Vilified).
+int iWhat
+float fNF
+float fNI
+float fLF
+float fLI
+float fLean
+ref rRep
+
+begin Function {iWhat}
+	let rRep := BuildRef 0 1000414	; RepNVNCR
+	let fNF := GetReputation rRep 0
+	let fNI := GetReputation rRep 1
+	if iWhat == 1
+		if fNI >= 40 && fNF < 12
+			SetFunctionValue 1
+		else
+			SetFunctionValue 0
+		endif
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_wxE" 26) == 1
+		SetFunctionValue 1
+		return
+	elseif eval (player.AuxVarGetFlt "_wxE" 29) == 1
+		let fLean := -1
+		SetFunctionValue fLean
+		return
+	elseif eval (player.AuxVarGetFlt "_wxE" 27) == 1 || (player.AuxVarGetFlt "_wxE" 28) == 1
+		SetFunctionValue 0
+		return
+	endif
+	let rRep := BuildRef 0 1000413	; RepNVCaesarsLegion
+	let fLF := GetReputation rRep 0
+	let fLI := GetReputation rRep 1
+	let fLean := (fNF - fNI) / 80 - (fLF - fLI) / 100
+	if fLean > 1
+		let fLean := 1
+	elseif fLean < -1
+		let fLean := -1
+	endif
+	SetFunctionValue fLean
+end

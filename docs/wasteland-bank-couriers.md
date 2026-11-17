@@ -122,7 +122,7 @@ Lending to Caesar instead of an equity market (the Legion has none; Rome ran on 
   Legion's business ends with a short goodbye: their paymaster has fled down the river.
 - Denarii handed to a squad go into treasury loans, and cash-out orders work as in phase 2.
 
-## Phase 4 (to research): faction presence follows faction fortunes
+## Phase 4 (shelved 2026-11-17: too complex for now): faction presence follows faction fortunes
 
 NCR and Legion patrols, vanilla and from spawn mods such as Increased Wasteland Spawns, become
 rarer the worse each government is doing (their currency and news state), and caps gain against
@@ -209,3 +209,11 @@ use it; money and investments stay with the courier squads.
   catalogue open from the bank card's "Mojave Express" button at any dropbox. Visiting a dropbox
   tops up your ammo and aid from the vault and hands over ready orders. The squads keep cash,
   currency, investments and loans.
+
+## Government debt follows your allegiance; the managed account moves currencies (built 2026-11-17)
+
+- Your allegiance is the side whose road to the Dam you've taken, or before that your NCR standing
+  against your Legion standing. The Mojave Sovereign Debt Fund leans toward that government's debt,
+  from half and half to 90/10, as a running index (so a shift doesn't jump its price). The NCR won't
+  sell war bonds to someone it holds Vilified, as the Legion treasury won't deal with its Vilified.
+- The managed account's rebalances move the currencies the same way your own trades do.
