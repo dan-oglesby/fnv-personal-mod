@@ -19,6 +19,10 @@
 ;   player.AuxVarSetFlt "_fpPasteMax" 600   reservoir size in hunger points (default 400)
 ;   player.AuxVarSetFlt "_fpMulch" 0        no mulching (default 1 battery step per hunger point)
 ;   player.AuxVarSetFlt "_fpFeed" 0         the suit doesn't feed you (default 1)
+; With no fission batteries left, energy weapon ammo powers the suit (2026-11-17, Cells.txt): each
+; cell worth its vanilla value against a battery's 75 caps (an energy cell about 267 steps), least
+; energy-dense first, two magazines of your weapon's loaded ammo kept back, spent cells returned
+; drained. player.AuxVarSetFlt "_fpAmmo" 0 = batteries only.
 ;
 ; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.4+ and JIP LN.
 
@@ -39,6 +43,10 @@ if eval IsModLoaded "FissionPower.esp"
 		let iBad += 1
 	endif
 	let rChk := CompileScript "FissionPower/Tick.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "FissionPower/Cells.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
 	endif

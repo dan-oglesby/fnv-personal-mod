@@ -1,0 +1,88 @@
+; Fission Power: energy weapon ammo as the suit's fuel, after fission batteries (2026-11-17).
+; Each cell is worth its vanilla value against a fission battery's 75 caps: a 2-cap energy cell
+; holds 2/75 of a battery ("_fpLife" steps), about 267 steps at the default. Bulk ammo, worth 0,
+; counts as half its standard kind. Least energy-dense first (charge per pound), so the bulky stuff
+; goes before the good: Energy Cell Bulk, Microfusion Cell Bulk, Electron Charge Pack Bulk, Energy
+; Cell, Microfusion Cell, Energy Cell Over Charge and Max Charge, Electron Charge Pack, Microfusion
+; Cell Over Charge and Max Charge, Electron Charge Pack Over Charge and Max Charge (FalloutNV.esm,
+; decimal IDs below). A spent cell comes back as the game's own drained cell, for recycling:
+; Drained Small Energy Cell 1184094, Drained Microfusion Cell 1426985, Drained Electron Charge Pack
+; 1426986. Two magazines of the ammo loaded in the weapon in your hands are always left alone.
+;   iDo 0: returns the steps of charge your ammo could give (nothing used)
+;   iDo 1: uses ammo until fNeed steps are covered or none is left; returns the steps given, and
+;          the cells used in "*_fpCellN"
+float fNeed
+int iDo
+int iK
+int iId
+int iHave
+int iKeep
+int iTake
+int iUsed
+float fLife
+float fStep
+float fGot
+float fU
+ref rItem
+ref rDrain
+ref rCur
+ref rW
+array_var aIds
+array_var aUnits
+array_var aDrain
+
+begin Function {fNeed, iDo}
+	let aIds := Ar_List 1409811, 1409810, 1409809, 132978, 17541, 1409759, 1409760, 439614, 1409803, 1409804, 1409805, 1409806
+	let aUnits := Ar_List 1, 1.5, 0.5, 2, 3, 3, 3, 1, 5, 5, 2, 2
+	let aDrain := Ar_List 1184094, 1426985, 1426986, 1184094, 1426985, 1184094, 1184094, 1426986, 1426985, 1426985, 1426986, 1426986
+	let fLife := player.AuxVarGetFlt "_fpLife"
+	if fLife < 100
+		let fLife := 10000
+	endif
+	; the reserve: two magazines of the ammo in your weapon
+	let rCur := 0
+	let iKeep := 0
+	let rW := player.GetEquippedObject 5
+	if eval IsFormValid rW
+		if eval (GetType rW) == 40
+			let rCur := GetPlayerCurrentAmmo
+			let iKeep := GetWeaponClipRounds rW
+			let iKeep *= 2
+		endif
+	endif
+	let fGot := 0
+	let iUsed := 0
+	let iK := 0
+	while iK < 12
+		let iId := aIds[iK]
+		let fU := aUnits[iK]
+		let fStep := fU / 75 * fLife
+		let rItem := BuildRef 0 iId
+		let iHave := player.GetItemCount rItem
+		if eval rItem == rCur
+			let iHave -= iKeep
+		endif
+		if iHave > 0
+			if iDo == 0
+				let fGot += iHave * fStep
+			elseif fGot < fNeed
+				let iTake := Ceil ((fNeed - fGot) / fStep)
+				if iTake > iHave
+					let iTake := iHave
+				endif
+				player.RemoveItem rItem iTake 1
+				let iId := aDrain[iK]
+				let rDrain := BuildRef 0 iId
+				player.AddItem rDrain iTake 1
+				let fGot += iTake * fStep
+				let iUsed += iTake
+			endif
+		endif
+		let iK += 1
+	loop
+	player.AuxVarSetFlt "*_fpCellN" iUsed
+	SetFunctionValue fGot
+	let aIds := Ar_Null
+	let aUnits := Ar_Null
+	let aDrain := Ar_Null
+end

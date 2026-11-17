@@ -27,6 +27,10 @@ ref rBatt
 ref rSpent
 ref rFn
 ref rSnd
+ref rCell
+float fNeed
+float fGot
+int iCells
 
 begin Function {}
 	if player.GetDead
@@ -100,6 +104,20 @@ begin Function {}
 			let iSpare -= 1
 			let iUsed += 1
 		loop
+		; then energy weapon ammo (Cells.txt), least energy-dense first, refuelling to a fifth of a
+		; battery at a time; spent cells come back as drained cells ("_fpAmmo" 0 = batteries only)
+		if eval fLeft <= 0 && (player.AuxVarGetFlt "_fpAmmo") == 1
+			let rCell := CompileScript "FissionPower/Cells.txt"
+			let fNeed := fLife * 0.2 - fLeft
+			let fGot := call rCell fNeed 1
+			if fGot > 0
+				let fLeft += fGot
+				let iCells := player.AuxVarGetFlt "*_fpCellN"
+				player.AuxVarSetFlt "_fpDead" 0
+				player.AuxVarSetFlt "_fpWarn" 0
+				MessageEx "No fission batteries: the suit drained %.0f energy weapon cells for power." iCells
+			endif
+		endif
 		if fLeft < 0
 			let fLeft := 0
 		endif
@@ -145,7 +163,17 @@ begin Function {}
 	if fPct < 0.1 && fLeft > 0 && iSpare == 0
 		if eval (player.AuxVarGetFlt "_fpWarn") == 0
 			player.AuxVarSetFlt "_fpWarn" 1
-			MessageEx "Power armor battery below 10 percent, and no spare fission batteries."
+			let fGot := 0
+			if eval (player.AuxVarGetFlt "_fpAmmo") == 1
+				let rCell := CompileScript "FissionPower/Cells.txt"
+				let fGot := call rCell 0 0
+			endif
+			if fGot > 0
+				let fGot := fGot / fLife * 100
+				MessageEx "Power armor battery below 10 percent and no spare fission batteries: your energy cells hold about %.0f percent of a battery." fGot
+			else
+				MessageEx "Power armor battery below 10 percent, and no spare fission batteries."
+			endif
 		endif
 	endif
 	let fPct *= 1000
