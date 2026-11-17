@@ -27,8 +27,8 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
 - **Cash on hand** (to build: phase 1's withdraw has no limit yet): the account manager sees that
   every squad carries a float of 2,500 caps, drawn from your balance (less if your balance is
   less). That's the most you can withdraw from a squad called the ordinary way; a larger sum is
-  asked for when calling (open: delivered by a squad at least 24 hours later, like cash-out
-  orders, or just a slower arrival). Deposits have no limit: they can carry any amount back.
+  ordered when calling and delivered by a squad at least 24 hours later, like cash-out orders
+  (Dan was fine either way; this keeps one rule). Deposits have no limit.
 - **Selling through the squad** (built with phase 1): "sell all junk" in one go, or hand-pick
   anything in a consignment box. They sell to merchants at half the current market value (Wasteland
   Market's prices), keep 10 percent, and the rest reaches your balance a day later. The sales move
@@ -46,14 +46,29 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
   money is delivered in that currency (NCR notes for war bonds) by the next squad you call at least
   24 hours after the order.
 - **Wasteland Bank stock (WBNK)** on the New Vegas exchange, small enough to buy a controlling
-  stake (over half the shares). The fees you pay the squad are the bank's revenue and fund its
-  dividend. With control, the bank's settings gain the fee levels: the cash fee, the vault rate per
-  pound and the loan rate.
+  stake (over half the shares). With control, the bank's settings gain the fee levels: the cash
+  fee, the vault rate per pound and the loan rate. Decided behavior:
+  - it trades like a safe, dividend-paying bank today: low volatility (about 20 percent a year)
+    and a steady dividend yield of about 3 to 4 percent at the start, with the price following how
+    the bank is doing (its fee revenue, including the fees you pay);
+  - **dividend reinvestment:** your dividends always buy shares from other shareholders, so your
+    stake grows by itself, slowly;
+  - **as you own more, the float thins:** volatility and the price rise with your share of the
+    company, while the dividend per share stays about the same (so its yield falls);
+  - the stake's size and cost (open): a controlling stake as a mid-game goal, around 20,000 to
+    30,000 caps at the start.
 
 - **Currency accounts:** keep your balance in caps, NCR dollars or denarii (the squad converts
-  between them at the usual fee), so holding a currency is a choice and a bet.
-- **A Vegas index fund:** one ticker on the New Vegas exchange that holds the whole market across
-  the exchanges (index-style investing in a single purchase).
+  between them at the usual fee), so holding a currency is a choice and a bet. **Each pays its own
+  interest** (decided): the riskier the currency, the more it pays, so backing a faction earns
+  something while it holds up. Proposed: caps the base rate, NCR dollars 1.5 times it, denarii 2.5
+  times, each nudged up when its side takes bad news (risk premium) and down on good.
+- **A Vegas index fund:** one ticker on the New Vegas exchange that holds every listed stock across
+  the exchanges (index-style investing in a single purchase). Stocks only; equal weights unless
+  decided otherwise.
+- **A sovereign debt fund** (decided: a second fund rather than mixing debt into the index): NCR
+  War Bonds and Legion treasury debt in one ticker, a bet on governments paying their debts,
+  whoever wins. Legion debt joins it once phase 3 exists.
 - **Currency effects of your investing:** net buying of NCR assets (war bonds, Hub-listed stocks)
   supports the NCR dollar a little, selling weakens it, and the same for Legion debt and the
   denarius. Small, building up over time and fading, so the rates still follow the faction story.
