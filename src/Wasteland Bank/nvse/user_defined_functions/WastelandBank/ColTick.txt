@@ -1,0 +1,146 @@
+; Wasteland Bank: the debt collectors, once a second of play (2026-11-17). "_wbColState" 0 none,
+; 1 sent (arrive at "_wbColAt"; CreditDay.txt), 2 here, 3 fighting, 4 leaving.
+; - Arrival: out of sight behind you, like the couriers (a marker "_wbColMark"), three Debt
+;   Collectors (WastelandBank.esp 0x80F-0x811, not essential) run up to you and make their demand
+;   (Collect.txt). Activating one shows it again (ColAct.txt).
+; - Walk off (about 36 m) once they've asked, and they take it as a refusal (CollectBtn.txt 1).
+; - Fighting: over when they're all down or you're about 60 m away; they come back in a week.
+; - Leaving: they run back the way they came, removed out of sight.
+int iState
+int iPlug
+int iIdx
+int iId
+int iT
+int iUp
+float fNow
+float fFar
+float fD
+ref rBase
+ref rRef
+ref rLead
+ref rMark
+ref rPkg
+ref rFn
+
+begin Function {}
+	let iState := player.AuxVarGetFlt "_wbColState"
+	if iState == 0
+		return
+	endif
+	if player.GetDead
+		return
+	endif
+	if IsInKillCam
+		return
+	endif
+	let rLead := player.AuxVarGetRef "_wbColRef" 0
+
+	if iState == 1
+		let fNow := GameDaysPassed
+		if eval fNow < (player.AuxVarGetFlt "_wbColAt")
+			return
+		endif
+		if player.IsInCombat
+			return
+		endif
+		if eval (IsModLoaded "WastelandBank.esp") == 0
+			player.AuxVarSetFlt "_wbColState" 0
+			return
+		endif
+		let iPlug := GetModIndex "WastelandBank.esp"
+		let fFar := 1500
+		if eval player.IsInInterior
+			let fFar := 400
+		endif
+		let rBase := BuildRef 0 59	; XMarker
+		let rMark := player.PlaceAtMe rBase 1 fFar 1
+		player.AuxVarSetRef "_wbColMark" rMark
+		let rPkg := BuildRef 0 1397980	; DefaultFollowPlayerFar (0x1554DC)
+		let rFn := CompileScript "WastelandBank/ColAct.txt"
+		let iIdx := 0
+		while iIdx < 3
+			let iId := 2063 + iIdx	; WBCollectorA-C 0x80F-0x811
+			let rBase := BuildRef iPlug iId
+			let rRef := rMark.PlaceAtMe rBase 1 64 iIdx
+			rRef.AddScriptPackage rPkg
+			rRef.SetAlwaysRun 1
+			rRef.EvaluatePackage
+			player.AuxVarSetRef "_wbColRef" rRef iIdx
+			SetEventHandler "OnActivate" rFn "first"::rRef
+			SetEventHandler "OnActivate" rFn "second"::rRef
+			let iIdx += 1
+		loop
+		player.AuxVarSetFlt "*_wbColComeT" 0
+		player.AuxVarSetFlt "*_wbColAsked" 0
+		player.AuxVarSetFlt "_wbColState" 2
+		MessageEx "Someone is coming up behind you, fast."
+		return
+	endif
+	if eval (IsFormValid rLead) == 0
+		let rFn := CompileScript "WastelandBank/ColLeave.txt"
+		call rFn 1
+		return
+	endif
+	let fD := player.GetDistance rLead
+
+	if iState == 2
+		if eval (player.AuxVarGetFlt "*_wbColAsked") == 0
+			let iT := player.AuxVarGetFlt "*_wbColComeT"
+			let iT += 1
+			player.AuxVarSetFlt "*_wbColComeT" iT
+			if fD <= 300 || iT >= 60
+				let rPkg := BuildRef 0 1397980
+				let iIdx := 0
+				while iIdx < 3
+					let rRef := player.AuxVarGetRef "_wbColRef" iIdx
+					let iIdx += 1
+					if eval IsFormValid rRef
+						if eval (player.GetDistance rRef) > 600
+							rRef.MoveTo player 0 128 0
+						endif
+						rRef.RemoveScriptPackage rPkg
+						rRef.SetAlwaysRun 0
+						rRef.EvaluatePackage
+					endif
+				loop
+				player.AuxVarSetFlt "*_wbColAsked" 1
+				let rFn := CompileScript "WastelandBank/Collect.txt"
+				call rFn
+			endif
+		elseif fD > 2500
+			MessageEx "You walked away from the debt collectors."
+			let rFn := CompileScript "WastelandBank/CollectBtn.txt"
+			call rFn 1
+		endif
+		return
+	endif
+
+	if iState == 3
+		let iUp := 0
+		let iIdx := 0
+		while iIdx < 3
+			let rRef := player.AuxVarGetRef "_wbColRef" iIdx
+			let iIdx += 1
+			if eval IsFormValid rRef
+				if eval (rRef.GetDead) == 0 && (player.GetDistance rRef) < 4000
+					let iUp += 1
+				endif
+			endif
+		loop
+		if iUp == 0
+			let rFn := CompileScript "WastelandBank/ColLeave.txt"
+			call rFn 1
+		endif
+		return
+	endif
+
+	if iState == 4
+		let iT := player.AuxVarGetFlt "*_wbColLeaveT"
+		let iT += 1
+		player.AuxVarSetFlt "*_wbColLeaveT" iT
+		if fD > 1500 || iT > 45
+			let rFn := CompileScript "WastelandBank/ColLeave.txt"
+			call rFn 1
+		endif
+	endif
+end

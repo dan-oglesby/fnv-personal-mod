@@ -44,6 +44,9 @@ begin Function {fAmt}
 		let fLoan := player.AuxVarGetFlt "_wbLoan"
 		if fLoan <= 0
 			player.AuxVarSetFlt "_wbLoanDays" 0
+			let iCarry := Floor GameDaysPassed
+			let iCarry += 30
+			player.AuxVarSetFlt "_wbLoanDue" iCarry	; due in 30 days, like any loan
 		endif
 		let fLoan += fAmt
 		player.AuxVarSetFlt "_wbLoan" fLoan

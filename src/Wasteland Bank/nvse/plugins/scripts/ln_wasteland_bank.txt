@@ -87,6 +87,26 @@ let rChk := CompileScript "WastelandBank/Catalogue.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/ColAct.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/ColLeave.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/ColTick.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Collect.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CollectBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/ConvertNow.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -100,6 +120,14 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/CourierBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Credit.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CreditDay.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
@@ -544,6 +572,9 @@ else
 	; courier squad: arrival, first meeting, leaving (once a second, same flags)
 	let ref rSq := CompileScript "WastelandBank/SqTick.txt"
 	CallWhilePerSeconds 1 rSq rTrue 20
+	; debt collectors, when a loan runs two weeks overdue (ColTick.txt; same flags)
+	let ref rCol := CompileScript "WastelandBank/ColTick.txt"
+	CallWhilePerSeconds 1 rCol rTrue 20
 	; the vault's container screen closing: charge for what the couriers carried
 	let ref rVaultClose := CompileScript "WastelandBank/VaultClose.txt"
 	SetOnMenuCloseEventHandler rVaultClose 1 1008

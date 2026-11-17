@@ -124,6 +124,9 @@ CAT_CONT, CAT_REF, SHIP_CONT, SHIP_REF = 0x80B, 0x80C, 0x80D, 0x80E
 # empty activation script, so opening a dropbox shows the bank's Mojave Express menu (MEAct.txt)
 # instead of the vanilla shipping messages. Copied from FalloutNV.esm with only the script changed.
 ME_BOX = 0x14B05F
+# Debt collectors (2026-11-17): the same mercenary copies as the couriers, but not essential, named
+# Debt Collector; sent when a loan is two weeks overdue (ColTick.txt). Same empty activation script.
+COLLECTORS = [(0x80F, "WBCollectorA", 0x165066), (0x810, "WBCollectorB", 0x165064), (0x811, "WBCollectorC", 0x165065)]
 # Wasteland Bank notes (2026-11-16): the bank's own paper money. Face value 10 and 100 caps at
 # issue; their worth follows the bank's share price (BankNotes.txt sets it on load and daily).
 # Paper weight as NCR notes; the vanilla $20 NCR note's model and icons.
@@ -172,7 +175,7 @@ def _vanilla_npcs(wanted):
     return found if len(found) == len(wanted) else None
 
 
-def _courier(objid, edid, flags, subs) -> bytes:
+def _courier(objid, edid, flags, subs, name=None, essential=True) -> bytes:
     body = b""
     for tag, data in subs:
         if tag in ("SNAM", "PKID", "SCRI"):
@@ -180,11 +183,12 @@ def _courier(objid, edid, flags, subs) -> bytes:
         if tag == "EDID":
             data = z(edid)
         elif tag == "FULL":
-            data = z(COURIER_NAME)
+            data = z(name or COURIER_NAME)
         elif tag == "ACBS":
             acbs = bytearray(data)
             f = struct.unpack_from("<I", acbs, 0)[0]
-            struct.pack_into("<I", acbs, 0, (f | 0x02) & ~0x08)          # essential, no respawn
+            f = (f | 0x02) if essential else (f & ~0x02)                  # essential (couriers) or not
+            struct.pack_into("<I", acbs, 0, f & ~0x08)                   # no respawn
             t = struct.unpack_from("<H", acbs, 22)[0]
             struct.pack_into("<H", acbs, 22, t & ~(0x04 | 0x10 | 0x20 | 0x80 | 0x200))
             data = bytes(acbs)
@@ -205,12 +209,14 @@ def bank_plugin(edid, name, model, icon, small_icon):
     """WastelandBank.esp: the card (0x800), the couriers (0x801-0x803), the vault container (0x804)
     in its own interior cell (0x805) as one persistent reference (0x806), and the consignment box
     (0x807, reference 0x808) in the same cell. None without the ESM."""
-    vanilla = _vanilla_npcs({src for _, _, src in COURIERS})
+    vanilla = _vanilla_npcs({src for _, _, src in COURIERS + COLLECTORS})
     if vanilla is None:
         return None
     card = plugin(edid, name, model, icon, small_icon)
     card_group = card[card.index(b"GRUP"):]
     npcs = b"".join(_courier(objid, ed, *vanilla[src]) for objid, ed, src in COURIERS)
+    npcs += b"".join(_courier(objid, ed, *vanilla[src], name="Debt Collector", essential=False)
+                      for objid, ed, src in COLLECTORS)
     cont = record("CONT", 0, 0x01000000 | VAULT_CONT,
                   sub("EDID", z("WBVault")) + sub("OBND", bytes(12)) + sub("FULL", z("Wasteland Bank Vault"))
                   + sub("MODL", z(VAULT_MODEL)) + sub("DATA", struct.pack("<Bf", 0, 0.0)))
@@ -251,9 +257,9 @@ def bank_plugin(edid, name, model, icon, small_icon):
     block, subblock = VAULT_CELL % 10, (VAULT_CELL // 10) % 10
     cells = _grup(b"CELL", 0, _grup(struct.pack("<i", block), 2,
                                     _grup(struct.pack("<i", subblock), 3, cell + children)))
-    n_records = 1 + len(COURIERS) + 5 + len(BANK_NOTES) + 1 + 4
+    n_records = 1 + len(COURIERS) + len(COLLECTORS) + 5 + len(BANK_NOTES) + 1 + 4
     header = record("TES4", 0, 0,
-                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, SHIP_REF + 1))
+                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, 0x812))
                     + sub("CNAM", z("fnv-personal-mod"))
                     + sub("MAST", z("FalloutNV.esm"))
                     + sub("DATA", bytes(8)))

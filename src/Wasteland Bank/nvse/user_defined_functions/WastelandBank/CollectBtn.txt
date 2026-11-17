@@ -1,0 +1,132 @@
+; Wasteland Bank: answering the debt collectors (0 pay what you can, 1 refuse).
+; - Paying: the caps you carry, then the caps in your vault (WBVaultRef 0x806), then your vault's
+;   most valuable things at half their worth, until the debt is met or there's nothing left. Paid in
+;   full, the loan is closed; short, they leave and come back in a week ("_wbColNext"). Either way
+;   they run off (ColLeave.txt 0).
+; - Refusing: 25 points of credit, and they fight you for it (state 3; ColTick.txt). Win, and the
+;   debt still stands; more come in a week.
+int iBtn
+int iPlug
+int iN
+int iK
+int iIdx
+int iCnt
+int iTake
+int iBestV
+int iV
+int iToday
+float fLoan
+float fGot
+float fC
+ref rCaps
+ref rVault
+ref rItem
+ref rBest
+ref rRef
+ref rFn
+
+begin Function {iBtn}
+	if eval (player.AuxVarGetFlt "_wbColState") != 2
+		return
+	endif
+	let iToday := Floor GameDaysPassed
+	let fLoan := player.AuxVarGetFlt "_wbLoan"
+	if iBtn == 1
+		let fC := player.AuxVarGetFlt "_wbCredit"
+		let fC -= 25
+		if fC < 0
+			let fC := 0
+		endif
+		player.AuxVarSetFlt "_wbCredit" fC
+		let iToday += 7
+		player.AuxVarSetFlt "_wbColNext" iToday
+		player.AuxVarSetFlt "_wbColState" 3
+		let iIdx := 0
+		while iIdx < 3
+			let rRef := player.AuxVarGetRef "_wbColRef" iIdx
+			let iIdx += 1
+			if eval IsFormValid rRef
+				rRef.StartCombat player
+			endif
+		loop
+		MessageEx "The debt collectors draw their weapons."
+		return
+	endif
+
+	let fGot := 0
+	; the caps you carry
+	let rCaps := BuildRef 0 15	; Caps001
+	let iN := player.GetItemCount rCaps
+	let iTake := Ceil fLoan
+	if iTake > iN
+		let iTake := iN
+	endif
+	if iTake > 0
+		player.RemoveItem rCaps iTake 1
+		let fLoan -= iTake
+		let fGot += iTake
+	endif
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rVault := BuildRef iPlug 2054	; WBVaultRef
+	if eval fLoan > 0 && (IsFormValid rVault)
+		; the caps in your vault
+		let iN := rVault.GetItemCount rCaps
+		let iTake := Ceil fLoan
+		if iTake > iN
+			let iTake := iN
+		endif
+		if iTake > 0
+			rVault.RemoveItem rCaps iTake 1
+			let fLoan -= iTake
+			let fGot += iTake
+		endif
+		; the vault's best things, at half their worth
+		let iK := 0
+		while fLoan > 0 && iK < 50
+			let iK += 1
+			let rBest := 0
+			let iBestV := 0
+			let iN := rVault.GetNumItems
+			let iIdx := 0
+			while iIdx < iN
+				let rItem := rVault.GetInventoryObject iIdx
+				let iIdx += 1
+				if eval (IsFormValid rItem) == 0
+					continue
+				endif
+				if eval (IsQuestItem rItem) || rItem == rCaps
+					continue
+				endif
+				let iV := GetValue rItem
+				if iV > iBestV
+					let iBestV := iV
+					let rBest := rItem
+				endif
+			loop
+			if iBestV < 2
+				break
+			endif
+			let iCnt := rVault.GetItemCount rBest
+			let iTake := Ceil (fLoan / (iBestV * 0.5))
+			if iTake > iCnt
+				let iTake := iCnt
+			endif
+			rVault.RemoveItem rBest iTake 1
+			let fLoan -= iTake * iBestV * 0.5
+			let fGot += iTake * iBestV * 0.5
+		loop
+	endif
+	if fLoan < 0.5
+		let fLoan := 0
+		player.AuxVarSetFlt "_wbLoanDays" 0
+		player.AuxVarSetFlt "_wbLoanDue" 0
+		MessageBoxEx "Debt collectors%rThey take %.0f caps' worth. Your debt to the Wasteland Bank is settled." fGot
+	else
+		let iToday += 7
+		player.AuxVarSetFlt "_wbColNext" iToday
+		MessageBoxEx "Debt collectors%rThey take %.0f caps' worth, all you have. You still owe %.0f caps. They'll be back in a week." fGot fLoan
+	endif
+	player.AuxVarSetFlt "_wbLoan" fLoan
+	let rFn := CompileScript "WastelandBank/ColLeave.txt"
+	call rFn 0
+end

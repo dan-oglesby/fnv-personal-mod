@@ -1,0 +1,49 @@
+; Wasteland Bank: the debt collectors leave. iMode 0: they run back to their arrival marker
+; ("_wbColMark", vanilla DefaultTravelToLinkedPackage 0x11AFD7; state 4, ColTick.txt). iMode 1:
+; removed at once (out of sight, dead, or done running), with their activation handlers.
+int iMode
+int iIdx
+ref rRef
+ref rMark
+ref rPkg
+ref rFn
+
+begin Function {iMode}
+	let rMark := player.AuxVarGetRef "_wbColMark"
+	if eval iMode == 0 && (IsFormValid rMark)
+		let rPkg := BuildRef 0 1159127	; DefaultTravelToLinkedPackage (0x11AFD7)
+		let iIdx := 0
+		while iIdx < 3
+			let rRef := player.AuxVarGetRef "_wbColRef" iIdx
+			let iIdx += 1
+			if eval IsFormValid rRef
+				rRef.SetLinkedRef rMark
+				rRef.AddScriptPackage rPkg
+				rRef.SetAlwaysRun 1
+				rRef.EvaluatePackage
+			endif
+		loop
+		player.AuxVarSetFlt "*_wbColLeaveT" 0
+		player.AuxVarSetFlt "_wbColState" 4
+		return
+	endif
+	let rFn := CompileScript "WastelandBank/ColAct.txt"
+	let iIdx := 0
+	while iIdx < 3
+		let rRef := player.AuxVarGetRef "_wbColRef" iIdx
+		let iIdx += 1
+		if eval IsFormValid rRef
+			RemoveEventHandler "OnActivate" rFn "first"::rRef
+			RemoveEventHandler "OnActivate" rFn "second"::rRef
+			rRef.Disable
+			rRef.MarkForDelete
+		endif
+	loop
+	if eval IsFormValid rMark
+		rMark.Disable
+		rMark.MarkForDelete
+	endif
+	player.AuxVarErase "_wbColRef"
+	player.AuxVarErase "_wbColMark"
+	player.AuxVarSetFlt "_wbColState" 0
+end

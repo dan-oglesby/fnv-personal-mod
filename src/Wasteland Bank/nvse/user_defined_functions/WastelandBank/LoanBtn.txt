@@ -1,34 +1,51 @@
-; Wasteland Bank: loan buttons. With no loan: 0-3 borrow 100/500/1000/5000. With a loan: 0-3 repay
-; 100/500/1000/all you can. 4 back. Repayments use the caps you carry at the moment you click.
+; Wasteland Bank: loan buttons. With no loan: 0-3 borrow 100 / 1,000 / 5,000 / as much as your
+; credit allows (Credit.txt), due 30 days later. With a loan: 0-3 repay 100 / 500 / 1,000 / all you
+; can, from the caps you carry. 4 back. Paying a loan off by its due day raises your credit 5.
 int iBtn
 int iAmt
 int iCarry
 int iOwed
+int iMax
+int iToday
 float fLoan
+float fC
 ref rCaps
 ref rNext
+ref rFn
 
 begin Function {iBtn}
 	if iBtn == 4
-		let rNext := CompileScript "WastelandBank/Open.txt"
+		let rNext := CompileScript "WastelandBank/Courier.txt"
 		call rNext
 		return
 	endif
 	let rCaps := BuildRef 0 15	; Caps001
 	let fLoan := player.AuxVarGetFlt "_wbLoan"
+	let iToday := Floor GameDaysPassed
 	if fLoan <= 0
+		let rFn := CompileScript "WastelandBank/Credit.txt"
+		let iMax := call rFn 1
 		let iAmt := 100
 		if iBtn == 1
-			let iAmt := 500
-		elseif iBtn == 2
 			let iAmt := 1000
-		elseif iBtn == 3
+		elseif iBtn == 2
 			let iAmt := 5000
+		elseif iBtn == 3
+			let iAmt := iMax
 		endif
-		player.AuxVarSetFlt "_wbLoan" iAmt
-		player.AuxVarSetFlt "_wbLoanDays" 0
-		player.AddItem rCaps iAmt 1
-		print "Wasteland Bank: borrowed " + $iAmt + " caps"
+		if iAmt > iMax
+			let iAmt := iMax
+		endif
+		if iAmt < 1
+			MessageEx "With your credit, the bank won't lend to you. Pay your way for a while."
+		else
+			player.AuxVarSetFlt "_wbLoan" iAmt
+			player.AuxVarSetFlt "_wbLoanDays" 0
+			let iToday += 30
+			player.AuxVarSetFlt "_wbLoanDue" iToday
+			player.AddItem rCaps iAmt 1
+			print "Wasteland Bank: borrowed " + $iAmt + " caps"
+		endif
 	else
 		let iCarry := player.GetItemCount rCaps
 		let iOwed := Ceil fLoan
@@ -52,6 +69,15 @@ begin Function {iBtn}
 			if fLoan < 0.5
 				let fLoan := 0
 				player.AuxVarSetFlt "_wbLoanDays" 0
+				if eval iToday <= (player.AuxVarGetFlt "_wbLoanDue")
+					let fC := player.AuxVarGetFlt "_wbCredit"
+					let fC += 5
+					if fC > 100
+						let fC := 100
+					endif
+					player.AuxVarSetFlt "_wbCredit" fC
+					MessageEx "Loan repaid on time: your credit improves."
+				endif
 			endif
 			player.AuxVarSetFlt "_wbLoan" fLoan
 			print "Wasteland Bank: repaid " + $iAmt + " caps"

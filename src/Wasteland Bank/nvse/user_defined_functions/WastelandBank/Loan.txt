@@ -1,18 +1,56 @@
-; Wasteland Bank: loans. One loan at a time; 0.5% interest once per 7 whole game days (the 2011
-; mod charged it every few seconds by mistake).
+; Wasteland Bank: loans (through the couriers). One loan at a time, due 30 game days after you take
+; it ("_wbLoanDue", a game day); interest once per 7 whole game days at your credit grade's rate
+; (Credit.txt). How much you can borrow depends on your credit too. Late loans cost credit, the bank
+; takes what it can from your balance, and two weeks late it sends debt collectors (ColTick.txt).
 float fLoan
+float fCredit
+float fRate
+float fMax
 int iCarry
+int iG
+int iDue
+int iToday
+int iDays
+string_var sGrade
+string_var sDue
 ref rCaps
 ref rCb
+ref rFn
 
 begin Function {}
+	let rFn := CompileScript "WastelandBank/Credit.txt"
+	let iG := call rFn 0
+	let fMax := call rFn 1
+	let fRate := call rFn 2
+	let fRate *= 100
+	let fCredit := player.AuxVarGetFlt "_wbCredit"
+	if iG == 0
+		let sGrade := "A"
+	elseif iG == 1
+		let sGrade := "B"
+	elseif iG == 2
+		let sGrade := "C"
+	elseif iG == 3
+		let sGrade := "D"
+	else
+		let sGrade := "F"
+	endif
 	let fLoan := player.AuxVarGetFlt "_wbLoan"
 	let rCb := CompileScript "WastelandBank/LoanBtn.txt"
 	if fLoan <= 0
-		MessageBoxExAlt rCb "^Loans^You owe nothing.%rA loan costs 0.5%% interest a week (7 game days).|Borrow 100|Borrow 500|Borrow 1000|Borrow 5000|Back"
+		MessageBoxExAlt rCb "^Loans^Your credit: %z (%.0f of 100). You can borrow up to %.0f caps, at %.2f percent a week, due in 30 days.|Borrow 100|Borrow 1,000|Borrow 5,000|Borrow as much as I can|Back" sGrade fCredit fMax fRate
 	else
 		let rCaps := BuildRef 0 15	; Caps001
 		let iCarry := player.GetItemCount rCaps
-		MessageBoxExAlt rCb "^Loans^You owe %.0f caps (0.5%% interest a week).%rYou carry %.0f caps.|Repay 100|Repay 500|Repay 1000|Repay all you can|Back" fLoan iCarry
+		let iDue := player.AuxVarGetFlt "_wbLoanDue"
+		let iToday := Floor GameDaysPassed
+		if iToday > iDue
+			let iDays := iToday - iDue
+			let sDue := sv_Construct "%.0f days OVERDUE" iDays
+		else
+			let iDays := iDue - iToday
+			let sDue := sv_Construct "due in %.0f days" iDays
+		endif
+		MessageBoxExAlt rCb "^Loans^You owe %.0f caps, %z, at %.2f percent a week.%rYour credit: %z (%.0f of 100).%rYou carry %.0f caps.|Repay 100|Repay 500|Repay 1000|Repay all you can|Back" fLoan sDue fRate sGrade fCredit iCarry
 	endif
 end

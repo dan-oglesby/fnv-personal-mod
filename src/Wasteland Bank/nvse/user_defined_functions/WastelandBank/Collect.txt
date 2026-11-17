@@ -1,0 +1,17 @@
+; Wasteland Bank: the debt collectors' demand (ColTick.txt when they reach you, ColAct.txt when you
+; activate one). Pay what you can (CollectBtn.txt 0) or refuse (1).
+float fLoan
+int iLate
+int iCarry
+ref rCaps
+ref rCb
+
+begin Function {}
+	let fLoan := player.AuxVarGetFlt "_wbLoan"
+	let iLate := Floor GameDaysPassed
+	let iLate -= player.AuxVarGetFlt "_wbLoanDue"
+	let rCaps := BuildRef 0 15	; Caps001
+	let iCarry := player.GetItemCount rCaps
+	let rCb := CompileScript "WastelandBank/CollectBtn.txt"
+	MessageBoxExAlt rCb "^Debt collectors^You owe the Wasteland Bank %.0f caps, %.0f days late. We take it now: the caps you carry, then what's in your vault, then your vault's best things at half their worth.%rYou carry %.0f caps.|Pay what I can|Refuse" fLoan iLate iCarry
+end

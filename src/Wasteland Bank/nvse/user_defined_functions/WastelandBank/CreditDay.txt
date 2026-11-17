@@ -1,0 +1,72 @@
+; Wasteland Bank: the daily credit book (from Tick.txt, once for each new game day; iDays = days
+; since the last book). Credit.txt says how the score works.
+; - A loan with no due day (an old save, or a fee that ran into a loan) gets one 30 days out.
+; - Overdue: 2 points a day; the bank takes what it can from your balance toward it; two weeks late,
+;   debt collectors are sent ("_wbColState" 1, arriving in 1 to 3 hours; ColTick.txt), 15 points,
+;   and again a week after a visit that didn't settle it ("_wbColNext").
+; - Otherwise a point a week, up to 100.
+int iDays
+int iToday
+int iDue
+int iLate
+float fLoan
+float fC
+float fBal
+float fTake
+float fAt
+float fH
+
+begin Function {iDays}
+	let iToday := Floor GameDaysPassed
+	let fLoan := player.AuxVarGetFlt "_wbLoan"
+	let iDue := player.AuxVarGetFlt "_wbLoanDue"
+	let fC := player.AuxVarGetFlt "_wbCredit"
+	if fLoan > 0 && iDue <= 0
+		let iDue := iToday + 30
+		player.AuxVarSetFlt "_wbLoanDue" iDue
+	endif
+	if fLoan > 0 && iToday > iDue
+		let iLate := iToday - iDue
+		if iDays > iLate
+			let iDays := iLate
+		endif
+		let fC -= 2 * iDays
+		; the bank helps itself to your balance first
+		let fBal := player.AuxVarGetFlt "_wbBal"
+		if fBal >= 1
+			let fTake := fBal
+			if fTake > fLoan
+				let fTake := fLoan
+			endif
+			let fBal -= fTake
+			let fLoan -= fTake
+			if fLoan < 0.5
+				let fLoan := 0
+			endif
+			player.AuxVarSetFlt "_wbBal" fBal
+			player.AuxVarSetFlt "_wbLoan" fLoan
+			MessageEx "Wasteland Bank: your loan is overdue, so %.0f caps were taken from your balance toward it." fTake
+		endif
+		if fLoan > 0 && iLate >= 14
+			if eval (player.AuxVarGetFlt "_wbColState") == 0 && iToday >= (player.AuxVarGetFlt "_wbColNext")
+				let fH := GetRandomPercent
+				let fH := 1 + fH / 50
+				let fAt := GameDaysPassed
+				let fAt += fH / 24
+				player.AuxVarSetFlt "_wbColAt" fAt
+				player.AuxVarSetFlt "_wbColState" 1
+				let fC -= 15
+				MessageBoxEx "Wasteland Bank%rYour loan is two weeks overdue. The bank has sent debt collectors. They'll find you."
+			endif
+		endif
+	elseif eval iToday - (player.AuxVarGetFlt "_wbCreditWk") >= 7
+		player.AuxVarSetFlt "_wbCreditWk" iToday
+		let fC += 1
+	endif
+	if fC > 100
+		let fC := 100
+	elseif fC < 0
+		let fC := 0
+	endif
+	player.AuxVarSetFlt "_wbCredit" fC
+end

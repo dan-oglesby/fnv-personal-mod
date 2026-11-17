@@ -8,7 +8,8 @@
 ; Currency accounts (2026-11-16): NCR dollars earn 1.5 times that rate, denarii 2.5 times, each
 ; times a risk premium from its currency's news shock (bad news pays more: 1 - 2 x shock, kept
 ; between 0.5 and 2). All interest counts toward the month's profits ("_wbProfM", Tax.txt).
-; Loan interest: 0.5% for every 7 whole game days owed.
+; Loan interest: for every 7 whole game days owed, at your credit grade's rate (Credit.txt; 0.5% at
+; C, the starting grade). Then the credit book (CreditDay.txt).
 ; Also: courier sales and managed-account withdrawals reaching the balance a day later, the NCR's
 ; monthly tax (Tax.txt), and a note when your customer tier rises.
 int iToday
@@ -130,14 +131,19 @@ begin Function {}
 		if fLoan > 0
 			let iLoanDays := player.AuxVarGetFlt "_wbLoanDays"
 			let iLoanDays += iDays
+			let rConv := CompileScript "WastelandBank/Credit.txt"
+			let fPrem := call rConv 2	; weekly interest at your credit grade's rate (0.3 to 1 percent)
 			while iLoanDays >= 7
-				let fLoan *= 1.005
+				let fLoan *= 1 + fPrem
 				let iLoanDays -= 7
 			loop
 			player.AuxVarSetFlt "_wbLoan" fLoan
 			player.AuxVarSetFlt "_wbLoanDays" iLoanDays
 		endif
 
+		; credit: overdue loans, the bank taking your balance, debt collectors (CreditDay.txt)
+		let rConv := CompileScript "WastelandBank/CreditDay.txt"
+		call rConv iDays
 		; the NCR's tax, if it has won
 		let rConv := CompileScript "WastelandBank/Tax.txt"
 		call rConv iToday

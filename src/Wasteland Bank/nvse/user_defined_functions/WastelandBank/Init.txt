@@ -5,7 +5,9 @@
 ;   _wbKeep    caps auto-deposit leaves in your pocket
 ;   _wbFeePct  courier fee, percent of the cash moved (2)   _wbVaultRate  vault fee, caps a pound (1)
 ;   _wbSellCut couriers' cut of what they sell for you, percent (10)
-;   _wbSet     settings version
+;   _wbSet     settings version; each version's block runs once, in order (2026-11-17: the version-2
+;              block used to sit last, after version 3 had already been set, so it never ran and the
+;              selling cut stayed 0; version 8 puts it right)
 
 int iToday
 int iK
@@ -22,6 +24,10 @@ begin Function {}
 		player.AuxVarSetFlt "_wbSet" 1
 		player.AuxVarSetFlt "_wbFeePct" 2
 		player.AuxVarSetFlt "_wbVaultRate" 1
+	endif
+	if eval (player.AuxVarGetFlt "_wbSet") < 2
+		player.AuxVarSetFlt "_wbSet" 2
+		player.AuxVarSetFlt "_wbSellCut" 10
 	endif
 	if eval (player.AuxVarGetFlt "_wbSet") < 3
 		player.AuxVarSetFlt "_wbSet" 3
@@ -62,10 +68,22 @@ begin Function {}
 		player.AuxVarSetFlt "_wbSet" 6
 		player.AuxVarSetFlt "_wbCardPay" 1	; pay by bank card at merchants (CardPay.txt)
 	endif
+	if eval (player.AuxVarGetFlt "_wbSet") < 7
+		player.AuxVarSetFlt "_wbSet" 7
+		player.AuxVarSetFlt "_wbCredit" 60	; credit score (Credit.txt): C to start
+		let iK := Floor GameDaysPassed
+		player.AuxVarSetFlt "_wbCreditWk" iK
+		if eval (player.AuxVarGetFlt "_wbLoan") > 0
+			let iK += 30
+			player.AuxVarSetFlt "_wbLoanDue" iK
+		endif
+	endif
+	if eval (player.AuxVarGetFlt "_wbSet") < 8
+		player.AuxVarSetFlt "_wbSet" 8
+		if eval (player.AuxVarGetFlt "_wbSellCut") <= 0
+			player.AuxVarSetFlt "_wbSellCut" 10	; the cut the out-of-order version 2 never set
+		endif
+	endif
 	let rFn := CompileScript "WastelandBank/LegInit.txt"
 	call rFn
-	if eval (player.AuxVarGetFlt "_wbSet") < 2
-		player.AuxVarSetFlt "_wbSet" 2
-		player.AuxVarSetFlt "_wbSellCut" 10
-	endif
 end

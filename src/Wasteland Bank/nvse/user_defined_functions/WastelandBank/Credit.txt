@@ -1,0 +1,51 @@
+; Wasteland Bank: your credit (2026-11-17). The score "_wbCredit" runs 0 to 100 (60 to start). It
+; rises a point a week while you owe nothing or are paid up on time, 5 when you repay a loan in full
+; by its due day; it falls 2 a day while a loan is overdue, 15 when collectors are sent, 25 if you
+; turn them away (Tick.txt, LoanBtn.txt, CollectBtn.txt).
+;   iWhat 0: the grade, 0 A (85+), 1 B (70+), 2 C (55+), 3 D (40+), 4 F (below 40)
+;   iWhat 1: the most you can borrow: A 25,000, B 10,000, C 5,000, D 1,000, F nothing
+;   iWhat 2: weekly interest, as a fraction: A 0.003, B 0.004, C 0.005, D 0.0075, F 0.01
+int iWhat
+int iG
+float fC
+
+begin Function {iWhat}
+	let fC := player.AuxVarGetFlt "_wbCredit"
+	let iG := 4
+	if fC >= 85
+		let iG := 0
+	elseif fC >= 70
+		let iG := 1
+	elseif fC >= 55
+		let iG := 2
+	elseif fC >= 40
+		let iG := 3
+	endif
+	if iWhat == 0
+		SetFunctionValue iG
+	elseif iWhat == 1
+		if iG == 0
+			SetFunctionValue 25000
+		elseif iG == 1
+			SetFunctionValue 10000
+		elseif iG == 2
+			SetFunctionValue 5000
+		elseif iG == 3
+			SetFunctionValue 1000
+		else
+			SetFunctionValue 0
+		endif
+	else
+		if iG == 0
+			SetFunctionValue 0.003
+		elseif iG == 1
+			SetFunctionValue 0.004
+		elseif iG == 2
+			SetFunctionValue 0.005
+		elseif iG == 3
+			SetFunctionValue 0.0075
+		else
+			SetFunctionValue 0.01
+		endif
+	endif
+end
