@@ -8,7 +8,7 @@ begin Function {iBtn}
 	if iBtn == 0
 		let rNext := CompileScript "WastelandBank/SellJunk.txt"
 		call rNext 1
-		let rNext := CompileScript "WastelandBank/Courier.txt"
+		let rNext := CompileScript "WastelandBank/MEMenu.txt"
 		call rNext
 	elseif iBtn == 1
 		let iPlug := GetModIndex "WastelandBank.esp"
@@ -20,7 +20,7 @@ begin Function {iBtn}
 		player.AuxVarSetFlt "*_wbSellOpen" 1
 		rBox.Activate player 1
 	elseif iBtn == 2
-		let rNext := CompileScript "WastelandBank/Courier.txt"
+		let rNext := CompileScript "WastelandBank/MEMenu.txt"
 		call rNext
 	endif
 end

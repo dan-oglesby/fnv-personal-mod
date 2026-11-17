@@ -17,10 +17,8 @@ array_var aEntry
 begin Function {}
 	let rFn := CompileScript "WastelandBank/MENear.txt"
 	let iNear := call rFn
-	let rFn := CompileScript "WastelandBank/SqHere.txt"
-	let iHere := call rFn
-	if iNear < 0 && iHere == 0
-		MessageBoxEx "Mojave Express%rThe catalogue is at every Mojave Express dropbox (Goodsprings, Primm, Novac, Freeside, and the Vegas Boulevard station), and any courier squad carries one."
+	if iNear < 0
+		MessageBoxEx "Mojave Express%rThe catalogue is at every Mojave Express dropbox (Goodsprings, Primm, Novac, Freeside, and the Vegas Boulevard station)."
 		return
 	endif
 	let iPlug := GetModIndex "WastelandBank.esp"

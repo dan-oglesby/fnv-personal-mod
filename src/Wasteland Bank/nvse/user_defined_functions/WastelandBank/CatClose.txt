@@ -94,5 +94,5 @@ begin Function {iMenu}
 	let fAt += 1
 	player.AuxVarSetFlt "_wbShipAt" fAt
 	let fV += fBase
-	MessageBoxEx "Mojave Express%rOrdered %.0f item(s) for %.0f caps, shipping included. Collect them at any Mojave Express dropbox, or from a courier squad, a day from now." iItems fV
+	MessageBoxEx "Mojave Express%rOrdered %.0f item(s) for %.0f caps, shipping included. Collect them at any Mojave Express dropbox a day from now." iItems fV
 end

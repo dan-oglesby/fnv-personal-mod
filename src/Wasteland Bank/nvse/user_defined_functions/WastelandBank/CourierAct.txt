@@ -1,0 +1,19 @@
+; Wasteland Bank: xNVSE OnActivate handler, set on each courier when the squad arrives (SqTick.txt,
+; filtered to that courier as either argument, so whichever order the event gives them in) and
+; removed when they go (SqLeave.txt). Couriers have no dialogue (their script is an empty
+; OnActivate block); when you activate one while the squad is here, their services open.
+ref rFirst
+ref rSecond
+ref rNext
+
+begin Function {rFirst, rSecond}
+	if eval rFirst != player && rSecond != player
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_wbSqState") != 2
+		return
+	endif
+	player.AuxVarSetFlt "_wbSqMet" 1
+	let rNext := CompileScript "WastelandBank/Courier.txt"
+	call rNext
+end

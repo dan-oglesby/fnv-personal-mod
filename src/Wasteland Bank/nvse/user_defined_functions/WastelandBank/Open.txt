@@ -31,5 +31,5 @@ begin Function {}
 		let sSq := "Call a courier squad"
 	endif
 	let rCb := CompileScript "WastelandBank/MainBtn.txt"
-	MessageBoxExAlt rCb "^Wasteland Bank^Balance: %.0f caps (interest earned: %.0f)%rLoan owed: %.0f caps%rCarrying: %.0f caps|%z|Mojave Express catalogue|Wasteland Exchange (stocks)|Settings|Close" fBal fEarned fLoan iCarry sSq
+	MessageBoxExAlt rCb "^Wasteland Bank^Balance: %.0f caps (interest earned: %.0f)%rLoan owed: %.0f caps%rCarrying: %.0f caps|%z|Mojave Express|Wasteland Exchange (stocks)|Settings|Close" fBal fEarned fLoan iCarry sSq
 end

@@ -1,15 +1,39 @@
-; Wasteland Bank: collecting Mojave Express orders. Once an order is ready ("_wbShipAt" passed),
-; walking up to any dropbox hands you everything in transit (WBInTransitRef 0x80E); a courier squad
-; brings it too when it arrives (iForce 1, from SqTick.txt). Checked every second (SqTick.txt).
+; Wasteland Bank: visiting a Mojave Express dropbox, checked every second (SqTick.txt). Walking up to
+; one (within about 6 m: MENear.txt), once per visit ("*_wbMEVisit", cleared when you walk away):
+; - your top-ups from the vault, per the Ammo and supplies settings: this ammo to 300, a magazine for
+;   weapons with none, N of each aid item (BankAmmo.txt 8; moved here from the couriers 2026-11-17);
+; - the first time ever, a note that your bank card opens the dropbox's services (MEMenu.txt).
+; And any Mojave Express order that's ready ("_wbShipAt" passed) is handed over (WBInTransitRef
+; 0x80E). iForce is no longer used (orders came with squads before 2026-11-17).
 int iForce
 int iPlug
 int iNear
+int iAmt
 float fNow
 ref rShip
 ref rFn
-string_var sAt
 
 begin Function {iForce}
+	let rFn := CompileScript "WastelandBank/MENear.txt"
+	let iNear := call rFn
+	if iNear < 0
+		player.AuxVarSetFlt "*_wbMEVisit" 0
+		return
+	endif
+	if eval (player.AuxVarGetFlt "*_wbMEVisit") == 0
+		player.AuxVarSetFlt "*_wbMEVisit" 1
+		if eval (player.AuxVarGetFlt "_wbMESeen") == 0
+			player.AuxVarSetFlt "_wbMESeen" 1
+			MessageBoxEx "Mojave Express%rYour bank's goods go through these dropboxes: the vault, ammo and supplies, selling, and catalogue orders. Open them from your bank card's main menu while you're here. Each visit, the dropbox tops up your ammo and aid from the vault."
+		endif
+		if eval (player.AuxVarGetFlt "_wbArrAmmo") > 0 || (player.AuxVarGetFlt "_wbRefillN") > 0
+			let rFn := CompileScript "WastelandBank/BankAmmo.txt"
+			let iAmt := call rFn 8
+			if iAmt > 0
+				MessageEx "Mojave Express topped you up from the vault: %.0f rounds and items." iAmt
+			endif
+		endif
+	endif
 	let iPlug := GetModIndex "WastelandBank.esp"
 	let rShip := BuildRef iPlug 2062	; WBInTransitRef
 	if eval (IsFormValid rShip) == 0
@@ -22,17 +46,6 @@ begin Function {iForce}
 	if eval fNow < (player.AuxVarGetFlt "_wbShipAt")
 		return
 	endif
-	if iForce == 0
-		let rFn := CompileScript "WastelandBank/MENear.txt"
-		let iNear := call rFn
-		if iNear < 0
-			return
-		endif
-	endif
 	rShip.RemoveAllItems player 1
-	if iForce == 1
-		MessageEx "The couriers brought your Mojave Express order."
-	else
-		MessageEx "You collect your Mojave Express order from the dropbox."
-	endif
+	MessageEx "You collect your Mojave Express order from the dropbox."
 end

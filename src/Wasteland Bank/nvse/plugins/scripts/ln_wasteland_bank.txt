@@ -87,6 +87,10 @@ let rChk := CompileScript "WastelandBank/Courier.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/CourierAct.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/CourierBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -292,6 +296,14 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/LoanBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/MEMenu.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/MEMenuBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif

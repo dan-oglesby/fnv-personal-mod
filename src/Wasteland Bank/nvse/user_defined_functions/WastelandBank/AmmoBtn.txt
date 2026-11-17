@@ -10,7 +10,7 @@ ref rFn
 
 begin Function {iBtn}
 	if iBtn == 9
-		let rFn := CompileScript "WastelandBank/Courier.txt"
+		let rFn := CompileScript "WastelandBank/MEMenu.txt"
 		call rFn
 		return
 	endif

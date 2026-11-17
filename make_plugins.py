@@ -111,6 +111,10 @@ COURIERS = [   # object ID, editor ID, vanilla NPC to copy
 ]
 COURIER_NAME = "Bank Courier"
 COURIER_PACKAGE = 0x171CEF             # DefaultSandboxCurrentLocation256NoSleepNoWanderNoConv
+# Their script: vanilla vHDLegateCampExitDoorScript (0x148137), an empty OnActivate block, so
+# activating a courier starts no mercenary dialogue; the bank's own activation handler opens
+# their services instead (CourierAct.txt, 2026-11-17).
+COURIER_SCRIPT = 0x148137
 VAULT_CONT, VAULT_CELL, VAULT_REF = 0x804, 0x805, 0x806
 SELL_CONT, SELL_REF = 0x807, 0x808     # the couriers' consignment box (things to sell), same cell
 # Mojave Express (2026-11-17): the catalogue you order from, and the orders in transit until you
@@ -181,6 +185,8 @@ def _courier(objid, edid, flags, subs) -> bytes:
             struct.pack_into("<H", acbs, 22, t & ~(0x04 | 0x10 | 0x20 | 0x80 | 0x200))
             data = bytes(acbs)
         body += sub(tag, data)
+        if tag == "EAMT":
+            body += sub("SCRI", struct.pack("<I", COURIER_SCRIPT))
         if tag == "AIDT":
             body += sub("PKID", struct.pack("<I", COURIER_PACKAGE))
     assert any(t == "FULL" for t, _ in subs), edid      # the mercenary records all carry a name

@@ -1,22 +1,55 @@
-; Wasteland Bank: the courier squad leaves (removed from the world). iQuiet 1 = no message (they
-; left on their own, out of sight).
-int iQuiet
+; Wasteland Bank: the courier squad leaves (2026-11-17).
+;   iMode 0: sent off: they run back the way they came (to their arrival marker "_wbSqMark", vanilla
+;            DefaultTravelToLinkedPackage 0x11AFD7 with JIP SetLinkedRef, running), "heads off"
+;   iMode 2: the same, quietly (they waited 3 hours)
+;   iMode 1: gone at once (you're out of sight of them, or they've run off: SqTick.txt state 3)
+; Their activation handlers (CourierAct.txt) are removed with them.
+int iMode
 int iIdx
 ref rRef
+ref rMark
+ref rPkg
+ref rFn
 
-begin Function {iQuiet}
+begin Function {iMode}
+	let rMark := player.AuxVarGetRef "_wbSqMark"
+	if eval iMode != 1 && (IsFormValid rMark)
+		let rPkg := BuildRef 0 1159127	; DefaultTravelToLinkedPackage (0x11AFD7)
+		let iIdx := 0
+		while iIdx < 3
+			let rRef := player.AuxVarGetRef "_wbSqRef" iIdx
+			let iIdx += 1
+			if eval IsFormValid rRef
+				rRef.SetLinkedRef rMark
+				rRef.AddScriptPackage rPkg
+				rRef.SetAlwaysRun 1
+				rRef.EvaluatePackage
+			endif
+		loop
+		player.AuxVarSetFlt "*_wbSqLeaveT" 0
+		player.AuxVarSetFlt "_wbSqState" 3
+		if iMode == 0
+			MessageEx "The courier squad heads off."
+		endif
+		return
+	endif
+	let rFn := CompileScript "WastelandBank/CourierAct.txt"
 	let iIdx := 0
 	while iIdx < 3
 		let rRef := player.AuxVarGetRef "_wbSqRef" iIdx
 		let iIdx += 1
 		if eval IsFormValid rRef
+			RemoveEventHandler "OnActivate" rFn "first"::rRef
+			RemoveEventHandler "OnActivate" rFn "second"::rRef
 			rRef.Disable
 			rRef.MarkForDelete
 		endif
 	loop
-	player.AuxVarErase "_wbSqRef"
-	player.AuxVarSetFlt "_wbSqState" 0
-	if iQuiet == 0
-		MessageEx "The courier squad heads off."
+	if eval IsFormValid rMark
+		rMark.Disable
+		rMark.MarkForDelete
 	endif
+	player.AuxVarErase "_wbSqRef"
+	player.AuxVarErase "_wbSqMark"
+	player.AuxVarSetFlt "_wbSqState" 0
 end

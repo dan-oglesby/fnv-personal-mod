@@ -47,7 +47,7 @@ begin Function {iStage, iWhat}
 		endif
 	else
 		if iStage == 0
-			let sOut := "A bank account, courier squads, the vault, ammo service, selling through the couriers, loans and the bank's notes."
+			let sOut := "A bank account, courier squads for cash, loans and the bank's notes, and at the Mojave Express dropboxes the vault, ammo and supplies, selling and the catalogue."
 		elseif iStage == 1
 			let sOut := "Currency accounts, NCR dollars or denarii each with its own interest (the currency you hold is a bet on the war), and a managed account: the bank's trader works your money and writes every week."
 		elseif iStage == 2

@@ -20,5 +20,5 @@ begin Function {}
 	let rRateFn := CompileScript "WastelandBank/Rate.txt"
 	let fRate := call rRateFn 1
 	let rCb := CompileScript "WastelandBank/CourierBtn.txt"
-	MessageBoxExAlt rCb "^Bank Couriers^Balance: %.0f caps.  Carrying: %.0f caps.%rLoan owed: %.0f caps.%rFee: %.1f percent of the cash they move, and %.1f caps a pound for the vault, each way.|Deposit caps|Withdraw caps|Convert currency and casino chips|Vault storage|Ammo|Sell things for me|Investments|Loans|Send them off|Back" fBal iCarry fLoan fPct fRate
+	MessageBoxExAlt rCb "^Bank Couriers^Balance: %.0f caps.  Carrying: %.0f caps.%rLoan owed: %.0f caps.%rFee: %.1f percent of the cash they move. Goods (the vault, ammo, selling, orders) go through the Mojave Express dropboxes.|Deposit caps|Withdraw caps|Convert currency and casino chips|Investments|Loans|Send them off|Back" fBal iCarry fLoan fPct
 end

@@ -1,29 +1,40 @@
 ; Wasteland Bank: the courier squad, once a second of play (ln_wasteland_bank.txt; not in menus or
 ; paused). "_wbSqState" 0 none, 1 called (arrives at game time "_wbSqAt"), 2 here (refs
-; "_wbSqRef" 0-2, arrived at "_wbSqArr").
-; - Arrival: once the time comes and you're not in combat or VATS, three couriers (WastelandBank.esp
-;   0x801-0x803, essential copies of the vanilla mercenaries) appear a few steps behind you and stay
-;   near that spot.
+; "_wbSqRef" 0-2, arrived at "_wbSqArr"), 3 leaving (running off to where they came from).
+; - Arrival (2026-11-17): once the time comes and you're not in combat or VATS, three couriers
+;   (WastelandBank.esp 0x801-0x803, essential copies of the vanilla mercenaries) appear out of
+;   sight behind you (about 21 m outdoors, 6 m indoors, at a marker "_wbSqMark", vanilla XMarker)
+;   and run up to you (vanilla DefaultFollowPlayerFar 0x1554DC as a script package, JIP
+;   SetAlwaysRun); once close they settle near you. If they haven't reached you in a minute (stuck
+;   on scenery), they're moved to you.
 ; - Walking up to them (within about 4 m) the first time opens their services (Courier.txt); after
-;   that, the bank card does, while you're within about 15 m (SqHere.txt).
+;   that, activating one does (CourierAct.txt: they have no dialogue), or the bank card while you're
+;   within about 15 m (SqHere.txt).
 ; - On arrival they take care of auto-deposit (caps over "_wbKeep") and auto-convert, if those are
 ;   on, with the usual fee.
 ; - They carry "_wbSqFloat" caps of your balance (2,500 for an ordinary call, more if ordered a
 ;   day ahead), never more than the balance holds: "_wbSqCash", the most you can withdraw.
 ;   They also bring any cash-out order that is due (Deliver.txt).
-; - They leave once you're about 60 m away, or after 3 game hours once you're 15 m away.
+; - They leave (SqLeave.txt) when sent off, or after 3 game hours once you're 15 m away: running
+;   back the way they came; or at once if you're about 60 m away, out of sight.
+; Goods (the vault, ammo, selling, orders) are at the Mojave Express dropboxes now (MEMenu.txt);
+; MEPick.txt runs here every second for them.
 int iState
 int iPlug
 int iIdx
 int iId
+int iT
 float fNow
 float fD
+float fFar
 ref rBase
 ref rRef
 ref rLead
 ref rFn
 ref rFee
 ref rCaps
+ref rMark
+ref rPkg
 int iCarry
 int iAmt
 float fBal
@@ -31,7 +42,7 @@ float fFee
 ref rRateFn
 
 begin Function {}
-	; Mojave Express orders, collected at a dropbox once ready (MEPick.txt)
+	; Mojave Express: orders, visits, top-ups at a dropbox (MEPick.txt)
 	let rFn := CompileScript "WastelandBank/MEPick.txt"
 	call rFn 0
 	let iState := player.AuxVarGetFlt "_wbSqState"
@@ -45,6 +56,24 @@ begin Function {}
 		return
 	endif
 	let fNow := GameDaysPassed
+	let rLead := player.AuxVarGetRef "_wbSqRef" 0
+
+	; leaving: gone once they're out of sight, or after 45 seconds
+	if iState == 3
+		let iT := player.AuxVarGetFlt "*_wbSqLeaveT"
+		let iT += 1
+		player.AuxVarSetFlt "*_wbSqLeaveT" iT
+		let fD := 99999
+		if eval IsFormValid rLead
+			let fD := player.GetDistance rLead
+		endif
+		if fD > 1500 || iT > 45
+			let rFn := CompileScript "WastelandBank/SqLeave.txt"
+			call rFn 1
+		endif
+		return
+	endif
+
 	if iState == 1
 		if eval fNow < (player.AuxVarGetFlt "_wbSqAt")
 			return
@@ -57,18 +86,34 @@ begin Function {}
 			return
 		endif
 		let iPlug := GetModIndex "WastelandBank.esp"
+		let fFar := 1500
+		if eval player.IsInInterior
+			let fFar := 400
+		endif
+		let rBase := BuildRef 0 59	; XMarker
+		let rMark := player.PlaceAtMe rBase 1 fFar 1	; behind you, out of sight
+		player.AuxVarSetRef "_wbSqMark" rMark
+		let rPkg := BuildRef 0 1397980	; DefaultFollowPlayerFar (0x1554DC)
 		let iIdx := 0
 		while iIdx < 3
 			let iId := 2049 + iIdx	; WBCourierA-C 0x801-0x803
 			let rBase := BuildRef iPlug iId
-			let rRef := player.PlaceAtMe rBase 1 256 1	; 256 units behind you
+			let rRef := rMark.PlaceAtMe rBase 1 64 iIdx
+			rRef.AddScriptPackage rPkg
+			rRef.SetAlwaysRun 1
+			rRef.EvaluatePackage
 			player.AuxVarSetRef "_wbSqRef" rRef iIdx
+			let rFn := CompileScript "WastelandBank/CourierAct.txt"
+			SetEventHandler "OnActivate" rFn "first"::rRef
+			SetEventHandler "OnActivate" rFn "second"::rRef
 			let iIdx += 1
 		loop
 		player.AuxVarSetFlt "_wbSqArr" fNow
 		player.AuxVarSetFlt "_wbSqMet" 0
+		player.AuxVarSetFlt "*_wbSqComing" 1
+		player.AuxVarSetFlt "*_wbSqComeT" 0
 		player.AuxVarSetFlt "_wbSqState" 2
-		MessageEx "A Wasteland Bank courier squad has arrived."
+		MessageEx "A Wasteland Bank courier squad is coming up behind you."
 		let fFee := player.AuxVarGetFlt "_wbSqFloat"
 		if fFee <= 0
 			let rRateFn := CompileScript "WastelandBank/Rate.txt"
@@ -82,17 +127,6 @@ begin Function {}
 		player.AuxVarSetFlt "_wbSqCash" fFee
 		let rFn := CompileScript "WastelandBank/Deliver.txt"
 		call rFn
-		let rFn := CompileScript "WastelandBank/MEPick.txt"
-		call rFn 1	; ready Mojave Express orders come with them
-		; arrival top-ups from the vault: ammo to 300, a magazine for weapons with none, aid items
-		; (BankAmmo.txt 8, per the Ammo and supplies settings)
-		if eval (player.AuxVarGetFlt "_wbArrAmmo") > 0 || (player.AuxVarGetFlt "_wbRefillN") > 0
-			let rFn := CompileScript "WastelandBank/BankAmmo.txt"
-			let iAmt := call rFn 8
-			if iAmt > 0
-				MessageEx "The couriers topped you up from the vault: %.0f rounds and items." iAmt
-			endif
-		endif
 		let rFee := CompileScript "WastelandBank/Fee.txt"
 		if eval (player.AuxVarGetFlt "_wbAutoConv") == 1
 			let rFn := CompileScript "WastelandBank/ConvertNow.txt"
@@ -125,13 +159,37 @@ begin Function {}
 	endif
 
 	; here
-	let rLead := player.AuxVarGetRef "_wbSqRef" 0
 	if eval (IsFormValid rLead) == 0
 		let rFn := CompileScript "WastelandBank/SqLeave.txt"
 		call rFn 1
 		return
 	endif
 	let fD := player.GetDistance rLead
+	; running up: settle once close, or be moved to you after a minute
+	if eval (player.AuxVarGetFlt "*_wbSqComing") == 1
+		let iT := player.AuxVarGetFlt "*_wbSqComeT"
+		let iT += 1
+		player.AuxVarSetFlt "*_wbSqComeT" iT
+		if fD <= 300 || iT >= 60
+			player.AuxVarSetFlt "*_wbSqComing" 0
+			let rPkg := BuildRef 0 1397980
+			let iIdx := 0
+			while iIdx < 3
+				let rRef := player.AuxVarGetRef "_wbSqRef" iIdx
+				let iIdx += 1
+				if eval IsFormValid rRef
+					if eval (player.GetDistance rRef) > 600
+						rRef.MoveTo player 0 128 0
+					endif
+					rRef.RemoveScriptPackage rPkg
+					rRef.SetAlwaysRun 0
+					rRef.EvaluatePackage
+				endif
+			loop
+			let fD := player.GetDistance rLead
+		endif
+		return
+	endif
 	if fD > 4000
 		let rFn := CompileScript "WastelandBank/SqLeave.txt"
 		call rFn 1
@@ -139,7 +197,7 @@ begin Function {}
 	endif
 	if eval fNow - (player.AuxVarGetFlt "_wbSqArr") > 0.125 && fD > 1000
 		let rFn := CompileScript "WastelandBank/SqLeave.txt"
-		call rFn 1
+		call rFn 2
 		return
 	endif
 	if fD <= 256

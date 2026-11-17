@@ -1,0 +1,34 @@
+; Wasteland Bank: the Mojave Express services, at any of the game's five dropboxes (Goodsprings,
+; Primm, Novac, Freeside, the Vegas Boulevard station: MENear.txt) (2026-11-17). Goods live here
+; now; money and investments stay with the courier squads. Opened from the bank card's main menu.
+;   the vault (Vault.txt), ammo and supplies (Ammo.txt), selling (Sell.txt), the catalogue
+;   (Catalogue.txt). Vault traffic is charged by weight, loose ammo is reboxed for 5 percent.
+int iNear
+float fRate
+string_var sAt
+ref rFn
+ref rCb
+
+begin Function {}
+	let rFn := CompileScript "WastelandBank/MENear.txt"
+	let iNear := call rFn
+	if iNear < 0
+		MessageBoxEx "Mojave Express%rYour goods are handled at the Mojave Express dropboxes: Goodsprings, Primm, Novac, Freeside, and the Vegas Boulevard station. The vault, ammo and supplies, selling and the catalogue open there from your bank card."
+		return
+	endif
+	if iNear == 0
+		let sAt := "Goodsprings"
+	elseif iNear == 1
+		let sAt := "Primm"
+	elseif iNear == 2
+		let sAt := "Novac"
+	elseif iNear == 3
+		let sAt := "Freeside"
+	else
+		let sAt := "the Vegas Boulevard station"
+	endif
+	let rFn := CompileScript "WastelandBank/Rate.txt"
+	let fRate := call rFn 1
+	let rCb := CompileScript "WastelandBank/MEMenuBtn.txt"
+	MessageBoxExAlt rCb "^Mojave Express, %z^Carrying to and from the bank costs %.2f caps a pound each way.|Vault storage|Ammo and supplies|Sell things|Order from the catalogue|Close" sAt fRate
+end

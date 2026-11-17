@@ -40,6 +40,6 @@ begin Function {}
 		let sKeep := sv_Construct "%.0f of each" iKeep
 	endif
 	let rCb := CompileScript "WastelandBank/AmmoBtn.txt"
-	let sBody := sv_Construct "This ammo: %.0f carried, %.0f in the vault.%rVault carrying %.2f caps a pound each way. Loose ammo handed over is reboxed for 5 percent of its value.%rOn arrival: ammo %z, aid items %z." iHave iVault fRate sArr sKeep
-	MessageBoxExAlt rCb "^Ammo and supplies^%z|Top up this ammo to 300 from the vault|A magazine for each weapon with none|Store ammo none of my weapons take|Sell ammo none of my weapons take|This ammo: sell all of it|This ammo: sell what's over 500|This ammo: buy up to 500|On arrival, ammo: change|On arrival, aid items kept: change|Back" sBody
+	let sBody := sv_Construct "This ammo: %.0f carried, %.0f in the vault.%rVault carrying %.2f caps a pound each way. Loose ammo handed over is reboxed for 5 percent of its value.%rWhen you visit a dropbox: ammo %z, aid items %z." iHave iVault fRate sArr sKeep
+	MessageBoxExAlt rCb "^Ammo and supplies^%z|Top up this ammo to 300 from the vault|A magazine for each weapon with none|Store ammo none of my weapons take|Sell ammo none of my weapons take|This ammo: sell all of it|This ammo: sell what's over 500|This ammo: buy up to 500|At a dropbox, ammo: change|At a dropbox, aid items kept: change|Back" sBody
 end

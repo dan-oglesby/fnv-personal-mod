@@ -198,3 +198,14 @@ use it; money and investments stay with the courier squads.
 - A day later, walking up to any dropbox hands you the order (or a courier squad brings it).
 - Open: moving the vault and selling to the dropboxes too (goods at the dropboxes with weight
   fees, money and stocks with the squads).
+
+## Squads run in and out; goods at the dropboxes (built 2026-11-17)
+
+- The courier squad spawns out of sight behind you (about 21 m outdoors, 6 m indoors) and runs up
+  to you; when sent off (or after 3 hours) it runs back the way it came and is removed out of sight.
+  Couriers have no dialogue: activating one opens their services (an empty vanilla OnActivate
+  script on the records, plus an activation handler).
+- Goods moved to the Mojave Express dropboxes: the vault, ammo and supplies, selling and the
+  catalogue open from the bank card's "Mojave Express" button at any dropbox. Visiting a dropbox
+  tops up your ammo and aid from the vault and hands over ready orders. The squads keep cash,
+  currency, investments and loans.
