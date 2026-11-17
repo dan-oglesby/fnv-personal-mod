@@ -1,0 +1,26 @@
+; Wasteland Bank: the Mojave Express catalogue's items (FalloutNV.esm, decimal IDs), returned as an
+; array of forms. How many of each the catalogue shows: CatStock.txt.
+;   supplies: Fission Battery 211910, Purified Water 86435, InstaMash 574808, Cram 574802, Pork N'
+;   Beans 574814, Fancy Lads 574810, Nuka-Cola 86430, Stimpak 86377, RadAway 86375, Rad-X 86376,
+;   Doctor's Bag 831580, Weapon Repair Kit 1313384, Pack of Cigarettes 213097, Carton 213096
+;   ammo: 5.56mm 16960, 10mm 16961, 9mm 584963, .308 439612, 5mm 439613, .357 584962, .44 168830,
+;   12 gauge 584949, Energy Cell 132978, Microfusion Cell 17541, Electron Charge Pack 439614,
+;   .22LR 518695, Flamer Fuel 168835
+int iId
+ref rItem
+array_var aIds
+array_var aOut
+array_var aEntry
+
+begin Function {}
+	let aIds := Ar_List 211910, 86435, 574808, 574802, 574814, 574810, 86430, 86377, 86375, 86376, 831580, 1313384, 213097, 213096, 16960, 16961, 584963, 439612, 439613, 584962, 168830, 584949, 132978, 17541, 439614, 518695, 168835
+	let aOut := Ar_Construct "array"
+	foreach aEntry <- aIds
+		let iId := aEntry["value"]
+		let rItem := BuildRef 0 iId
+		if eval IsFormValid rItem
+			Ar_Append aOut rItem
+		endif
+	loop
+	SetFunctionValue aOut
+end

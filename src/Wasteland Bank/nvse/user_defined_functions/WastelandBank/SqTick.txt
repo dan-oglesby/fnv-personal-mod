@@ -31,6 +31,9 @@ float fFee
 ref rRateFn
 
 begin Function {}
+	; Mojave Express orders, collected at a dropbox once ready (MEPick.txt)
+	let rFn := CompileScript "WastelandBank/MEPick.txt"
+	call rFn 0
 	let iState := player.AuxVarGetFlt "_wbSqState"
 	if iState == 0
 		return
@@ -79,6 +82,8 @@ begin Function {}
 		player.AuxVarSetFlt "_wbSqCash" fFee
 		let rFn := CompileScript "WastelandBank/Deliver.txt"
 		call rFn
+		let rFn := CompileScript "WastelandBank/MEPick.txt"
+		call rFn 1	; ready Mojave Express orders come with them
 		; arrival top-ups from the vault: ammo to 300, a magazine for weapons with none, aid items
 		; (BankAmmo.txt 8, per the Ammo and supplies settings)
 		if eval (player.AuxVarGetFlt "_wbArrAmmo") > 0 || (player.AuxVarGetFlt "_wbRefillN") > 0

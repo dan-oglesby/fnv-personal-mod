@@ -1,0 +1,38 @@
+; Wasteland Bank: collecting Mojave Express orders. Once an order is ready ("_wbShipAt" passed),
+; walking up to any dropbox hands you everything in transit (WBInTransitRef 0x80E); a courier squad
+; brings it too when it arrives (iForce 1, from SqTick.txt). Checked every second (SqTick.txt).
+int iForce
+int iPlug
+int iNear
+float fNow
+ref rShip
+ref rFn
+string_var sAt
+
+begin Function {iForce}
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rShip := BuildRef iPlug 2062	; WBInTransitRef
+	if eval (IsFormValid rShip) == 0
+		return
+	endif
+	if eval (rShip.GetNumItems) == 0
+		return
+	endif
+	let fNow := GameDaysPassed
+	if eval fNow < (player.AuxVarGetFlt "_wbShipAt")
+		return
+	endif
+	if iForce == 0
+		let rFn := CompileScript "WastelandBank/MENear.txt"
+		let iNear := call rFn
+		if iNear < 0
+			return
+		endif
+	endif
+	rShip.RemoveAllItems player 1
+	if iForce == 1
+		MessageEx "The couriers brought your Mojave Express order."
+	else
+		MessageEx "You collect your Mojave Express order from the dropbox."
+	endif
+end

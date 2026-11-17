@@ -1,0 +1,98 @@
+; Wasteland Bank: JIP menu-close handler for the container screen (1008). If the Mojave Express
+; catalogue was open (Catalogue.txt), whatever you took from it is your order: it goes back out of
+; your pockets into transit (WBInTransitRef 0x80E), and you pay its market value plus the couriers'
+; cut (Rate.txt 2) and shipping by weight (the vault rate, Rate.txt 1), from your balance. It's
+; ready a day later ("_wbShipAt"; MEPick.txt). Anything you put into the catalogue comes back.
+int iMenu
+int iPlug
+int iN
+int iTaken
+int iItems
+int iLeft
+int iHave
+float fV
+float fWt
+float fBase
+float fLb
+float fCut
+float fShip
+float fAt
+ref rCat
+ref rShip
+ref rItem
+ref rFn
+ref rStock
+array_var aItems
+array_var aEntry
+
+begin Function {iMenu}
+	if iMenu != 1008
+		return
+	endif
+	if eval (player.AuxVarGetFlt "*_wbCatOpen") == 0
+		return
+	endif
+	player.AuxVarSetFlt "*_wbCatOpen" 0
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rCat := BuildRef iPlug 2060	; WBCatalogueRef
+	let rShip := BuildRef iPlug 2062	; WBInTransitRef
+	if eval (IsFormValid rCat) == 0 || (IsFormValid rShip) == 0
+		return
+	endif
+	let rFn := CompileScript "WastelandBank/CatList.txt"
+	let aItems := call rFn
+	let rStock := CompileScript "WastelandBank/CatStock.txt"
+	let fBase := 0
+	let fLb := 0
+	let iItems := 0
+	foreach aEntry <- aItems
+		let rItem := aEntry["value"]
+		let iN := call rStock rItem
+		let iLeft := rCat.GetItemCount rItem
+		if iLeft < iN
+			; taken: the order
+			let iTaken := iN - iLeft
+			let iHave := player.GetItemCount rItem
+			if iTaken > iHave
+				let iTaken := iHave
+			endif
+			if iTaken > 0
+				player.RemoveItemTarget rItem rShip iTaken 1
+				let fV := GetValue rItem
+				let fBase += iTaken * fV
+				let fWt := GetWeight rItem
+				let fLb += iTaken * fWt
+				let iItems += iTaken
+			endif
+		elseif iLeft > iN
+			; more than the stock: you put some of your own in, which come back
+			let iTaken := iLeft - iN
+			rCat.RemoveItemTarget rItem player iTaken 1
+			let iLeft := iN
+		endif
+		if iLeft > 0
+			rCat.RemoveItem rItem iLeft 1	; the catalogue's own stock
+		endif
+	loop
+	let aItems := Ar_Null
+	; anything else you put into the catalogue comes back
+	rCat.RemoveAllItems player 1
+	if iItems < 1
+		return
+	endif
+	let rFn := CompileScript "WastelandBank/Rate.txt"
+	let fCut := call rFn 2
+	let fShip := call rFn 1
+	let fShip *= fLb
+	let fV := 0 - fBase
+	let rFn := CompileScript "WastelandBank/ExCash.txt"
+	call rFn fV
+	let fV := fBase * fCut / 100 + fShip
+	let rFn := CompileScript "WastelandBank/Fee.txt"
+	call rFn fV
+	let fAt := GameDaysPassed
+	let fAt += 1
+	player.AuxVarSetFlt "_wbShipAt" fAt
+	let fV += fBase
+	MessageBoxEx "Mojave Express%rOrdered %.0f item(s) for %.0f caps, shipping included. Collect them at any Mojave Express dropbox, or from a courier squad, a day from now." iItems fV
+end

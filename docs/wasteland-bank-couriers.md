@@ -185,3 +185,16 @@ The courier menu's Ammo and supplies page. "This ammo" is the kind in the weapon
   cigarettes, medicine; N = 1 by default, off, 1, 2, 3 or 5).
 - Loose ammo handed to the team (stored, sold, put in the vault or the consignment box) is
   reboxed for 5 percent of its value. Vault traffic is charged by weight as before.
+
+## Mojave Express catalogue (built 2026-11-17)
+
+The game has its own Mojave Express shipping network: five scripted dropboxes (Goodsprings,
+Primm, Novac, Freeside, the Vegas Boulevard station) linked through a control box. Goods orders
+use it; money and investments stay with the courier squads.
+- The catalogue (bank card main menu) opens at any dropbox or with a squad present: a container
+  screen stocked with supplies (fission batteries, water, food, stimpaks, RadAway, Rad-X, doctor's
+  bags, repair kits, cigarettes) and common ammo. Whatever you take is your order: it goes into
+  transit, and you pay its market value plus the couriers' cut, and shipping by weight.
+- A day later, walking up to any dropbox hands you the order (or a courier squad brings it).
+- Open: moving the vault and selling to the dropboxes too (goods at the dropboxes with weight
+  fees, money and stocks with the squads).

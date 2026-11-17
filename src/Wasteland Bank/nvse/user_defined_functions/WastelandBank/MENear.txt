@@ -1,0 +1,27 @@
+; Wasteland Bank: the Mojave Express dropbox you're at, if any (within about 6 m). Returns 0-4
+; (Goodsprings, Primm, Novac, Freeside, Vegas) or -1. The dropboxes are FalloutNV.esm's own
+; persistent references (decimal): vMEGoodSpringsRef 1438253, vMEPrimmREF1 1530499, vMENovacRef
+; 1438254, vMEFreesideRef 1438256, vMEVegasRef 1438257.
+int iK
+int iId
+ref rBox
+array_var aIds
+
+begin Function {}
+	SetFunctionValue -1
+	let aIds := Ar_List 1438253, 1530499, 1438254, 1438256, 1438257
+	let iK := 0
+	while iK < 5
+		let iId := aIds[iK]
+		let rBox := BuildRef 0 iId
+		if eval IsFormValid rBox
+			if eval (player.GetDistance rBox) <= 400
+				SetFunctionValue iK
+				let aIds := Ar_Null
+				return
+			endif
+		endif
+		let iK += 1
+	loop
+	let aIds := Ar_Null
+end

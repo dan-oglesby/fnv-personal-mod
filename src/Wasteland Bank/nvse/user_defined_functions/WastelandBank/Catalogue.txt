@@ -1,0 +1,45 @@
+; Wasteland Bank: the Mojave Express catalogue (2026-11-17). Order from a Mojave Express dropbox
+; (Goodsprings, Primm, Novac, Freeside, the Vegas Boulevard station: MENear.txt) or through a
+; courier squad. It opens as a container screen stocked with what can be ordered: whatever you take
+; is your order (CatClose.txt). Orders cost their market value plus the couriers' cut, and shipping
+; by weight; you collect them at any dropbox, or from a courier squad, a day later (MEPick.txt).
+; The catalogue (WastelandBank.esp WBCatalogueRef 0x80C) is restocked every time it opens.
+int iPlug
+int iNear
+int iHere
+int iN
+ref rCat
+ref rItem
+ref rFn
+array_var aItems
+array_var aEntry
+
+begin Function {}
+	let rFn := CompileScript "WastelandBank/MENear.txt"
+	let iNear := call rFn
+	let rFn := CompileScript "WastelandBank/SqHere.txt"
+	let iHere := call rFn
+	if iNear < 0 && iHere == 0
+		MessageBoxEx "Mojave Express%rThe catalogue is at every Mojave Express dropbox (Goodsprings, Primm, Novac, Freeside, and the Vegas Boulevard station), and any courier squad carries one."
+		return
+	endif
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rCat := BuildRef iPlug 2060	; WBCatalogueRef
+	if eval (IsFormValid rCat) == 0
+		MessageEx "The catalogue is missing: is WastelandBank.esp enabled?"
+		return
+	endif
+	rCat.RemoveAllItems
+	let rFn := CompileScript "WastelandBank/CatList.txt"
+	let aItems := call rFn
+	let rFn := CompileScript "WastelandBank/CatStock.txt"
+	foreach aEntry <- aItems
+		let rItem := aEntry["value"]
+		let iN := call rFn rItem
+		rCat.AddItem rItem iN 1
+	loop
+	let aItems := Ar_Null
+	player.AuxVarSetFlt "*_wbCatOpen" 1
+	MessageEx "Take what you want to order. Charged when you close the catalogue."
+	rCat.Activate player 1
+end

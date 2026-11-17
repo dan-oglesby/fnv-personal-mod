@@ -1,5 +1,5 @@
 ; Wasteland Bank: main menu buttons (0 couriers: call a squad, or their services when they're
-; here; 1 Wasteland Exchange, 2 Settings, 3 Close).
+; here; 1 the Mojave Express catalogue, 2 Wasteland Exchange, 3 Settings, 4 Close).
 int iBtn
 int iHere
 ref rNext
@@ -18,9 +18,12 @@ begin Function {iBtn}
 		endif
 		call rNext
 	elseif iBtn == 1
-		let rNext := CompileScript "WastelandBank/ExMenu.txt"
+		let rNext := CompileScript "WastelandBank/Catalogue.txt"
 		call rNext
 	elseif iBtn == 2
+		let rNext := CompileScript "WastelandBank/ExMenu.txt"
+		call rNext
+	elseif iBtn == 3
 		let rNext := CompileScript "WastelandBank/Settings.txt"
 		call rNext
 	endif

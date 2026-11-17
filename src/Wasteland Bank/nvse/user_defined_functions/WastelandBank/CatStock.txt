@@ -1,0 +1,15 @@
+; Wasteland Bank: how many of a catalogue item the Mojave Express catalogue shows (the most you
+; can order at once): ammo 200, aid 20, everything else 10.
+ref rItem
+int iType
+
+begin Function {rItem}
+	let iType := GetType rItem
+	if iType == 41
+		SetFunctionValue 200
+	elseif iType == 47
+		SetFunctionValue 20
+	else
+		SetFunctionValue 10
+	endif
+end

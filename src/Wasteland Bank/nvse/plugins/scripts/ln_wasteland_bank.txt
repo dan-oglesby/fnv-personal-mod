@@ -63,6 +63,22 @@ let rChk := CompileScript "WastelandBank/BondsBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/CatClose.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CatList.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CatStock.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Catalogue.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/ConvertNow.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -276,6 +292,14 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/LoanBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/MENear.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/MEPick.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
@@ -502,4 +526,7 @@ else
 	; the consignment box closing: the couriers take what's in it to sell
 	let ref rSellClose := CompileScript "WastelandBank/SellClose.txt"
 	SetOnMenuCloseEventHandler rSellClose 1 1008
+	; the Mojave Express catalogue closing: what you took is your order
+	let ref rCatClose := CompileScript "WastelandBank/CatClose.txt"
+	SetOnMenuCloseEventHandler rCatClose 1 1008
 endif
