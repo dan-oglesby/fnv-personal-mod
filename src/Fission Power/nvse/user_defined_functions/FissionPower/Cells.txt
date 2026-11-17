@@ -9,6 +9,9 @@
 ; Drained Small Energy Cell 1184094, Drained Microfusion Cell 1426985, Drained Electron Charge Pack
 ; 1426986. Two magazines of the ammo loaded in the weapon in your hands are always left alone.
 ;   iDo 0: returns the steps of charge your ammo could give (nothing used)
+;   iDo 2: returns how many cells of fuel you carry (nothing used)
+; With "_fpCellOne" 1 (the default since 2026-11-17) each spent cell is ejected at your feet,
+; like a battery, instead of going into your pack.
 ;   iDo 1: uses ammo until fNeed steps are covered or none is left; returns the steps given, and
 ;          the cells used in "*_fpCellN"
 float fNeed
@@ -63,7 +66,9 @@ begin Function {fNeed, iDo}
 			let iHave -= iKeep
 		endif
 		if iHave > 0
-			if iDo == 0
+			if iDo == 2
+				let fGot += iHave
+			elseif iDo == 0
 				let fGot += iHave * fStep
 			elseif fGot < fNeed
 				let iTake := Ceil ((fNeed - fGot) / fStep)
@@ -73,7 +78,11 @@ begin Function {fNeed, iDo}
 				player.RemoveItem rItem iTake 1
 				let iId := aDrain[iK]
 				let rDrain := BuildRef 0 iId
-				player.AddItem rDrain iTake 1
+				if eval (player.AuxVarGetFlt "_fpCellOne") == 1
+					player.PlaceAtMe rDrain iTake	; ejected at your feet
+				else
+					player.AddItem rDrain iTake 1
+				endif
 				let fGot += iTake * fStep
 				let iUsed += iTake
 			endif

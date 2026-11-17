@@ -10,6 +10,9 @@
 ;     best of the same skill (or your best overall if you carry none of that skill) by the margin.
 ;   weapon mods: ones that fit a carried weapon, if you don't have one already.
 ;   fission batteries, while you own power armor: up to "_slBatt" (Fission Power's fuel).
+;   energy weapon ammo, while you own power armor and Fission Power runs on it: up to "_slCells"
+;   of each kind (default 200), even with no energy weapon (the forms are marked "*_slFuel" by
+;   AlwaysTake.txt).
 ;   aid with weight (food, drink...): up to the set number of each.
 ;   anything else: if it is worth at least the set caps per pound.
 ; Weighted items are then limited so the carry-weight reserve is never used.
@@ -71,6 +74,15 @@ begin Function {rItem, iHave}
 			let iCap := player.AuxVarGetFlt "_slAmmo"
 			let iTake := iHave
 			if iCap > 0
+				let iTake := iCap - iOwn
+				if iTake > iHave
+					let iTake := iHave
+				endif
+			endif
+		elseif eval (player.AuxVarGetFlt "*_slPA") == 1 && (AuxVarGetFlt "*_slFuel" 0 rItem) == 1
+			; Fission Power's other fuel: energy weapon ammo, even with no energy weapon
+			let iCap := player.AuxVarGetFlt "_slCells"
+			if iCap > iOwn
 				let iTake := iCap - iOwn
 				if iTake > iHave
 					let iTake := iHave

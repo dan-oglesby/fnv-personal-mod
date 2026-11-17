@@ -110,14 +110,33 @@ begin Function {}
 		; battery at a time; spent cells come back as drained cells ("_fpAmmo" 0 = batteries only)
 		if eval fLeft <= 0 && (player.AuxVarGetFlt "_fpAmmo") == 1
 			let rCell := CompileScript "FissionPower/Cells.txt"
+			; one cell at a time, each spent one ejected with a click ("_fpCellOne" 1, the default), or
+			; a fifth of a battery at once with the drained cells into your pack (0)
 			let fNeed := fLife * 0.2 - fLeft
+			if eval (player.AuxVarGetFlt "_fpCellOne") == 1
+				let fNeed := 1 - fLeft
+			endif
 			let fGot := call rCell fNeed 1
 			if fGot > 0
 				let fLeft += fGot
 				let iCells := player.AuxVarGetFlt "*_fpCellN"
 				player.AuxVarSetFlt "_fpDead" 0
 				player.AuxVarSetFlt "_fpWarn" 0
-				MessageEx "No fission batteries: the suit drained %.0f energy weapon cells for power." iCells
+				if eval (player.AuxVarGetFlt "_fpCellOne") == 1
+					let iSnd := player.AuxVarGetFlt "_fpSnd"
+					if iSnd < 1 || iSnd > 3
+						let iSnd := 3
+					endif
+					let iSnd += 1525397
+					let rSnd := BuildRef 0 iSnd
+					if eval IsFormValid rSnd
+						PlaySound rSnd
+					endif
+					let fGot := call rCell 0 2
+					MessageEx "Cell spent and ejected. %.0f cells of fuel left." fGot
+				else
+					MessageEx "No fission batteries: the suit drained %.0f energy weapon cells for power." iCells
+				endif
 			endif
 		endif
 		if fLeft < 0
@@ -185,5 +204,12 @@ begin Function {}
 	endif
 	let fPct *= 1000
 	SetUIFloat "HUDMainMenu/_NMPower" fPct
+	; the HUD's spare count: batteries, or once they're gone, cells of fuel
+	if iSpare == 0
+		if eval (player.AuxVarGetFlt "_fpAmmo") == 1
+			let rCell := CompileScript "FissionPower/Cells.txt"
+			let iSpare := call rCell 0 2
+		endif
+	endif
 	SetUIFloat "HUDMainMenu/_NMBatt" iSpare
 end
