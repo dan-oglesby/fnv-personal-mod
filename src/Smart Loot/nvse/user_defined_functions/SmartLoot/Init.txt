@@ -4,16 +4,22 @@
 ref rSurv
 
 begin Function {}
-	if eval (player.AuxVarGetFlt "_slInit") >= 6
+	if eval (player.AuxVarGetFlt "_slInit") >= 7
+		return
+	endif
+	; version 7: the debug trace off again, looting confirmed working (2026-11-16)
+	if eval (player.AuxVarGetFlt "_slInit") == 6
+		player.AuxVarSetFlt "_slDebug" 0
+		player.AuxVarSetFlt "_slInit" 7
 		return
 	endif
 	player.AuxVarSetFlt "_slAjar" 1	; added in settings version 6: searched containers stay slightly open
 	if eval (player.AuxVarGetFlt "_slInit") == 5
-		player.AuxVarSetFlt "_slInit" 6
+		player.AuxVarSetFlt "_slInit" 7
 		return
 	endif
-	; version 5: the debug trace, on while we find out why corpse currency is missed (2026-11-15)
-	player.AuxVarSetFlt "_slDebug" 1
+	; the debug trace (version 5 turned it on while corpse currency was being missed; off since 7)
+	player.AuxVarSetFlt "_slDebug" 0
 	if eval (player.AuxVarGetFlt "_slInit") >= 1
 		if eval (player.AuxVarGetFlt "_slInit") < 4
 			player.AuxVarSetFlt "_slBatt" 4
@@ -25,11 +31,11 @@ begin Function {}
 		if eval (player.AuxVarGetFlt "_slInit") < 2
 			player.AuxVarSetFlt "_slEnemy" 1
 		endif
-		player.AuxVarSetFlt "_slInit" 6
+		player.AuxVarSetFlt "_slInit" 7
 		return
 	endif
 	; a new save: every setting at its default
-	player.AuxVarSetFlt "_slInit" 6
+	player.AuxVarSetFlt "_slInit" 7
 	player.AuxVarSetFlt "_slBatt" 4		; fission batteries kept while you own power armor (Fission Power)
 	let rSurv := CompileScript "SmartLoot/InitSurvival.txt"
 	call rSurv

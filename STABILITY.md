@@ -75,6 +75,11 @@ updated 2026-11-14. Nexus links are `nexusmods.com/newvegas/mods/<id>`.
   On load, every dropped weapon runs that fix. JIP LN 57.30 then follows the weapon's
   `ExtraItemDropper` back to whoever dropped it, and if that actor has been deleted (a cleaned-up
   temporary spawn) the game crashes in `jip_nvse` `BaseExtraList::GetByType`.
+- **Power armor footsteps** (2026-11-16, Wasteland Tweaks' plugin `AutoSmoke.esp`): FalloutNV.esm's
+  power-armor walk and run foley sounds (0x13F296, 0x13F295) point at a folder no sound archive has,
+  so every step in power armor logged "Could not open file" in falloutnv_error.log (12,149 lines in
+  one session) and made no sound. The plugin points them at an unused vanilla heavy-armor foley
+  folder. Keep `AutoSmoke.esp` enabled; a later plugin that overrides the same two sounds wins.
 - **Fallout.ini `bUseThreadedTempEffects=0`** (2026-11-15). Casings and decals then update on the main
   thread instead of a worker thread, which removes the kind of thread overlap behind the casing crash
   on an AI thread. It costs a little performance, and no source confirms it as a fix; it is inferred

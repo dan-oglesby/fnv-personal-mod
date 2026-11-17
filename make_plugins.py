@@ -233,6 +233,64 @@ def bank_plugin(edid, name, model, icon, small_icon):
             + _grup(b"NPC_", 0, npcs) + cells)
 
 
+# Wasteland Tweaks (in its plugin, AutoSmoke.esp): power armor's footstep foley. FalloutNV.esm's
+# FOLArmorPowerWalk (0x13F296) and FOLArmorPowerRun (0x13F295) point at fx\fol\powerarmor_walkrun\,
+# a folder no sound archive has: every power-armor step logged "Could not open file" (12,149
+# lines in one session's falloutnv_error.log, 2026-11-15) and made no sound. Overridden to
+# fx\fol\heavyarmor_runwalk\, a heavy armor foley folder in Fallout - Sound.bsa that nothing else uses
+# (other heavy armor uses heavyarmor_runwalk2), so power armor gets its own heavy step. The
+# records are copied from the game's FalloutNV.esm at build time with only the folder changed.
+SOUND_FIXES = {"AutoSmoke.esp": [(0x13F296, "fx\\fol\\heavyarmor_runwalk\\"),
+                                 (0x13F295, "fx\\fol\\heavyarmor_runwalk\\")]}
+
+
+def _vanilla_records(tag, wanted):
+    """Records of one type from FalloutNV.esm: {formid: (record flags, [(tag, data)])}."""
+    esm = FNV_DATA / "FalloutNV.esm"
+    if not esm.exists():
+        return None
+    b = esm.read_bytes()
+    found = {}
+    off = 0
+    while off < len(b):
+        size = struct.unpack_from("<I", b, off + 4)[0]
+        if b[off:off + 4] == b"GRUP" and b[off + 8:off + 12] == tag.encode():
+            o, end = off + 24, off + size
+            while o < end:
+                rsize = struct.unpack_from("<I", b, o + 4)[0]
+                flags, fid = struct.unpack_from("<II", b, o + 8)
+                if fid in wanted:
+                    data = b[o + 24:o + 24 + rsize]
+                    if flags & 0x40000:
+                        data = zlib.decompress(data[4:])
+                    found[fid] = (flags & ~0x40000, _subrecords(data))
+                o += 24 + rsize
+            break
+        off += size if b[off:off + 4] == b"GRUP" else 24 + size
+    return found if len(found) == len(wanted) else None
+
+
+def with_sound_fixes(fname, data):
+    """Adds SOUND_FIXES overrides (a SOUN group, before ARMO as the game orders groups)."""
+    fixes = SOUND_FIXES.get(fname)
+    if not fixes:
+        return data
+    vanilla = _vanilla_records("SOUN", {fid for fid, _ in fixes})
+    if vanilla is None:
+        return None
+    recs = b""
+    for fid, folder in fixes:
+        flags, subs = vanilla[fid]
+        body = b"".join(sub(t, z(folder) if t == "FNAM" else d) for t, d in subs)
+        recs += record("SOUN", flags, fid, body)
+    hsize = struct.unpack_from("<I", data, 4)[0]
+    header = bytearray(data[:24 + hsize])
+    i = header.index(b"HEDR") + 6
+    ver, n, nxt = struct.unpack_from("<fiI", header, i)
+    struct.pack_into("<fiI", header, i, ver, n + len(fixes), nxt)
+    return bytes(header) + group("SOUN", recs) + data[24 + hsize:]
+
+
 def misc_plugin(edid, name, model, icon, value, weight) -> bytes:
     body = (sub("EDID", z(edid))
             + sub("OBND", bytes(12))
@@ -259,6 +317,10 @@ def main():
                 continue
         else:
             data = plugin(edid, name, model, icon, small, LISTS.get(fname, ()))
+            data = with_sound_fixes(fname, data)
+            if data is None:
+                print("make_plugins: FalloutNV.esm not found (set FNV_DATA); kept", out.name, "as it is")
+                continue
         if not out.exists() or out.read_bytes() != data:
             out.write_bytes(data)
             print("wrote", out.relative_to(ROOT))
