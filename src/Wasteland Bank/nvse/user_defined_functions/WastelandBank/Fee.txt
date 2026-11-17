@@ -1,0 +1,48 @@
+; Wasteland Bank: charge a courier fee of fAmt caps. It comes out of your balance; if that's short,
+; from the caps you carry; whatever is still owed is added to your loan. Every fee is counted in
+; "_wbFees" (the bank's revenue, for its stock in phase 2).
+float fAmt
+float fBal
+float fLoan
+float fFees
+int iCarry
+int iTake
+ref rCaps
+
+begin Function {fAmt}
+	if fAmt <= 0
+		return
+	endif
+	let fFees := player.AuxVarGetFlt "_wbFees"
+	let fFees += fAmt
+	player.AuxVarSetFlt "_wbFees" fFees
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	if fBal >= fAmt
+		let fBal -= fAmt
+		player.AuxVarSetFlt "_wbBal" fBal
+		return
+	endif
+	if fBal > 0
+		let fAmt -= fBal
+		player.AuxVarSetFlt "_wbBal" 0
+	endif
+	let rCaps := BuildRef 0 15	; Caps001
+	let iCarry := player.GetItemCount rCaps
+	let iTake := fAmt + 0.999
+	if iTake > iCarry
+		let iTake := iCarry
+	endif
+	if iTake > 0
+		player.RemoveItem rCaps iTake 1
+		let fAmt -= iTake
+	endif
+	if fAmt > 0
+		let fLoan := player.AuxVarGetFlt "_wbLoan"
+		if fLoan <= 0
+			player.AuxVarSetFlt "_wbLoanDays" 0
+		endif
+		let fLoan += fAmt
+		player.AuxVarSetFlt "_wbLoan" fLoan
+		MessageEx "Courier fee: %.0f caps short, added to your loan." fAmt
+	endif
+end

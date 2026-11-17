@@ -9,5 +9,5 @@ begin Function {}
 	let iCarry := player.GetItemCount rCaps
 	let fBal := player.AuxVarGetFlt "_wbBal"
 	let rCb := CompileScript "WastelandBank/DepositBtn.txt"
-	MessageBoxExAlt rCb "^Deposit^You carry %.0f caps.%rBalance: %.0f caps.|Deposit 100|Deposit 500|Deposit 1000|Deposit all|Back" iCarry fBal
+	MessageBoxExAlt rCb "^Deposit^You carry %.0f caps.%rBalance: %.0f caps.%rThe couriers' fee is charged to your balance.|Deposit 100|Deposit 500|Deposit 1000|Deposit all|Back" iCarry fBal
 end

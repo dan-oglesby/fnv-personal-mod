@@ -9,5 +9,5 @@ begin Function {}
 	let iCarry := player.GetItemCount rCaps
 	let fBal := player.AuxVarGetFlt "_wbBal"
 	let rCb := CompileScript "WastelandBank/WithdrawBtn.txt"
-	MessageBoxExAlt rCb "^Withdraw^Balance: %.0f caps.%rYou carry %.0f caps.|Withdraw 100|Withdraw 500|Withdraw 1000|Withdraw all|Back" fBal iCarry
+	MessageBoxExAlt rCb "^Withdraw^Balance: %.0f caps.%rYou carry %.0f caps.%rThe couriers' fee is charged to your balance.|Withdraw 100|Withdraw 500|Withdraw 1000|Withdraw all|Back" fBal iCarry
 end

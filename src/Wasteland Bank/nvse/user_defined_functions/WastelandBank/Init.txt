@@ -3,6 +3,8 @@
 ;   _wbLoan    loan owed in caps          _wbLoanDays game days counted toward the next loan week
 ;   _wbDay     last whole game day booked _wbAutoDep / _wbAutoConv  1 = on
 ;   _wbKeep    caps auto-deposit leaves in your pocket
+;   _wbFeePct  courier fee, percent of the cash moved (2)   _wbVaultRate  vault fee, caps a pound (1)
+;   _wbSet     settings version
 
 int iToday
 
@@ -12,5 +14,10 @@ begin Function {}
 		player.AuxVarSetFlt "_wbDay" iToday
 		player.AuxVarSetFlt "_wbKeep" 200
 		player.AuxVarSetFlt "_wbInit" 1
+	endif
+	if eval (player.AuxVarGetFlt "_wbSet") < 1
+		player.AuxVarSetFlt "_wbSet" 1
+		player.AuxVarSetFlt "_wbFeePct" 2
+		player.AuxVarSetFlt "_wbVaultRate" 1
 	endif
 end

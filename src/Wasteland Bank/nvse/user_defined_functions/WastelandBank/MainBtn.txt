@@ -1,27 +1,26 @@
-; Wasteland Bank: main menu buttons (0 Deposit, 1 Withdraw, 2 Loans, 3 Convert, 4 Wasteland Exchange,
-; 5 Settings, 6 Close).
+; Wasteland Bank: main menu buttons (0 couriers: call a squad, or their services when they're
+; here; 1 Wasteland Exchange, 2 Settings, 3 Close).
 int iBtn
+int iHere
 ref rNext
 
 begin Function {iBtn}
 	if iBtn == 0
-		let rNext := CompileScript "WastelandBank/Deposit.txt"
+		let rNext := CompileScript "WastelandBank/SqHere.txt"
+		let iHere := call rNext
+		if iHere == 1
+			let rNext := CompileScript "WastelandBank/Courier.txt"
+		elseif eval (player.AuxVarGetFlt "_wbSqState") == 2
+			MessageEx "The courier squad is waiting where they arrived: go to them."
+			return
+		else
+			let rNext := CompileScript "WastelandBank/SqCall.txt"
+		endif
 		call rNext
 	elseif iBtn == 1
-		let rNext := CompileScript "WastelandBank/Withdraw.txt"
-		call rNext
-	elseif iBtn == 2
-		let rNext := CompileScript "WastelandBank/Loan.txt"
-		call rNext
-	elseif iBtn == 3
-		let rNext := CompileScript "WastelandBank/ConvertNow.txt"
-		call rNext 0
-		let rNext := CompileScript "WastelandBank/Open.txt"
-		call rNext
-	elseif iBtn == 4
 		let rNext := CompileScript "WastelandBank/ExMenu.txt"
 		call rNext
-	elseif iBtn == 5
+	elseif iBtn == 2
 		let rNext := CompileScript "WastelandBank/Settings.txt"
 		call rNext
 	endif

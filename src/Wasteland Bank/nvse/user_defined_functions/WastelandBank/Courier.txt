@@ -1,0 +1,21 @@
+; Wasteland Bank: the courier squad's services (when they're here: SqHere.txt). Cash moves for a
+; fee ("_wbFeePct" percent of what they move, default 2); the vault is charged by the weight
+; carried each way ("_wbVaultRate" caps per pound, default 1).
+float fBal
+float fLoan
+float fPct
+float fRate
+int iCarry
+ref rCaps
+ref rCb
+
+begin Function {}
+	let rCaps := BuildRef 0 15	; Caps001
+	let iCarry := player.GetItemCount rCaps
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let fLoan := player.AuxVarGetFlt "_wbLoan"
+	let fPct := player.AuxVarGetFlt "_wbFeePct"
+	let fRate := player.AuxVarGetFlt "_wbVaultRate"
+	let rCb := CompileScript "WastelandBank/CourierBtn.txt"
+	MessageBoxExAlt rCb "^Bank Couriers^Balance: %.0f caps.  Carrying: %.0f caps.%rLoan owed: %.0f caps.%rFee: %.1f percent of the cash they move, and %.1f caps a pound for the vault, each way.|Deposit caps|Withdraw caps|Convert currency to caps|Vault storage|Loans|Send them off|Back" fBal iCarry fLoan fPct fRate
+end

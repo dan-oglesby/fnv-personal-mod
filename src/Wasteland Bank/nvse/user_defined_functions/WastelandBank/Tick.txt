@@ -58,26 +58,10 @@ begin Function {}
 			player.AuxVarSetFlt "_wbLoanDays" iLoanDays
 		endif
 
-		; auto-deposit, once per game day
-		if eval (player.AuxVarGetFlt "_wbAutoDep") == 1
-			let rCaps := BuildRef 0 15	; Caps001
-			let iCarry := player.GetItemCount rCaps
-			let fKeep := player.AuxVarGetFlt "_wbKeep"
-			let iAmt := iCarry - fKeep
-			if iAmt > 0
-				player.RemoveItem rCaps iAmt 1
-				let fBal := player.AuxVarGetFlt "_wbBal"
-				let fBal += iAmt
-				player.AuxVarSetFlt "_wbBal" fBal
-				print "Wasteland Bank: auto-deposited " + $iAmt + " caps"
-			endif
-		endif
+		; auto-deposit: when a courier squad arrives now (SqTick.txt)
 	endif
 
-	if eval (player.AuxVarGetFlt "_wbAutoConv") == 1
-		let rConv := CompileScript "WastelandBank/ConvertNow.txt"
-		call rConv 1
-	endif
+	; auto-convert: when a courier squad arrives now (SqTick.txt)
 
 	; Wasteland Exchange: daily prices, dividends and news events
 	let rConv := CompileScript "WastelandBank/ExTick.txt"

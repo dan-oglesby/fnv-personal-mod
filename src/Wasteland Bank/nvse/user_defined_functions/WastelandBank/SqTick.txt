@@ -1,0 +1,119 @@
+; Wasteland Bank: the courier squad, once a second of play (ln_wasteland_bank.txt; not in menus or
+; paused). "_wbSqState" 0 none, 1 called (arrives at game time "_wbSqAt"), 2 here (refs
+; "_wbSqRef" 0-2, arrived at "_wbSqArr").
+; - Arrival: once the time comes and you're not in combat or VATS, three couriers (WastelandBank.esp
+;   0x801-0x803, essential copies of the vanilla mercenaries) appear a few steps behind you and stay
+;   near that spot.
+; - Walking up to them (within about 4 m) the first time opens their services (Courier.txt); after
+;   that, the bank card does, while you're within about 15 m (SqHere.txt).
+; - On arrival they take care of auto-deposit (caps over "_wbKeep") and auto-convert, if those are
+;   on, with the usual fee.
+; - They leave once you're about 60 m away, or after 3 game hours once you're 15 m away.
+int iState
+int iPlug
+int iIdx
+int iId
+float fNow
+float fD
+ref rBase
+ref rRef
+ref rLead
+ref rFn
+ref rFee
+ref rCaps
+int iCarry
+int iAmt
+float fBal
+float fFee
+
+begin Function {}
+	let iState := player.AuxVarGetFlt "_wbSqState"
+	if iState == 0
+		return
+	endif
+	if player.GetDead
+		return
+	endif
+	if IsInKillCam
+		return
+	endif
+	let fNow := GameDaysPassed
+	if iState == 1
+		if eval fNow < (player.AuxVarGetFlt "_wbSqAt")
+			return
+		endif
+		if player.IsInCombat
+			return
+		endif
+		if eval (IsModLoaded "WastelandBank.esp") == 0
+			player.AuxVarSetFlt "_wbSqState" 0
+			return
+		endif
+		let iPlug := GetModIndex "WastelandBank.esp"
+		let iIdx := 0
+		while iIdx < 3
+			let iId := 2049 + iIdx	; WBCourierA-C 0x801-0x803
+			let rBase := BuildRef iPlug iId
+			let rRef := player.PlaceAtMe rBase 1 256 1	; 256 units behind you
+			player.AuxVarSetRef "_wbSqRef" rRef iIdx
+			let iIdx += 1
+		loop
+		player.AuxVarSetFlt "_wbSqArr" fNow
+		player.AuxVarSetFlt "_wbSqMet" 0
+		player.AuxVarSetFlt "_wbSqState" 2
+		MessageEx "A Wasteland Bank courier squad has arrived."
+		let rFee := CompileScript "WastelandBank/Fee.txt"
+		if eval (player.AuxVarGetFlt "_wbAutoConv") == 1
+			let rFn := CompileScript "WastelandBank/ConvertNow.txt"
+			let iAmt := call rFn 1
+			if iAmt > 0
+				let fFee := player.AuxVarGetFlt "_wbFeePct"
+				let fFee := iAmt * fFee / 100
+				call rFee fFee
+			endif
+		endif
+		if eval (player.AuxVarGetFlt "_wbAutoDep") == 1
+			let rCaps := BuildRef 0 15	; Caps001
+			let iCarry := player.GetItemCount rCaps
+			let fFee := player.AuxVarGetFlt "_wbKeep"
+			let iAmt := iCarry - fFee
+			if iAmt > 0
+				player.RemoveItem rCaps iAmt 1
+				let fBal := player.AuxVarGetFlt "_wbBal"
+				let fBal += iAmt
+				player.AuxVarSetFlt "_wbBal" fBal
+				let fFee := player.AuxVarGetFlt "_wbFeePct"
+				let fFee := iAmt * fFee / 100
+				call rFee fFee
+				MessageEx "The couriers took %.0f caps to the bank." iAmt
+			endif
+		endif
+		return
+	endif
+
+	; here
+	let rLead := player.AuxVarGetRef "_wbSqRef" 0
+	if eval (IsFormValid rLead) == 0
+		let rFn := CompileScript "WastelandBank/SqLeave.txt"
+		call rFn 1
+		return
+	endif
+	let fD := player.GetDistance rLead
+	if fD > 4000
+		let rFn := CompileScript "WastelandBank/SqLeave.txt"
+		call rFn 1
+		return
+	endif
+	if eval fNow - (player.AuxVarGetFlt "_wbSqArr") > 0.125 && fD > 1000
+		let rFn := CompileScript "WastelandBank/SqLeave.txt"
+		call rFn 1
+		return
+	endif
+	if fD <= 256
+		if eval (player.AuxVarGetFlt "_wbSqMet") == 0
+			player.AuxVarSetFlt "_wbSqMet" 1
+			let rFn := CompileScript "WastelandBank/Courier.txt"
+			call rFn
+		endif
+	endif
+end

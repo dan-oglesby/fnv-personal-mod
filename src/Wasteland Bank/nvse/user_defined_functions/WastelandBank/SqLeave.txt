@@ -1,0 +1,22 @@
+; Wasteland Bank: the courier squad leaves (removed from the world). iQuiet 1 = no message (they
+; left on their own, out of sight).
+int iQuiet
+int iIdx
+ref rRef
+
+begin Function {iQuiet}
+	let iIdx := 0
+	while iIdx < 3
+		let rRef := player.AuxVarGetRef "_wbSqRef" iIdx
+		let iIdx += 1
+		if eval IsFormValid rRef
+			rRef.Disable
+			rRef.MarkForDelete
+		endif
+	loop
+	player.AuxVarErase "_wbSqRef"
+	player.AuxVarSetFlt "_wbSqState" 0
+	if iQuiet == 0
+		MessageEx "The courier squad heads off."
+	endif
+end

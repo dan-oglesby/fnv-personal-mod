@@ -1,0 +1,31 @@
+; Wasteland Bank: call a courier squad (from the main menu). It arrives 1 to 2 game hours later
+; (SqTick.txt). Calling again while one is on its way or here just says so.
+float fNow
+float fHours
+float fAt
+int iState
+int iMin
+
+begin Function {}
+	let iState := player.AuxVarGetFlt "_wbSqState"
+	if iState == 1
+		let fNow := GameDaysPassed
+		let fAt := player.AuxVarGetFlt "_wbSqAt"
+		let iMin := (fAt - fNow) * 1440 + 0.5
+		if iMin < 1
+			let iMin := 1
+		endif
+		MessageEx "A courier squad is already on its way: about %.0f minutes." iMin
+		return
+	elseif iState == 2
+		MessageEx "The courier squad is already here."
+		return
+	endif
+	let fHours := GetRandomPercent
+	let fHours := 1 + fHours / 100
+	let fNow := GameDaysPassed
+	let fAt := fNow + fHours / 24
+	player.AuxVarSetFlt "_wbSqAt" fAt
+	player.AuxVarSetFlt "_wbSqState" 1
+	MessageEx "Courier squad called. They'll find you in about %.1f hours." fHours
+end

@@ -1,0 +1,34 @@
+; Wasteland Bank: money has weight (2026-11-16), so a fortune can't sit in your pocket and the
+; courier squad (SqCall.txt) is how cash moves. Real-world weights: a bottle cap about 2.1 g
+; (0.0047 lb, so 1,000 caps weigh about 4.7 lb), a paper note 1 g (0.0022 lb), a silver denarius
+; 3.9 g (0.0085 lb), a gold aureus 8 g (0.018 lb). Base-item changes aren't saved by the game, so
+; this runs on every load (ln_wasteland_bank.txt). Off: player.AuxVarSetFlt "_wbNoWeight" 1, then
+; reload (the weights go back to 0 on the next game start).
+; FalloutNV.esm IDs (decimal): caps 15; NCR $5, $20, $100 1287382-1287384; denarius 1276829,
+; mangled denarius 1520182, aureus 1287385.
+float fWt
+ref rItem
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_wbNoWeight") == 1
+		return
+	endif
+	let rItem := BuildRef 0 15	; Caps001
+	let fWt := 0.0047
+	SetWeight fWt rItem
+	let fWt := 0.0022
+	let rItem := BuildRef 0 1287382	; NCRMoney5
+	SetWeight fWt rItem
+	let rItem := BuildRef 0 1287383	; NCRMoney20
+	SetWeight fWt rItem
+	let rItem := BuildRef 0 1287384	; NCRMoney100
+	SetWeight fWt rItem
+	let fWt := 0.0085
+	let rItem := BuildRef 0 1276829	; LegionMoney1, denarius
+	SetWeight fWt rItem
+	let rItem := BuildRef 0 1520182	; LegionMoney1Mangled
+	SetWeight fWt rItem
+	let fWt := 0.018
+	let rItem := BuildRef 0 1287385	; LegionMoney25, aureus
+	SetWeight fWt rItem
+end

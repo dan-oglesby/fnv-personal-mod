@@ -1,5 +1,7 @@
 ; Wasteland Bank (Dan, 2026-11-11): a rewrite of "Bank Card" (BankCard.esp, Nexus 39741, 2011)
-; without its bugs. Deposit and withdraw caps with daily interest, take a loan with weekly
+; without its bugs. Since 2026-11-16 money has weight and cash moves through courier squads you
+; call with the card (fees: 2 percent of cash moved, 1 cap a pound for the vault); see
+; docs/wasteland-bank-couriers.md. Deposit and withdraw caps with daily interest, take a loan with weekly
 ; interest, convert NCR, Legion and pre-war money (and caravan money) to caps, and optional
 ; auto-deposit and auto-convert.
 ;
@@ -225,6 +227,46 @@ let rChk := CompileScript "WastelandBank/WithdrawBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/Courier.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/CourierBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Fee.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SqCall.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SqHere.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SqLeave.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/SqTick.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Vault.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/VaultClose.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Weight.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 if iBad > 0
 	print "Wasteland Bank: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
 	MessageEx "Wasteland Bank is switched off: a script failed to compile"
@@ -235,6 +277,8 @@ else
 	call rInit	; Wasteland Exchange (stocks)
 	let rInit := CompileScript "WastelandBank/FxApply.txt"
 	call rInit	; currency values (not saved by the game, so set on every load)
+	let rInit := CompileScript "WastelandBank/Weight.txt"
+	call rInit	; money has weight (not saved either)
 	if eval IsModLoaded "WastelandBank.esp"
 		let int iWB := GetModIndex "WastelandBank.esp"
 		let ref rCard := BuildRef iWB 2048	; WBBankCard 0x000800
@@ -259,4 +303,10 @@ else
 	let ref rTick := CompileScript "WastelandBank/Tick.txt"
 	let ref rTrue := CompileScript "WastelandBank/Always.txt"
 	CallWhilePerSeconds 10 rTick rTrue 20
+	; courier squad: arrival, first meeting, leaving (once a second, same flags)
+	let ref rSq := CompileScript "WastelandBank/SqTick.txt"
+	CallWhilePerSeconds 1 rSq rTrue 20
+	; the vault's container screen closing: charge for what the couriers carried
+	let ref rVaultClose := CompileScript "WastelandBank/VaultClose.txt"
+	SetOnMenuCloseEventHandler rVaultClose 1 1008
 endif

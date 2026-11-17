@@ -1,16 +1,18 @@
 ; Wasteland Bank: deposit buttons (0 100, 1 500, 2 1000, 3 all, 4 back).
 ; Counts the caps you carry at the moment you click (the 2011 mod used a figure up to a few
-; seconds old, and could credit caps you had just spent).
+; seconds old, and could credit caps you had just spent). The courier fee ("_wbFeePct" percent
+; of the amount) is charged after (Fee.txt).
 int iBtn
 int iCarry
 int iAmt
 float fBal
 ref rCaps
 ref rNext
+float fFee
 
 begin Function {iBtn}
 	if iBtn == 4
-		let rNext := CompileScript "WastelandBank/Open.txt"
+		let rNext := CompileScript "WastelandBank/Courier.txt"
 		call rNext
 		return
 	endif
@@ -33,6 +35,10 @@ begin Function {iBtn}
 		let fBal += iAmt
 		player.AuxVarSetFlt "_wbBal" fBal
 		print "Wasteland Bank: deposited " + $iAmt + " caps"
+		let fFee := player.AuxVarGetFlt "_wbFeePct"
+		let fFee := iAmt * fFee / 100
+		let rNext := CompileScript "WastelandBank/Fee.txt"
+		call rNext fFee
 	endif
 	let rNext := CompileScript "WastelandBank/Deposit.txt"
 	call rNext

@@ -1,0 +1,22 @@
+; Wasteland Bank: returns 1 if a courier squad is here and you're within about 15 m (1,000 units)
+; of one of them, otherwise 0.
+int iIdx
+ref rRef
+
+begin Function {}
+	SetFunctionValue 0
+	if eval (player.AuxVarGetFlt "_wbSqState") != 2
+		return
+	endif
+	let iIdx := 0
+	while iIdx < 3
+		let rRef := player.AuxVarGetRef "_wbSqRef" iIdx
+		let iIdx += 1
+		if eval IsFormValid rRef
+			if eval (player.GetDistance rRef) <= 1000
+				SetFunctionValue 1
+				return
+			endif
+		endif
+	loop
+end

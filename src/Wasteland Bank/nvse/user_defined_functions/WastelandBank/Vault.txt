@@ -1,0 +1,44 @@
+; Wasteland Bank: the vault, your storage at the bank (WastelandBank.esp WBVaultRef 0x000806, a
+; persistent container in a cell of its own). Opens it as a container screen; whatever you put in or
+; take out the couriers carry, and VaultClose.txt charges for the weight. Before it opens, the vault's
+; contents are noted on each item form ("*_wbVS" count, "*_wbVP" this opening's number) and listed
+; on the player ("*_wbVI", "*_wbVN").
+int iPlug
+int iPass
+int iN
+int iIdx
+int iK
+int iCnt
+ref rVault
+ref rItem
+
+begin Function {}
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rVault := BuildRef iPlug 2054	; WBVaultRef 0x000806
+	if eval (IsFormValid rVault) == 0
+		MessageEx "The bank vault is missing: is WastelandBank.esp enabled?"
+		return
+	endif
+	let iPass := player.AuxVarGetFlt "*_wbVPass"
+	let iPass += 1
+	player.AuxVarSetFlt "*_wbVPass" iPass
+	player.AuxVarErase "*_wbVI"
+	let iN := rVault.GetNumItems
+	let iIdx := 0
+	let iK := 0
+	while iIdx < iN
+		let rItem := rVault.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		let iCnt := rVault.GetItemCount rItem
+		AuxVarSetFlt "*_wbVS" iCnt 0 rItem
+		AuxVarSetFlt "*_wbVP" iPass 0 rItem
+		player.AuxVarSetRef "*_wbVI" rItem iK
+		let iK += 1
+	loop
+	player.AuxVarSetFlt "*_wbVN" iK
+	player.AuxVarSetFlt "*_wbVOpen" 1
+	rVault.Activate player 1
+end

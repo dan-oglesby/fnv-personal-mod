@@ -13,7 +13,9 @@ The only master is FalloutNV.esm, so a plugin never pulls in another mod.
 A plugin can also carry empty form lists (LISTS below) that its scripts fill at run time, at
 object IDs 0x801, 0x802 and so on (BuildRef <index> 2049, 2050...).
 """
+import os
 import struct
+import zlib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -96,6 +98,119 @@ def plugin(edid, name, model, icon, small_icon, lists=()) -> bytes:
     return header + group("ARMO", armo) + (group("FLST", flsts) if lists else b"")
 
 
+# Wasteland Bank's courier squad and vault (2026-11-16). The couriers are copies of the vanilla
+# mercenary group NPCs (FalloutNV.esm), which take their looks, gear and stats from the mercenary
+# leveled lists, so every squad looks different. Changed: name, essential, no respawn, no factions
+# and the mercenaries' own unaggressive AI data instead of the leveled list's (template flags "use
+# factions" and "use AI data" off), one package (stay near where they are), no script. Read from
+# the game's FalloutNV.esm at build time; without it the existing plugin is kept.
+COURIERS = [   # object ID, editor ID, vanilla NPC to copy
+    (0x801, "WBCourierA", 0x165066),   # VSpawnMercenaryMaleGroup01
+    (0x802, "WBCourierB", 0x165064),   # VSpawnMercenaryFemaleGroup01
+    (0x803, "WBCourierC", 0x165065),   # VSpawnMercenaryMaleGroup02
+]
+COURIER_NAME = "Bank Courier"
+COURIER_PACKAGE = 0x171CEF             # DefaultSandboxCurrentLocation256NoSleepNoWanderNoConv
+VAULT_CONT, VAULT_CELL, VAULT_REF = 0x804, 0x805, 0x806
+VAULT_MODEL = r"Clutter\Security\GenericSafeWall01.NIF"   # the vanilla wall safe's model
+FNV_DATA = Path(os.environ.get("FNV_DATA", r"C:\Program Files (x86)\Steam\steamapps\common\Fallout New Vegas\Data"))
+
+
+def _subrecords(d: bytes):
+    o, out = 0, []
+    while o < len(d):
+        tag = d[o:o + 4].decode("latin1")
+        size = struct.unpack_from("<H", d, o + 4)[0]
+        out.append((tag, d[o + 6:o + 6 + size]))
+        o += 6 + size
+    return out
+
+
+def _vanilla_npcs(wanted):
+    """The wanted NPC_ records from FalloutNV.esm: {formid: (record flags, [(tag, data)])}."""
+    esm = FNV_DATA / "FalloutNV.esm"
+    if not esm.exists():
+        return None
+    b = esm.read_bytes()
+    found = {}
+    off = 0
+    while off < len(b):
+        size = struct.unpack_from("<I", b, off + 4)[0]
+        if b[off:off + 4] == b"GRUP" and b[off + 8:off + 12] == b"NPC_":
+            o, end = off + 24, off + size
+            while o < end:
+                rsize = struct.unpack_from("<I", b, o + 4)[0]
+                flags, fid = struct.unpack_from("<II", b, o + 8)
+                if fid in wanted:
+                    data = b[o + 24:o + 24 + rsize]
+                    if flags & 0x40000:
+                        data = zlib.decompress(data[4:])
+                    found[fid] = (flags & ~0x40000, _subrecords(data))
+                o += 24 + rsize
+            break
+        off += size if b[off:off + 4] == b"GRUP" else 24 + size
+    return found if len(found) == len(wanted) else None
+
+
+def _courier(objid, edid, flags, subs) -> bytes:
+    body = b""
+    for tag, data in subs:
+        if tag in ("SNAM", "PKID", "SCRI"):
+            continue                                    # factions, packages and script: ours below
+        if tag == "EDID":
+            data = z(edid)
+        elif tag == "FULL":
+            data = z(COURIER_NAME)
+        elif tag == "ACBS":
+            acbs = bytearray(data)
+            f = struct.unpack_from("<I", acbs, 0)[0]
+            struct.pack_into("<I", acbs, 0, (f | 0x02) & ~0x08)          # essential, no respawn
+            t = struct.unpack_from("<H", acbs, 22)[0]
+            struct.pack_into("<H", acbs, 22, t & ~(0x04 | 0x10 | 0x20 | 0x80 | 0x200))
+            data = bytes(acbs)
+        body += sub(tag, data)
+        if tag == "AIDT":
+            body += sub("PKID", struct.pack("<I", COURIER_PACKAGE))
+    assert any(t == "FULL" for t, _ in subs), edid      # the mercenary records all carry a name
+    return record("NPC_", flags, 0x01000000 | objid, body)
+
+
+def _grup(label: bytes, gtype: int, body: bytes) -> bytes:
+    return b"GRUP" + struct.pack("<I", 24 + len(body)) + label + struct.pack("<iHHHH", gtype, 0, 0, 0, 0) + body
+
+
+def bank_plugin(edid, name, model, icon, small_icon):
+    """WastelandBank.esp: the card (0x800), the couriers (0x801-0x803), the vault container (0x804)
+    in its own interior cell (0x805) as one persistent reference (0x806). None without the ESM."""
+    vanilla = _vanilla_npcs({src for _, _, src in COURIERS})
+    if vanilla is None:
+        return None
+    card = plugin(edid, name, model, icon, small_icon)
+    card_group = card[card.index(b"GRUP"):]
+    npcs = b"".join(_courier(objid, ed, *vanilla[src]) for objid, ed, src in COURIERS)
+    cont = record("CONT", 0, 0x01000000 | VAULT_CONT,
+                  sub("EDID", z("WBVault")) + sub("OBND", bytes(12)) + sub("FULL", z("Wasteland Bank Vault"))
+                  + sub("MODL", z(VAULT_MODEL)) + sub("DATA", struct.pack("<Bf", 0, 0.0)))
+    cell_id = 0x01000000 | VAULT_CELL
+    cell = record("CELL", 0, cell_id,
+                  sub("EDID", z("WBVaultCell")) + sub("FULL", z("Wasteland Bank Vault"))
+                  + sub("DATA", bytes([0x01])))                      # interior
+    ref = record("REFR", 0x400, 0x01000000 | VAULT_REF,                # persistent
+                 sub("EDID", z("WBVaultRef")) + sub("NAME", struct.pack("<I", 0x01000000 | VAULT_CONT))
+                 + sub("DATA", bytes(24)))
+    children = _grup(struct.pack("<I", cell_id), 6, _grup(struct.pack("<I", cell_id), 8, ref))
+    block, subblock = VAULT_CELL % 10, (VAULT_CELL // 10) % 10
+    cells = _grup(b"CELL", 0, _grup(struct.pack("<i", block), 2,
+                                    _grup(struct.pack("<i", subblock), 3, cell + children)))
+    n_records = 1 + len(COURIERS) + 1 + 1 + 1
+    header = record("TES4", 0, 0,
+                    sub("HEDR", struct.pack("<fiI", 1.34, n_records, VAULT_REF + 1))
+                    + sub("CNAM", z("fnv-personal-mod"))
+                    + sub("MAST", z("FalloutNV.esm"))
+                    + sub("DATA", bytes(8)))
+    return header + card_group + _grup(b"CONT", 0, cont) + _grup(b"NPC_", 0, npcs) + cells
+
+
 def misc_plugin(edid, name, model, icon, value, weight) -> bytes:
     body = (sub("EDID", z(edid))
             + sub("OBND", bytes(12))
@@ -115,7 +230,13 @@ def misc_plugin(edid, name, model, icon, value, weight) -> bytes:
 def main():
     for fname, mod, edid, name, model, icon, small in ITEMS:
         out = ROOT / "src" / mod / fname
-        data = plugin(edid, name, model, icon, small, LISTS.get(fname, ()))
+        if fname == "WastelandBank.esp":
+            data = bank_plugin(edid, name, model, icon, small)
+            if data is None:
+                print("make_plugins: FalloutNV.esm not found (set FNV_DATA); kept", out.name, "as it is")
+                continue
+        else:
+            data = plugin(edid, name, model, icon, small, LISTS.get(fname, ()))
         if not out.exists() or out.read_bytes() != data:
             out.write_bytes(data)
             print("wrote", out.relative_to(ROOT))

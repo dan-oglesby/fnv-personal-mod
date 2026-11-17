@@ -1,0 +1,85 @@
+; Wasteland Bank: JIP menu-close handler for the container screen (1008). If the vault was open
+; (Vault.txt), works out what the couriers carried: every item whose count in the vault changed,
+; in or out, times its weight, and charges "_wbVaultRate" caps a pound (default 1) through Fee.txt.
+int iMenu
+int iPlug
+int iPass
+int iN
+int iIdx
+int iCnt
+int iWas
+int iDiff
+float fLb
+float fWt
+float fRate
+float fFee
+ref rVault
+ref rItem
+ref rFee
+
+begin Function {iMenu}
+	if iMenu != 1008
+		return
+	endif
+	if eval (player.AuxVarGetFlt "*_wbVOpen") == 0
+		return
+	endif
+	player.AuxVarSetFlt "*_wbVOpen" 0
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rVault := BuildRef iPlug 2054	; WBVaultRef 0x000806
+	if eval (IsFormValid rVault) == 0
+		return
+	endif
+	let iPass := player.AuxVarGetFlt "*_wbVPass"
+	let fLb := 0
+	; what's in the vault now, against what was there (items marked done as they're counted)
+	let iN := rVault.GetNumItems
+	let iIdx := 0
+	while iIdx < iN
+		let rItem := rVault.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		let iCnt := rVault.GetItemCount rItem
+		let iWas := 0
+		if eval (AuxVarGetFlt "*_wbVP" 0 rItem) == iPass
+			let iWas := AuxVarGetFlt "*_wbVS" 0 rItem
+		endif
+		AuxVarSetFlt "*_wbVP" 0 0 rItem
+		let iDiff := iCnt - iWas
+		if iDiff < 0
+			let iDiff := 0 - iDiff
+		endif
+		if iDiff > 0
+			let fWt := GetWeight rItem
+			let fLb += iDiff * fWt
+		endif
+	loop
+	; what was there and is gone entirely
+	let iN := player.AuxVarGetFlt "*_wbVN"
+	let iIdx := 0
+	while iIdx < iN
+		let rItem := player.AuxVarGetRef "*_wbVI" iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		if eval (AuxVarGetFlt "*_wbVP" 0 rItem) == iPass
+			let iWas := AuxVarGetFlt "*_wbVS" 0 rItem
+			let fWt := GetWeight rItem
+			let fLb += iWas * fWt
+		endif
+	loop
+	if fLb <= 0
+		return
+	endif
+	let fRate := player.AuxVarGetFlt "_wbVaultRate"
+	let fFee := fLb * fRate
+	if fFee < 1
+		let fFee := 1
+	endif
+	let rFee := CompileScript "WastelandBank/Fee.txt"
+	call rFee fFee
+	MessageEx "The couriers carried %.1f lb for the vault: %.0f caps." fLb fFee
+end
