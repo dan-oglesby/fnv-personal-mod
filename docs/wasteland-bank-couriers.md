@@ -24,6 +24,11 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
     out is carried by the squad, at **1 cap per pound each way**;
   - loans are paid out and repaid in cash, so through the squad too.
   Auto-deposit and auto-convert happen when a squad arrives, not on their own.
+- **Cash on hand** (to build: phase 1's withdraw has no limit yet): the account manager sees that
+  every squad carries a float of 2,500 caps, drawn from your balance (less if your balance is
+  less). That's the most you can withdraw from a squad called the ordinary way; a larger sum is
+  asked for when calling (open: delivered by a squad at least 24 hours later, like cash-out
+  orders, or just a slower arrival). Deposits have no limit: they can carry any amount back.
 - **Selling through the squad** (built with phase 1): "sell all junk" in one go, or hand-pick
   anything in a consignment box. They sell to merchants at half the current market value (Wasteland
   Market's prices), keep 10 percent, and the rest reaches your balance a day later. The sales move
