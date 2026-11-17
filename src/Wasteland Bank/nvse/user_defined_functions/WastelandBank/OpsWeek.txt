@@ -1,0 +1,164 @@
+; Wasteland Bank: one operation by your management team (from ExDay.txt, on every 7th day counted
+; from day 3; only at the Kingpin stage, with operations on, not suspended, and a faction flagged).
+; - Target: one flagged faction, at random.
+; - Stake: 2 percent of your wealth, from your balance (the team shorts the target, then starts a
+;   run on it).
+; - House intervenes: 70 percent of the time when the target is his (House and the Strip), 20
+;   percent otherwise. If he does, the team's chance halves, and a failure costs twice the stake.
+; - Chance: 35 percent at a million caps, 15 points more for every tenfold, between 20 and 85.
+; - Success: the target's assets take a shock of 10 to 25 percent (fading like any news), and the
+;   team's shorts pay the stake back plus 8 times the shock (a 20 percent fall: 2.6 times the stake).
+; - Exposure: 10 percent of the time, whatever happened: a fine of 5 percent of your wealth and no
+;   operations for 30 days.
+int iDay
+int iK
+int iN
+int iT
+int iPick
+int iHouse
+int iWon
+float fWlth
+float fStake
+float fChance
+float fShock
+float fGot
+float fS
+float fV
+float fRoll
+ref rFn
+ref rCash
+array_var aT
+string_var sFac
+
+begin Function {iDay}
+	if eval (player.AuxVarGetFlt "_wbStage") < 6 || (player.AuxVarGetFlt "_wbOpsOn") == 0
+		return
+	endif
+	if eval iDay < (player.AuxVarGetFlt "_wbOpsFrozen")
+		return
+	endif
+	; pick a flagged faction
+	let aT := Ar_Construct "array"
+	let iK := 0
+	while iK < 3
+		if eval (player.AuxVarGetFlt "_wbOpsF" iK) == 1
+			Ar_Append aT iK
+		endif
+		let iK += 1
+	loop
+	let iN := Ar_Size aT
+	if iN < 1
+		return
+	endif
+	let fRoll := Rand 0 iN
+	let iK := fRoll
+	if iK >= iN
+		let iK := iN - 1
+	endif
+	let iPick := aT[iK]
+	let aT := Ar_Null
+
+	let rFn := CompileScript "WastelandBank/Wealth.txt"
+	let fWlth := call rFn
+	let fStake := fWlth * 0.02
+	let rCash := CompileScript "WastelandBank/ExCash.txt"
+	let fV := 0 - fStake
+	call rCash fV
+	let fV := player.AuxVarGetFlt "_wbOpsN"
+	let fV += 1
+	player.AuxVarSetFlt "_wbOpsN" fV
+
+	let fChance := 0.35 + 0.15 * (Log10 (fWlth / 1000000))
+	if fChance < 0.2
+		let fChance := 0.2
+	elseif fChance > 0.85
+		let fChance := 0.85
+	endif
+	let iHouse := 0
+	let fRoll := Rand 0 1
+	if iPick == 2
+		if fRoll < 0.7
+			let iHouse := 1
+		endif
+	elseif fRoll < 0.2
+		let iHouse := 1
+	endif
+	if iHouse == 1
+		let fChance *= 0.5
+	endif
+	if iPick == 0
+		let sFac := "the NCR"
+	elseif iPick == 1
+		let sFac := "the Legion"
+	else
+		let sFac := "House and the Strip"
+	endif
+
+	let fRoll := Rand 0 1
+	let iWon := 0
+	if fRoll < fChance
+		let iWon := 1
+		let fShock := Rand 0.10 0.25
+		; the target's assets: NCR = Hub-listed stocks (exchange 1), War Bonds 13, the NCR dollar 14;
+		; Legion = the denarius 15; House = RobCo 8, Tops 4, Gomorrah 5, Ultra-Luxe 6
+		let iT := 0
+		while iT < 16
+			let iK := 0
+			if iPick == 0
+				if eval iT == 13 || iT == 14 || (iT < 13 && (player.AuxVarGetFlt "_wxEx" iT) == 1)
+					let iK := 1
+				endif
+			elseif iPick == 1
+				if iT == 15
+					let iK := 1
+				endif
+			elseif iT == 8 || iT == 4 || iT == 5 || iT == 6
+				let iK := 1
+			endif
+			if iK == 1
+				let fS := player.AuxVarGetFlt "_wxS" iT
+				let fS -= fShock
+				player.AuxVarSetFlt "_wxS" fS iT
+			endif
+			let iT += 1
+		loop
+		let fGot := fStake * (1 + 8 * fShock)
+		call rCash fGot
+		let fV := player.AuxVarGetFlt "_wbOpsWon"
+		let fV += 1
+		player.AuxVarSetFlt "_wbOpsWon" fV
+		let fV := player.AuxVarGetFlt "_wbProfM"
+		let fV += fGot - fStake
+		player.AuxVarSetFlt "_wbProfM" fV
+		let fV := fShock * 100
+		if iHouse == 1
+			MessageBoxEx "Your management team%rHouse tried to stop it, and failed. The run on %z worked: its assets fell %.0f percent, and your team's shorts brought back %.0f caps on a %.0f stake." sFac fV fGot fStake
+		else
+			MessageBoxEx "Your management team%rThe run on %z worked: its assets fell %.0f percent, and your team's shorts brought back %.0f caps on a %.0f stake." sFac fV fGot fStake
+		endif
+	elseif iHouse == 1
+		let fV := 0 - fStake
+		call rCash fV
+		let fV := player.AuxVarGetFlt "_wbProfM"
+		let fV -= 2 * fStake
+		player.AuxVarSetFlt "_wbProfM" fV
+		let fV := fStake * 2
+		MessageBoxEx "Your management team%rHouse saw it coming. His agents bought everything your team sold and squeezed its shorts on %z. It cost %.0f caps." sFac fV
+	else
+		let fV := player.AuxVarGetFlt "_wbProfM"
+		let fV -= fStake
+		player.AuxVarSetFlt "_wbProfM" fV
+		MessageBoxEx "Your management team%rThe run on %z fizzled. The market shrugged it off, and the %.0f cap stake is gone." sFac fStake
+	endif
+
+	; exposure
+	let fRoll := Rand 0 1
+	if fRoll < 0.1
+		let fV := fWlth * 0.05
+		let fS := 0 - fV
+		call rCash fS
+		let iK := iDay + 30
+		player.AuxVarSetFlt "_wbOpsFrozen" iK
+		MessageBoxEx "Investigation%rSomeone talked. Regulators on the Strip and in the Republic traced the trading to your team: a fine of %.0f caps, and no operations for 30 days." fV
+	endif
+end

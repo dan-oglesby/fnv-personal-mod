@@ -1,0 +1,46 @@
+; Wasteland Bank: your total wealth in caps, for the wealth stages (Stage.txt): the bank balance,
+; the currency accounts at today's rates, shares held less the cost of covering shorts, the
+; managed account, money on its way to you (sales, withdrawals), the caps and bank notes you carry,
+; less any loan.
+int iPlug
+int iN
+float fWlth
+float fV
+float fR
+ref rFn
+ref rNote
+
+begin Function {}
+	let fWlth := player.AuxVarGetFlt "_wbBal"
+	let rFn := CompileScript "WastelandBank/ExRate.txt"
+	let fR := call rFn
+	let fWlth += (player.AuxVarGetFlt "_wbBalN") * fR
+	let rFn := CompileScript "WastelandBank/ExPrice.txt"
+	let fR := call rFn 15
+	let fWlth += (player.AuxVarGetFlt "_wbBalL") * fR * 4
+	if eval (player.AuxVarGetFlt "_wxInit") == 1
+		let rFn := CompileScript "WastelandBank/ExTotals.txt"
+		let fV := call rFn 1
+		let fWlth += fV
+		let fV := call rFn 2
+		let fWlth -= fV
+	endif
+	let fWlth += player.AuxVarGetFlt "_wmaVal"
+	let fWlth += player.AuxVarGetFlt "_wmaOut"
+	let fWlth += player.AuxVarGetFlt "_wbSalePend"
+	let rNote := BuildRef 0 15	; Caps001
+	let fWlth += player.GetItemCount rNote
+	if eval IsModLoaded "WastelandBank.esp"
+		let rFn := CompileScript "WastelandBank/NoteApply.txt"
+		let fR := call rFn
+		let iPlug := GetModIndex "WastelandBank.esp"
+		let rNote := BuildRef iPlug 2057
+		let iN := player.GetItemCount rNote
+		let fWlth += iN * 10 * fR
+		let rNote := BuildRef iPlug 2058
+		let iN := player.GetItemCount rNote
+		let fWlth += iN * 100 * fR
+	endif
+	let fWlth -= player.AuxVarGetFlt "_wbLoan"
+	SetFunctionValue fWlth
+end

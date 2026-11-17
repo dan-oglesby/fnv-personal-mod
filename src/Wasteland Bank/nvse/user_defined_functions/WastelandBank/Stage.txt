@@ -1,0 +1,43 @@
+; Wasteland Bank: is a wealth stage open? Returns 1 if you've reached stage iNeed (StageInfo.txt),
+; else 0, and unless iQuiet says what it takes. iNeed -1 instead returns the wealth a stage needs:
+; Stage.txt -1 with iQuiet = the stage number.
+int iNeed
+int iQuiet
+int iHave
+float fAt
+string_var sName
+string_var sAt
+ref rInfo
+
+begin Function {iNeed, iQuiet}
+	if iNeed < 0
+		let fAt := 0
+		if iQuiet == 1
+			let fAt := 1000
+		elseif iQuiet == 2
+			let fAt := 5000
+		elseif iQuiet == 3
+			let fAt := 20000
+		elseif iQuiet == 4
+			let fAt := 75000
+		elseif iQuiet == 5
+			let fAt := 250000
+		elseif iQuiet >= 6
+			let fAt := 1000000
+		endif
+		SetFunctionValue fAt
+		return
+	endif
+	let iHave := player.AuxVarGetFlt "_wbStage"
+	if iHave >= iNeed
+		SetFunctionValue 1
+		return
+	endif
+	SetFunctionValue 0
+	if iQuiet == 0
+		let rInfo := CompileScript "WastelandBank/StageInfo.txt"
+		let sName := call rInfo iNeed 0
+		let sAt := call rInfo iNeed 1
+		MessageEx "That opens at %z: %z caps of total wealth." sName sAt
+	endif
+end

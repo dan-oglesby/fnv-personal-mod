@@ -147,6 +147,9 @@ begin Function {}
 	; Wasteland Exchange: daily prices, dividends and news events
 	let rConv := CompileScript "WastelandBank/ExTick.txt"
 	call rConv
+	; wealth stages: a note for every new one (StageCheck.txt)
+	let rConv := CompileScript "WastelandBank/StageCheck.txt"
+	call rConv
 	; the bank's notes follow its share price
 	let rConv := CompileScript "WastelandBank/NoteApply.txt"
 	call rConv

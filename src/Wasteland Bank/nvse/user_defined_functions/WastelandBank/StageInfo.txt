@@ -1,0 +1,66 @@
+; Wasteland Bank: the wealth stages (2026-11-16). Your total wealth (Wealth.txt) opens the bank's
+; services step by step; a stage once reached is kept ("_wbStage"). iWhat 0 = the stage's name,
+; 1 = the wealth it starts at (as text), 2 = what it opens (a sentence). Stage.txt gives the numbers.
+;   0 Wastelander      from the start   an account, couriers, the vault, selling, loans, bank notes
+;   1 Saver            1,000 caps       currency accounts
+;   2 Investor         5,000            the Wasteland Exchange: stocks, the funds, NCR War Bonds
+;   3 Speculator       20,000           short selling, auto-invest, Legion treasury loans
+;   4 Financier        75,000           the managed account, publicani contracts
+;   5 Fund manager     250,000          your own hedge fund: sector bets, holdings by sector
+;   6 Kingpin          1,000,000        your management team's operations against the factions
+int iStage
+int iWhat
+string_var sOut
+
+begin Function {iStage, iWhat}
+	if iWhat == 0
+		if iStage == 0
+			let sOut := "Wastelander"
+		elseif iStage == 1
+			let sOut := "Saver"
+		elseif iStage == 2
+			let sOut := "Investor"
+		elseif iStage == 3
+			let sOut := "Speculator"
+		elseif iStage == 4
+			let sOut := "Financier"
+		elseif iStage == 5
+			let sOut := "Fund manager"
+		else
+			let sOut := "Kingpin"
+		endif
+	elseif iWhat == 1
+		if iStage == 0
+			let sOut := "0"
+		elseif iStage == 1
+			let sOut := "1,000"
+		elseif iStage == 2
+			let sOut := "5,000"
+		elseif iStage == 3
+			let sOut := "20,000"
+		elseif iStage == 4
+			let sOut := "75,000"
+		elseif iStage == 5
+			let sOut := "250,000"
+		else
+			let sOut := "1,000,000"
+		endif
+	else
+		if iStage == 0
+			let sOut := "A bank account, courier squads, the vault, selling through the couriers, loans and the bank's notes."
+		elseif iStage == 1
+			let sOut := "Currency accounts: hold NCR dollars or denarii at the bank, each with its own interest. The currency you hold is a bet on the war."
+		elseif iStage == 2
+			let sOut := "The Wasteland Exchange: buy stocks, the Vegas Total Market Fund, the sovereign debt fund and NCR War Bonds through the couriers."
+		elseif iStage == 3
+			let sOut := "Short selling and auto-invest on the exchange, and loans to the Legion treasury, if the Legion will deal with you."
+		elseif iStage == 4
+			let sOut := "A managed account: the bank's trader works your money, and writes every week. Publicani contracts with the Legion."
+		elseif iStage == 5
+			let sOut := "Your own hedge fund: the managed account can bet on whole sectors with more borrowing, and your holdings show by sector."
+		else
+			let sOut := "Your management team can move markets: steer its operations against the factions you choose. House will push back when it suits him, and getting caught costs."
+		endif
+	endif
+	SetFunctionValue sOut
+end

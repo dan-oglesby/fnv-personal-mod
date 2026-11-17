@@ -28,6 +28,8 @@ ref rTot
 ref rCash
 ref rHere
 int iHere
+int iNeed
+ref rStage
 ref rFlow
 
 begin Function {iT, iAct, fAmt}
@@ -36,6 +38,20 @@ begin Function {iT, iAct, fAmt}
 	if iHere == 0
 		MessageEx "Trades go through the bank's couriers: call a squad from the bank card."
 		return
+	endif
+	; wealth stages (Stage.txt): buying opens at Investor (2), shorting at Speculator (3)
+	let iNeed := 0
+	if iAct == 1
+		let iNeed := 2
+	elseif iAct == 3
+		let iNeed := 3
+	endif
+	if iNeed > 0
+		let rStage := CompileScript "WastelandBank/Stage.txt"
+		let iHere := call rStage iNeed 0
+		if iHere == 0
+			return
+		endif
 	endif
 	if eval (player.AuxVarGetFlt "_wxX" iT) == 1
 		MessageEx "That stock is delisted."

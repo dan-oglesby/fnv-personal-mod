@@ -1,0 +1,38 @@
+; Wasteland Bank: your management team's operations (the Kingpin stage, a million caps of wealth;
+; 2026-11-16). Once a week, if on, the team picks one of the factions you've flagged and moves
+; against it (OpsWeek.txt): it stakes 2 percent of your wealth, shorts the faction's assets and
+; starts a run on them. Factions: 0 NCR (Hub stocks, War Bonds, the NCR dollar), 1 Legion (the
+; denarius), 2 House and the Strip (RobCo, the Tops, Ultra-Luxe, Gomorrah). House pushes back when
+; it isn't in his interest; getting caught brings a fine and a 30-day suspension.
+string_var sOn
+string_var s0
+string_var s1
+string_var s2
+float fFrozen
+float fN
+float fWon
+ref rCb
+
+begin Function {}
+	let sOn := "off"
+	if eval (player.AuxVarGetFlt "_wbOpsOn") == 1
+		let sOn := "on"
+	endif
+	let s0 := "spared"
+	if eval (player.AuxVarGetFlt "_wbOpsF" 0) == 1
+		let s0 := "a target"
+	endif
+	let s1 := "spared"
+	if eval (player.AuxVarGetFlt "_wbOpsF" 1) == 1
+		let s1 := "a target"
+	endif
+	let s2 := "spared"
+	if eval (player.AuxVarGetFlt "_wbOpsF" 2) == 1
+		let s2 := "a target"
+	endif
+	let fFrozen := player.AuxVarGetFlt "_wbOpsFrozen"
+	let fN := player.AuxVarGetFlt "_wbOpsN"
+	let fWon := player.AuxVarGetFlt "_wbOpsWon"
+	let rCb := CompileScript "WastelandBank/OpsBtn.txt"
+	MessageBoxExAlt rCb "^Operations^Your management team moves once a week against a faction you've flagged, staking 2 percent of your wealth. House pushes back when it suits him. Getting caught means a fine and a month's suspension.%rOperations: %z (%.0f run, %.0f won). Suspended until day %.0f.%rNCR: %z%rLegion: %z%rHouse and the Strip: %z|Operations on or off|NCR: target or spare|Legion: target or spare|House and the Strip: target or spare|Back" sOn fN fWon fFrozen s0 s1 s2
+end

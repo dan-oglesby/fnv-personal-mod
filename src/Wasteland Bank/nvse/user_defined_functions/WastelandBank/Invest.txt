@@ -1,5 +1,12 @@
 ; Wasteland Bank: the couriers' investment services (from the courier menu).
 float fFees
+float fWlth
+float fNext
+int iStage
+int iNext
+string_var sStage
+string_var sNext
+ref rInfo
 int iTier
 string_var sTier
 ref rFn
@@ -15,6 +22,17 @@ begin Function {}
 		let sTier := "Mogul"
 	endif
 	let fFees := player.AuxVarGetFlt "_wbFees"
+	let rFn := CompileScript "WastelandBank/Wealth.txt"
+	let fWlth := call rFn
+	let iStage := player.AuxVarGetFlt "_wbStage"
+	let rInfo := CompileScript "WastelandBank/StageInfo.txt"
+	let sStage := call rInfo iStage 0
+	let sNext := "the top"
+	if iStage < 6
+		let iNext := iStage + 1
+		let sNext := call rInfo iNext 0
+		let sNext := sNext + " at " + (call rInfo iNext 1) + " caps"
+	endif
 	let rCb := CompileScript "WastelandBank/InvestBtn.txt"
-	MessageBoxExAlt rCb "^Investments^Your standing with the bank: %z (the bank has earned %.0f caps from you, Trader from 2,500, Mogul from 15,000).|Wasteland Exchange (trade)|NCR War Bonds|Currency accounts|Wasteland Bank notes|Managed account|Legion treasury|Run the bank (controlling owners)|Back" sTier fFees
+	MessageBoxExAlt rCb "^Investments^Wealth: %.0f caps, a %z. Next: %z.%rCustomer tier: %z (the bank has earned %.0f caps from you, Trader from 2,500, Mogul from 15,000).|Wasteland Exchange (trade)|NCR War Bonds|Currency accounts|Wasteland Bank notes|Managed account|Legion treasury|Run the bank (controlling owners)|Holdings by sector|Operations|Back" fWlth sStage sNext sTier fFees
 end

@@ -1,0 +1,25 @@
+; Wasteland Bank: operations buttons (0 on or off, 1-3 flag or spare the NCR, Legion, House, 4 back).
+int iBtn
+int iK
+float fX
+ref rFn
+
+begin Function {iBtn}
+	if iBtn == 4
+		let rFn := CompileScript "WastelandBank/Invest.txt"
+		call rFn
+		return
+	endif
+	if iBtn == 0
+		let fX := player.AuxVarGetFlt "_wbOpsOn"
+		let fX := 1 - fX
+		player.AuxVarSetFlt "_wbOpsOn" fX
+	else
+		let iK := iBtn - 1
+		let fX := player.AuxVarGetFlt "_wbOpsF" iK
+		let fX := 1 - fX
+		player.AuxVarSetFlt "_wbOpsF" fX iK
+	endif
+	let rFn := CompileScript "WastelandBank/Ops.txt"
+	call rFn
+end

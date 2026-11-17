@@ -15,6 +15,13 @@ begin Function {iBtn}
 		call rFn
 		return
 	endif
+	let rFn := CompileScript "WastelandBank/Stage.txt"
+	let iRep := call rFn 4 0	; publicani contracts open at the Financier stage
+	if iRep == 0
+		let rFn := CompileScript "WastelandBank/LegCon.txt"
+		call rFn
+		return
+	endif
 	let rFn := CompileScript "WastelandBank/LegRep.txt"
 	let iRep := call rFn
 	let iToday := Floor GameDaysPassed

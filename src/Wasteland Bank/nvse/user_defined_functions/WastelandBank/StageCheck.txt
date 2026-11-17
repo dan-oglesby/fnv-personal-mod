@@ -1,0 +1,52 @@
+; Wasteland Bank: checks your total wealth (Wealth.txt) against the stages, from Tick.txt (every
+; 10 s). Reaching a new stage keeps it ("_wbStage") and tells you, in one window, every stage
+; reached and what each opens.
+int iHave
+int iNew
+int iK
+float fWlth
+float fAt
+string_var sMsg
+string_var sName
+string_var sWhat
+ref rFn
+ref rInfo
+array_var aAt
+
+begin Function {}
+	let rFn := CompileScript "WastelandBank/Wealth.txt"
+	let fWlth := call rFn
+	let aAt := Ar_List 0, 1000, 5000, 20000, 75000, 250000, 1000000	; as in StageInfo.txt and Stage.txt
+	let iHave := player.AuxVarGetFlt "_wbStage"
+	let iNew := iHave
+	let iK := iHave + 1
+	while iK <= 6
+		let fAt := aAt[iK]
+		if fWlth >= fAt
+			let iNew := iK
+		endif
+		let iK += 1
+	loop
+	if iNew <= iHave
+		return
+	endif
+	player.AuxVarSetFlt "_wbStage" iNew
+	let rInfo := CompileScript "WastelandBank/StageInfo.txt"
+	let sName := call rInfo iNew 0
+	let sMsg := sv_Construct "Wasteland Bank%rYour wealth has made you a %z." sName
+	let iK := iHave + 1
+	while iK <= iNew
+		let sName := call rInfo iK 0
+		let sWhat := call rInfo iK 2
+		let sMsg := sMsg + (sv_Construct "%r%r%z: %z" sName sWhat)
+		let iK += 1
+	loop
+	if iNew < 6
+		let iK := iNew + 1
+		let sName := call rInfo iK 0
+		let sWhat := call rInfo iK 1
+		let sMsg := sMsg + (sv_Construct "%r%rNext: %z, at %z caps." sName sWhat)
+	endif
+	MessageBoxEx "%z" sMsg
+	let aAt := Ar_Null
+end

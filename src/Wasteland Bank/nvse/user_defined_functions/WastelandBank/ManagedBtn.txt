@@ -89,7 +89,10 @@ begin Function {iBtn}
 	elseif iBtn == 4
 		let iRisk := player.AuxVarGetFlt "_wmaRisk"
 		let iRisk += 1
-		if iRisk > 2
+		if eval iRisk == 3 && (player.AuxVarGetFlt "_wbStage") < 5
+			let iRisk := 0	; Hedge fund opens at the Fund manager stage
+		endif
+		if iRisk > 3
 			let iRisk := 0
 		endif
 		player.AuxVarSetFlt "_wmaRisk" iRisk

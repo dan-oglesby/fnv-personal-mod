@@ -136,10 +136,33 @@ Cap-denominated emerging-market companies from beyond the Mojave, quoted on a mu
 far more volatile; companies list, grow, fail and vanish over time. The Vegas Total Market Fund
 holds them too, by market cap, making it a total international fund. A long list of
 interchangeable company names and places (in the spirit of Klamath traders) is to be drawn from
-the Old World Blues mod for Hearts of Iron IV installed on Dan's machine: anything taken from that
+the Old World Blues mod for Hearts of Iron IV installed on the local machine: anything taken from that
 mod stays local, generated into an untracked file and never committed to this public repository.
 
-## Phase 6 (planned): wealth unlocks, and the kingpin
+## Phase 6: the wealth arc (built), and the kingpin
+
+Built: your total wealth (balance, currency accounts, shares less shorts, the managed account,
+money on its way, carried caps and bank notes, less any loan) opens the bank step by step, with a
+window at every new stage listing what it opens. A stage once reached is kept.
+
+| Stage | Wealth | Opens |
+|---|---|---|
+| Wastelander | start | account, couriers, vault, selling, loans, bank notes |
+| Saver | 1,000 | currency accounts |
+| Investor | 5,000 | buying on the exchange, the funds, NCR War Bonds |
+| Speculator | 20,000 | short selling, auto-invest, Legion treasury loans |
+| Financier | 75,000 | the managed account, publicani contracts |
+| Fund manager | 250,000 | the Hedge fund setting (whole sectors), holdings by sector |
+| Kingpin | 1,000,000 | operations: weekly runs on flagged factions, House pushing back |
+
+Operations (built, a first version): once a week the team picks a flagged faction (NCR, Legion,
+House and the Strip), stakes 2 percent of your wealth, and with a chance of 35 percent at a million
+(15 points more per tenfold, 20 to 85) knocks its assets down 10 to 25 percent, paying the stake
+back plus 8 times the fall. House intervenes 70 percent of the time against raids on him, 20
+otherwise, halving the chance and doubling a loss. One time in ten the team is caught: a fine of 5
+percent of your wealth and a month without operations.
+
+### Still planned
 
 - Options grow with your total wealth: a bank balance, then the exchange, the managed account, and
   at the top your own hedge fund. At that scale individual stocks give way to sector portfolios.

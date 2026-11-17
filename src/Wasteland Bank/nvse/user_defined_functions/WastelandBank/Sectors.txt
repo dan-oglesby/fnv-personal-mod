@@ -1,0 +1,58 @@
+; Wasteland Bank: your holdings by sector (the Fund manager stage): shares held less shorts, in
+; caps at today's prices, summed by the exchange's sectors ("_wxSec": 0 arms, 1 trade, 2 casinos,
+; 3 tech, 4 NCR) and the bank's own board (the bank and the funds, exchange 3), plus the managed
+; account and the currency accounts.
+int iT
+int iN
+int iSec
+float fH
+float fP
+float fV
+float fNcr
+float fLeg
+float f0
+float f1
+float f2
+float f3
+float f4
+float f5
+ref rPrice
+ref rFn
+array_var aSum
+
+begin Function {}
+	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
+	let aSum := Ar_List 0, 0, 0, 0, 0, 0
+	let iN := player.AuxVarGetFlt "_wxCount"
+	let iT := 0
+	while iT < iN
+		let fH := player.AuxVarGetFlt "_wxH" iT
+		if fH != 0
+			let fP := call rPrice iT
+			let iSec := player.AuxVarGetFlt "_wxSec" iT
+			if eval (player.AuxVarGetFlt "_wxEx" iT) == 3
+				let iSec := 5
+			endif
+			if iSec <= 5
+				let fV := aSum[iSec]
+				let fV += fH * fP
+				let aSum[iSec] := fV
+			endif
+		endif
+		let iT += 1
+	loop
+	let rFn := CompileScript "WastelandBank/ExRate.txt"
+	let fNcr := call rFn
+	let fNcr *= player.AuxVarGetFlt "_wbBalN"
+	let fLeg := call rPrice 15
+	let fLeg *= 4 * (player.AuxVarGetFlt "_wbBalL")
+	let fV := player.AuxVarGetFlt "_wmaVal"
+	let f0 := aSum[0]
+	let f1 := aSum[1]
+	let f2 := aSum[2]
+	let f3 := aSum[3]
+	let f4 := aSum[4]
+	let f5 := aSum[5]
+	MessageBoxEx "Holdings by sector (caps, shorts subtracted)%rArms: %.0f%rTrade and caravans: %.0f%rCasinos: %.0f%rTech: %.0f%rNCR: %.0f%rThe bank and the funds: %.0f%rManaged account: %.0f%rNCR dollar account: %.0f%rDenarius account: %.0f" f0 f1 f2 f3 f4 f5 fV fNcr fLeg
+	let aSum := Ar_Null
+end

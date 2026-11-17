@@ -24,8 +24,10 @@ begin Function {}
 		let sRisk := "Steady"
 	elseif iRisk == 1
 		let sRisk := "Bold"
+	elseif iRisk == 2
+		let sRisk := "All in"
 	else
-		let sRisk := "High roller"
+		let sRisk := "Hedge fund (whole sectors)"
 	endif
 	let rCb := CompileScript "WastelandBank/ManagedBtn.txt"
 	MessageBoxExAlt rCb "^Managed account^Value: %.0f caps (you put in %.0f).%rOn its way to your balance: %.0f caps.%rRisk: %z. Bank balance: %.0f caps.%rFees: 2 percent a month and 20 percent of new profits.|Put 1,000 caps in|Put 10,000 caps in|Withdraw half (in a day)|Withdraw all (in a day)|Change the risk|Leave out factions or companies|Back" fVal fIn fOut sRisk fBal

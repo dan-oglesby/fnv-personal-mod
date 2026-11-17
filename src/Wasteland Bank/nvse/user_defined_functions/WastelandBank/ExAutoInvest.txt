@@ -33,6 +33,9 @@ begin Function {}
 	if eval (player.AuxVarGetFlt "_wxInit") == 0
 		return
 	endif
+	if eval (player.AuxVarGetFlt "_wbStage") < 3
+		return	; auto-invest opens at the Speculator stage (Stage.txt)
+	endif
 	let rPrice := CompileScript "WastelandBank/ExPrice.txt"
 	let rCash := CompileScript "WastelandBank/ExCash.txt"
 	let fReserve := player.AuxVarGetFlt "_wxReserve"

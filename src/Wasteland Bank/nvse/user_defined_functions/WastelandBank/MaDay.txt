@@ -8,6 +8,7 @@
 ;    - Steady (0): every stock (0-12) not left out, equal shares, no borrowing;
 ;    - Bold (1): the four with the best score, 1.5 times the money;
 ;    - All in (2): the three best long (1.4 times) and the two worst short (0.6 times).
+;    - Hedge fund (3, from the Fund manager stage): the best sector long, the worst short.
 ;    Score: the ticker's news shock, plus three times yesterday's move, plus a random 2 percent.
 ;    The trader deals in stocks 0-12, NCR War Bonds (13) and the two currencies (14, 15), never the
 ;    bank itself or the funds.
@@ -40,6 +41,10 @@ string_var sLong
 string_var sShort
 array_var aScore
 array_var aOk
+array_var aSec
+array_var aCnt
+int iSec
+float fWorst
 
 begin Function {iDay}
 	let fVal := player.AuxVarGetFlt "_wmaVal"
@@ -163,6 +168,72 @@ begin Function {iDay}
 					endif
 					let iT += 1
 				loop
+			elseif iRisk == 3
+				; Hedge fund (the Fund manager stage): whole sectors of stocks 0-12 ("_wxSec" 0 arms,
+				; 1 trade, 2 casinos, 3 tech, 4 NCR), by their average score: the best sector long
+				; (1.6 times the money, split evenly), the worst short (0.9 times)
+				let aSec := Ar_List 0, 0, 0, 0, 0
+				let aCnt := Ar_List 0, 0, 0, 0, 0
+				let iT := 0
+				while iT < 13
+					if eval aOk[iT] == 1
+						let iSec := player.AuxVarGetFlt "_wxSec" iT
+						if iSec <= 4
+							let fScore := aScore[iT]
+							let fV := aSec[iSec]
+							let aSec[iSec] := fV + fScore
+							let fV := aCnt[iSec]
+							let aCnt[iSec] := fV + 1
+						endif
+					endif
+					let iT += 1
+				loop
+				let iLong := -1
+				let iShort := -1
+				let iSec := 0
+				while iSec < 5
+					let fV := aCnt[iSec]
+					if fV > 0
+						let fScore := aSec[iSec]
+						let fScore /= fV
+						if iLong < 0 || fScore > fBest
+							let iLong := iSec
+							let fBest := fScore
+						endif
+					endif
+					let iSec += 1
+				loop
+				let iSec := 0
+				while iSec < 5
+					let fV := aCnt[iSec]
+					if fV > 0 && iSec != iLong
+						let fScore := aSec[iSec]
+						let fScore /= fV
+						if iShort < 0 || fScore < fWorst
+							let iShort := iSec
+							let fWorst := fScore
+						endif
+					endif
+					let iSec += 1
+				loop
+				let iT := 0
+				while iT < 13
+					if eval aOk[iT] == 1
+						let iSec := player.AuxVarGetFlt "_wxSec" iT
+						if iSec == iLong
+							let fV := aCnt[iSec]
+							let fWt := 1.6 / fV
+							player.AuxVarSetFlt "_wmaW" fWt iT
+						elseif iSec == iShort
+							let fV := aCnt[iSec]
+							let fWt := 0 - 0.9 / fV
+							player.AuxVarSetFlt "_wmaW" fWt iT
+						endif
+					endif
+					let iT += 1
+				loop
+				let aSec := Ar_Null
+				let aCnt := Ar_Null
 			else
 				; longs: the best scores
 				let iLong := 4
