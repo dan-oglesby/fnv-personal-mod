@@ -28,7 +28,7 @@ card. The squad is the bank's only counter. There are no fixed tellers or broker
   every squad carries a float of 2,500 caps, drawn from your balance (less if your balance is
   less). That's the most you can withdraw from a squad called the ordinary way; a larger sum is
   ordered when calling and delivered by a squad at least 24 hours later, like cash-out orders
-  (Dan was fine either way; this keeps one rule). Deposits have no limit.
+  (either would do; this keeps one rule). Deposits have no limit.
 - **Selling through the squad** (built with phase 1): "sell all junk" in one go, or hand-pick
   anything in a consignment box. They sell to merchants at half the current market value (Wasteland
   Market's prices), keep 10 percent, and the rest reaches your balance a day later. The sales move
