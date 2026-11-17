@@ -119,10 +119,14 @@ valuable weapon in bad shape costs more than an early bank balance holds. Ways t
 4. **Labour pricing:** charge for the work (condition restored x a rate by weapon type), not the
    item's value. Cheapest to build, but breaks parity with the game's merchants.
 
-Leaning: 1 with 2, and 3 as a way to pay. Open questions: the price basis (the game's value-based
-cost or labour), how long an item is away (a day per step?), whether a partly repaired item can be
-collected, and interest on unpaid layaway. Technically: condition can be read and set on an item
-held in a container through xNVSE inventory references, keeping its weapon mods; needs a test.
+**Decided and built (2026-11-17):** simpler. At a Mojave Express dropbox, Repairs lists what you
+have on below full condition (weapon, body armor, headgear). Spare copies stored in your vault go in
+first, free (25 percent of condition each, `_wbFixSpare`, only as many as it takes); then you set a
+budget (100, 250, 500, 1,000 or 2,500 caps, a full repair, or spares only) and it buys as much
+condition as it can, so a repair can be done piecemeal. Price curve: value x rate x (c1^1.5 -
+c0^1.5), so a full repair from nothing costs about the item's value (`_wbFixRate` 1) and the last
+stretch costs the most per point; the value is the current base value, so Wasteland Market's prices
+count. The condition is set on the worn item, so weapon mods stay. No layaway, no time away.
 
 ## Kept for later (not building now)
 

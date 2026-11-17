@@ -1,0 +1,16 @@
+; Wasteland Bank: repair item buttons (Fix.txt; "*_fxSlot" button -> slot, -1 back).
+int iBtn
+int iSlot
+ref rNext
+
+begin Function {iBtn}
+	let iSlot := player.AuxVarGetFlt "*_fxSlot" iBtn
+	if iSlot < 0
+		let rNext := CompileScript "WastelandBank/MEMenu.txt"
+		call rNext
+		return
+	endif
+	player.AuxVarSetFlt "*_fxSel" iSlot
+	let rNext := CompileScript "WastelandBank/FixItem.txt"
+	call rNext
+end

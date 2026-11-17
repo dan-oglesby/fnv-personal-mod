@@ -1,0 +1,51 @@
+; Wasteland Bank: how much to spend repairing the item in slot "*_fxSel" (Fix.txt). Pricing: the
+; condition the money buys follows the item's value on a curve, value x rate x (c1^1.5 - c0^1.5)
+; for condition c0 to c1 (0-1; "_wbFixRate", 1), so a full repair from nothing costs about the
+; item's value and the last stretch costs the most per point. The value is its current base value,
+; so Wasteland Market's prices count. Stored spares in the vault (WBVaultRef 0x806) are used first.
+int iSlot
+int iPlug
+int iSpare
+float fMax
+float fCur
+float fC
+float fV
+float fRate
+float fFull
+float fBal
+float fSp
+float fPct
+string_var sSp
+ref rItem
+ref rVault
+ref rCb
+
+begin Function {}
+	let iSlot := player.AuxVarGetFlt "*_fxSel"
+	let rItem := player.GetEquippedObject iSlot
+	if eval (IsFormValid rItem) == 0
+		MessageEx "You're no longer wearing that."
+		return
+	endif
+	let fMax := GetHealth rItem
+	let fCur := player.GetEquippedCurrentHealth iSlot
+	let fC := fCur / fMax
+	let fPct := fC * 100
+	let fV := GetValue rItem
+	let fRate := player.AuxVarGetFlt "_wbFixRate"
+	let fFull := fV * fRate * (1 - fC ^ 1.5)
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rVault := BuildRef iPlug 2054	; WBVaultRef 0x806
+	let iSpare := 0
+	if eval IsFormValid rVault
+		let iSpare := rVault.GetItemCount rItem
+	endif
+	let fSp := player.AuxVarGetFlt "_wbFixSpare"
+	let sSp := ""
+	if iSpare > 0
+		let sSp := sv_Construct "%rSpares in your vault: %.0f, each worth %.0f percent of condition, used first and free (the price below is before them)." iSpare fSp
+	endif
+	let rCb := CompileScript "WastelandBank/FixItemBtn.txt"
+	MessageBoxExAlt rCb "^Repairs^%n: %.0f percent. A full repair costs %.0f caps. Balance: %.0f caps.%z%rHow much do you spend?|100 caps|250 caps|500 caps|1,000 caps|2,500 caps|Full repair|Spares only|Back" rItem fPct fFull fBal sSp
+end

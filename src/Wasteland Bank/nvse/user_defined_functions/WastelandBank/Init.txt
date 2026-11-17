@@ -93,6 +93,11 @@ begin Function {}
 		player.AuxVarSetFlt "_wgSign" 200	; hired guards: signing fee, caps (Guards.txt)
 		player.AuxVarSetFlt "_wgWage" 40	; and each one's wage, caps a day (GuardDay.txt)
 	endif
+	if eval (player.AuxVarGetFlt "_wbSet") < 11
+		player.AuxVarSetFlt "_wbSet" 11
+		player.AuxVarSetFlt "_wbFixRate" 1	; repairs: a full repair from nothing costs the item's value times this (Fix.txt)
+		player.AuxVarSetFlt "_wbFixSpare" 25	; and each stored spare restores this percent of condition, free
+	endif
 	let rFn := CompileScript "WastelandBank/LegInit.txt"
 	call rFn
 end

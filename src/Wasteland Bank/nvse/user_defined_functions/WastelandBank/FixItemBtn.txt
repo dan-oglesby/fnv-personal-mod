@@ -1,0 +1,120 @@
+; Wasteland Bank: repair budget buttons (FixItem.txt: 0-4 spend 100 / 250 / 500 / 1,000 / 2,500
+; caps, 5 full repair, 6 spares only, 7 back). Spares in the vault go in first (each "_wbFixSpare"
+; percent, only as many as it takes), then the budget, never more than your balance holds, buys
+; what it can on the price curve (FixItem.txt). The condition is set on the item you're wearing,
+; so its weapon mods stay.
+int iBtn
+int iSlot
+int iPlug
+int iSpare
+int iUse
+float fMax
+float fCur
+float fC0
+float fC
+float fV
+float fRate
+float fBud
+float fFull
+float fBal
+float fSp
+float fSpend
+float fP0
+float fP1
+float fH
+ref rItem
+ref rVault
+ref rNext
+
+begin Function {iBtn}
+	if iBtn == 7
+		let rNext := CompileScript "WastelandBank/Fix.txt"
+		call rNext
+		return
+	endif
+	let iSlot := player.AuxVarGetFlt "*_fxSel"
+	let rItem := player.GetEquippedObject iSlot
+	if eval (IsFormValid rItem) == 0
+		return
+	endif
+	let fMax := GetHealth rItem
+	if fMax <= 0
+		return
+	endif
+	let fCur := player.GetEquippedCurrentHealth iSlot
+	let fC0 := fCur / fMax
+	let fC := fC0
+	; the spares first
+	let iPlug := GetModIndex "WastelandBank.esp"
+	let rVault := BuildRef iPlug 2054	; WBVaultRef 0x806
+	let iUse := 0
+	if eval IsFormValid rVault
+		let iSpare := rVault.GetItemCount rItem
+		let fSp := player.AuxVarGetFlt "_wbFixSpare"
+		let fSp /= 100
+		while iUse < iSpare && fC < 0.995 && fSp > 0
+			let fC += fSp
+			let iUse += 1
+		loop
+		if iUse > 0
+			rVault.RemoveItem rItem iUse 1
+		endif
+	endif
+	if fC > 1
+		let fC := 1
+	endif
+	; then the money
+	let fSpend := 0
+	if iBtn < 6 && fC < 1
+		let fV := GetValue rItem
+		let fRate := player.AuxVarGetFlt "_wbFixRate"
+		let fV *= fRate
+		if fV < 1
+			let fV := 1
+		endif
+		let fFull := fV * (1 - fC ^ 1.5)
+		let fBud := fFull
+		if iBtn == 0
+			let fBud := 100
+		elseif iBtn == 1
+			let fBud := 250
+		elseif iBtn == 2
+			let fBud := 500
+		elseif iBtn == 3
+			let fBud := 1000
+		elseif iBtn == 4
+			let fBud := 2500
+		endif
+		if fBud > fFull
+			let fBud := fFull
+		endif
+		let fBal := player.AuxVarGetFlt "_wbBal"
+		if fBud > fBal
+			let fBud := fBal
+		endif
+		if fBud > 0
+			let fSpend := fBud
+			let fC := (fC ^ 1.5 + fSpend / fV) ^ (2 / 3)
+			if fC > 1
+				let fC := 1
+			endif
+			let fBal -= fSpend
+			player.AuxVarSetFlt "_wbBal" fBal
+		endif
+	endif
+	if fC <= fC0
+		if iBtn == 6
+			MessageEx "No spares of that in your vault."
+		else
+			MessageEx "Nothing in the bank to pay for repairs."
+		endif
+		let rNext := CompileScript "WastelandBank/FixItem.txt"
+		call rNext
+		return
+	endif
+	let fH := fC * fMax
+	player.SetEquippedCurrentHealth fH iSlot
+	let fP0 := fC0 * 100
+	let fP1 := fC * 100
+	MessageBoxEx "Repairs%r%n repaired from %.0f to %.0f percent: %.0f spare(s) from your vault and %.0f caps." rItem fP0 fP1 iUse fSpend
+end

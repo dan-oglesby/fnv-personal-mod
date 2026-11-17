@@ -1,0 +1,49 @@
+; Wasteland Bank: repairs, at a Mojave Express dropbox (MEMenu.txt; 2026-11-17). Pick something you
+; have on (your weapon, body armor or headgear, if it's below full condition), then how much to
+; spend on it (FixItem.txt): repairs go as far as the money does, not all or nothing. Spare copies
+; of the same item stored in your vault are worked in first, free ("_wbFixSpare" percent of
+; condition each). Lists the items in "*_fxSlot" (button -> equipment slot: 5 weapon, 2 body,
+; 0 head) for FixBtn.txt.
+int iK
+int iSlot
+int iB
+float fMax
+float fCur
+float fPct
+string_var sBtns
+ref rItem
+ref rCb
+array_var aSlots
+array_var aEntry
+
+begin Function {}
+	player.AuxVarErase "*_fxSlot"
+	let sBtns := ""
+	let iB := 0
+	let aSlots := Ar_List 5, 2, 0
+	foreach aEntry <- aSlots
+		let iSlot := aEntry["value"]
+		let rItem := player.GetEquippedObject iSlot
+		if eval IsFormValid rItem
+			let fMax := GetHealth rItem
+			if fMax > 0
+				let fCur := player.GetEquippedCurrentHealth iSlot
+				let fPct := fCur * 100 / fMax
+				if fPct < 99.5
+					let sBtns := sBtns + (sv_Construct "|%n (%.0f percent)" rItem fPct)
+					player.AuxVarSetFlt "*_fxSlot" iSlot iB
+					let iB += 1
+				endif
+			endif
+		endif
+	loop
+	let aSlots := Ar_Null
+	let iSlot := -1	; back (a variable: no negative literals as command arguments)
+	player.AuxVarSetFlt "*_fxSlot" iSlot iB
+	let rCb := CompileScript "WastelandBank/FixBtn.txt"
+	if iB == 0
+		MessageBoxExAlt rCb "^Repairs^Your weapon, armor and headgear are all in full repair.|Back"
+		return
+	endif
+	MessageBoxExAlt rCb "^Repairs^What needs fixing? Repairs go as far as you choose to spend, and spares in your vault are used first, free.%z|Back" sBtns
+end

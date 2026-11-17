@@ -36,5 +36,5 @@ begin Function {}
 	let rFn := CompileScript "WastelandBank/Rate.txt"
 	let fRate := call rFn 1
 	let rCb := CompileScript "WastelandBank/MEMenuBtn.txt"
-	MessageBoxExAlt rCb "^Mojave Express, %z^Carrying to and from the bank costs %.2f caps a pound each way.|Vault storage|Ammo and supplies|Sell things|Order from the catalogue|Close" sAt fRate
+	MessageBoxExAlt rCb "^Mojave Express, %z^Carrying to and from the bank costs %.2f caps a pound each way.|Vault storage|Ammo and supplies|Sell things|Order from the catalogue|Repairs|Close" sAt fRate
 end
