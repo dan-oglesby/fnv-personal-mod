@@ -3,7 +3,9 @@
 ; trunks, first aid kits, toolboxes and safes all have "Open" and "Close" sequences) and, 0.3 s later,
 ; freezes it part-way (Freeze.txt sets the sequence's speed to 0). Containers without an animation
 ; (plain metal boxes) can't show it. The container is marked "_slSearched" (kept with the save) so
-; it opens again whenever you come back in reach. Setting "_slAjar" (1 on, 0 off).
+; it opens again whenever you come back in reach. Setting "_slAjar" (1 on, 0 off). A held
+; animation would stop you opening the container yourself (the game waits for it), so FastTick.txt
+; lets it finish once your crosshair is on it ("*_slThaw", cleared here when it's held again).
 ref rRef
 ref rFreeze
 int iOk
@@ -18,6 +20,7 @@ begin Function {rRef}
 		return
 	endif
 	rRef.AuxVarSetFlt "_slSearched" 1
+	rRef.AuxVarSetFlt "*_slThaw" 0
 	rRef.SetAnimSequenceFrequency "Open" 1	; undo an earlier freeze so it can play again
 	let iOk := rRef.PlayAnimSequence "Open"
 	if eval (player.AuxVarGetFlt "_slDebug") == 1

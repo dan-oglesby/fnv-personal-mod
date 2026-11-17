@@ -10,7 +10,9 @@ begin Function {}
 	while iK < iN
 		let rRef := player.AuxVarGetRef "*_slAjarQ" iK
 		if eval IsFormValid rRef
-			rRef.SetAnimSequenceFrequency "Open" 0
+			if eval (rRef.AuxVarGetFlt "*_slThaw") == 0	; not if your crosshair already let it finish
+				rRef.SetAnimSequenceFrequency "Open" 0
+			endif
 		endif
 		let iK += 1
 	loop
