@@ -10,7 +10,15 @@
 ;   player.AuxVarSetFlt "_fpSnd" 1         eject sound: battle rifle reload part 1, 2 or 3 (default 3)
 ;   player.AuxVarSetFlt "_fpFT" 0          fast travel is free (default 1: it drains by distance)
 ; Shows on the HUD through Needs Meters (PWR). Smart Loot keeps a few batteries while you own power
-; armor. FissionPower.esp holds one item, the Depleted Fission Battery.
+; armor. FissionPower.esp holds the Depleted Fission Battery and Nutrient Paste.
+;
+; The suit's food system (2026-11-17, Suit.txt): powered armor mulches the food you carry into
+; Nutrient Paste whenever its reservoir has room for a whole item (richer food, more paste), at a
+; little battery, and in Hardcore feeds you a serving as hunger nears its first stage. At a
+; campfire, closing the recipe menu offers to turn all your food into paste for no power.
+;   player.AuxVarSetFlt "_fpPasteMax" 600   reservoir size in hunger points (default 400)
+;   player.AuxVarSetFlt "_fpMulch" 0        no mulching (default 1 battery step per hunger point)
+;   player.AuxVarSetFlt "_fpFeed" 0         the suit doesn't feed you (default 1)
 ;
 ; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.4+ and JIP LN.
 
@@ -34,6 +42,22 @@ if eval IsModLoaded "FissionPower.esp"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
 	endif
+	let rChk := CompileScript "FissionPower/Camp.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "FissionPower/CampBtn.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "FissionPower/Nutri.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
+	let rChk := CompileScript "FissionPower/Suit.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+	endif
 	if iBad > 0
 		print "Fission Power: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
 		MessageEx "Fission Power is switched off: a script failed to compile"
@@ -45,5 +69,8 @@ if eval IsModLoaded "FissionPower.esp"
 		let ref rTick := CompileScript "FissionPower/Tick.txt"
 		let ref rTrue := CompileScript "FissionPower/Always.txt"
 		CallWhilePerSeconds 1 rTick rTrue 20
+		; a campfire's recipe menu closing: the offer to turn food into Nutrient Paste (Camp.txt)
+		let ref rCamp := CompileScript "FissionPower/Camp.txt"
+		SetOnMenuCloseEventHandler rCamp 1 1077
 	endif
 endif

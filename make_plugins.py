@@ -303,6 +303,50 @@ def with_sound_fixes(fname, data):
     return bytes(header) + group("SOUN", recs) + data[24 + hsize:]
 
 
+# Fission Power (in FissionPower.esp, object ID 0x801): Nutrient Paste, the suit's food
+# (2026-11-17). Copied from FalloutNV.esm's Cram (0x08C552) at build time: its model, icon, sound
+# and Hardcore condition, with a new name, no radiation, 40 hunger a serving, a quarter pound and
+# worth 3 caps. Effects kept: Cram's small heal (0x14E) and RestoreStarvationLevel (0x162BCC).
+PASTE = {"FissionPower.esp": (0x801, 0x8C552, "FPNutrientPaste", "Nutrient Paste", 40, 0.25, 3)}
+
+
+def with_paste(fname, data):
+    """Adds PASTE's aid item (an ALCH group after the plugin's other groups)."""
+    spec = PASTE.get(fname)
+    if not spec:
+        return data
+    objid, src, edid, name, hunger, weight, value = spec
+    vanilla = _vanilla_records("ALCH", {src})
+    if vanilla is None:
+        return None
+    flags, subs = vanilla[src]
+    body = b""
+    skip = False
+    for t, d in subs:
+        if t == "EFID":
+            skip = struct.unpack("<I", d)[0] == 0x20516      # DamageRadiationLevel: none in paste
+        if skip and t in ("EFID", "EFIT", "CTDA"):
+            continue
+        if t == "EDID":
+            d = z(edid)
+        elif t == "FULL":
+            d = z(name)
+        elif t == "DATA":
+            d = struct.pack("<f", weight)
+        elif t == "ENIT":
+            d = struct.pack("<i", value) + d[4:]
+        elif t == "EFIT" and body.endswith(sub("EFID", struct.pack("<I", 0x162BCC))):
+            d = struct.pack("<I", hunger) + d[4:]
+        body += sub(t, d)
+    alch = record("ALCH", flags, 0x01000000 | objid, body)
+    hsize = struct.unpack_from("<I", data, 4)[0]
+    header = bytearray(data[:24 + hsize])
+    i = header.index(b"HEDR") + 6
+    ver, n, nxt = struct.unpack_from("<fiI", header, i)
+    struct.pack_into("<fiI", header, i, ver, n + 1, max(nxt, objid + 1))
+    return bytes(header) + data[24 + hsize:] + group("ALCH", alch)
+
+
 def misc_plugin(edid, name, model, icon, value, weight) -> bytes:
     body = (sub("EDID", z(edid))
             + sub("OBND", bytes(12))
@@ -340,6 +384,10 @@ def main():
         out = ROOT / "src" / mod / fname
         out.parent.mkdir(parents=True, exist_ok=True)
         data = misc_plugin(edid, name, model, icon, value, weight)
+        data = with_paste(fname, data)
+        if data is None:
+            print("make_plugins: FalloutNV.esm not found (set FNV_DATA); kept", out.name, "as it is")
+            continue
         if not out.exists() or out.read_bytes() != data:
             out.write_bytes(data)
             print("wrote", out.relative_to(ROOT))

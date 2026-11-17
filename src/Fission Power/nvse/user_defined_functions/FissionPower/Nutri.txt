@@ -1,0 +1,60 @@
+; Fission Power: how much nutrition an item gives for mulching into Nutrient Paste (2026-11-17):
+; its largest RestoreStarvationLevel magnitude (FalloutNV.esm 0x162BCC, decimal 1453004), or 0 if
+; it can't be mulched. Mulched: food (the food flag), not medicine, nothing addictive, no quest
+; items, nothing irradiated (any DamageRadiationLevel effect, 0x020516), not drinks (more thirst
+; than hunger, RestoreDehydrationLevel 0x161F36), and not the paste itself.
+int iK
+int iN
+float fHunger
+float fThirst
+float fMag
+ref rItem
+ref rEff
+ref rHunger
+ref rThirst
+ref rRad
+ref rPaste
+
+begin Function {rItem}
+	SetFunctionValue 0
+	if eval (GetType rItem) != 47
+		return
+	endif
+	if eval (GetIngestibleFlag rItem 2) == 0 || (GetIngestibleFlag rItem 4) || (GetAddictionChance rItem) > 0
+		return
+	endif
+	if eval IsQuestItem rItem
+		return
+	endif
+	let rPaste := BuildRef (GetModIndex "FissionPower.esp") 2049
+	if eval rItem == rPaste
+		return
+	endif
+	let rHunger := BuildRef 0 1453004
+	let rThirst := BuildRef 0 1449782
+	let rRad := BuildRef 0 132374
+	let fHunger := 0
+	let fThirst := 0
+	let iN := GetNumEffects rItem
+	let iK := 0
+	while iK < iN
+		let rEff := GetNthEffectBase rItem iK
+		let fMag := GetNthEffectTraitNumeric rItem iK 0
+		if eval rEff == rRad
+			return
+		elseif eval rEff == rHunger
+			if fMag > fHunger
+				let fHunger := fMag
+			endif
+		elseif eval rEff == rThirst
+			if fMag > fThirst
+				let fThirst := fMag
+			endif
+		endif
+		let iK += 1
+	loop
+	if fThirst > fHunger
+		return
+	endif
+	SetFunctionValue fHunger
+end

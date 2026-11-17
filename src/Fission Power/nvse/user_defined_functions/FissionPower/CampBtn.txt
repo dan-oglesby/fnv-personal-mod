@@ -1,0 +1,62 @@
+; Fission Power: the campfire offer's buttons (0 make paste, 1 keep the food). Every food item
+; that can be mulched (Nutri.txt) is used up; its nutrition becomes 40-point servings of Nutrient
+; Paste, the leftover kept toward the next batch ("_fpPasteRem").
+int iBtn
+int iNum
+int iIdx
+int iN
+int iServ
+int iK
+float fTotal
+float fMag
+ref rItem
+ref rFn
+ref rPaste
+array_var aItems
+array_var aCnt
+
+begin Function {iBtn}
+	if iBtn != 0
+		return
+	endif
+	let rPaste := BuildRef (GetModIndex "FissionPower.esp") 2049
+	let rFn := CompileScript "FissionPower/Nutri.txt"
+	let fTotal := player.AuxVarGetFlt "_fpPasteRem"
+	let aItems := Ar_Construct "array"
+	let aCnt := Ar_Construct "array"
+	let iNum := player.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := player.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		if eval (GetType rItem) != 47
+			continue
+		endif
+		let fMag := call rFn rItem
+		if fMag > 0
+			let iN := player.GetItemCount rItem
+			let fTotal += fMag * iN
+			Ar_Append aItems rItem
+			Ar_Append aCnt iN
+		endif
+	loop
+	let iK := 0
+	while iK < Ar_Size aItems
+		let rItem := aItems[iK]
+		let iN := aCnt[iK]
+		let iK += 1
+		player.RemoveItem rItem iN 1
+	loop
+	let iServ := Floor (fTotal / 40)
+	let fTotal -= iServ * 40
+	player.AuxVarSetFlt "_fpPasteRem" fTotal
+	if iServ > 0
+		player.AddItem rPaste iServ 1
+	endif
+	MessageEx "Cooked down into %.0f servings of Nutrient Paste." iServ
+	let aItems := Ar_Null
+	let aCnt := Ar_Null
+end

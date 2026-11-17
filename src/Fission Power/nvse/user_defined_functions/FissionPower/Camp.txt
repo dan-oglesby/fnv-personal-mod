@@ -1,0 +1,73 @@
+; Fission Power: JIP menu-close handler for the recipe menu (1077). Closing it at a campfire
+; (anything named Campfire within about 6 m) while you carry food that can be mulched (Nutri.txt)
+; offers to turn all of it into Nutrient Paste, at no power: its total nutrition in 40-point
+; servings, the leftover kept toward the next batch ("_fpPasteRem"). CampBtn.txt does it.
+int iMenu
+int iItems
+int iServ
+int iNum
+int iIdx
+int iN
+int iFire
+float fTotal
+float fMag
+ref rItem
+ref rFn
+ref rCb
+string_var sName
+array_var aRefs
+array_var aEntry
+
+begin Function {iMenu}
+	if iMenu != 1077
+		return
+	endif
+	if eval (IsModLoaded "FissionPower.esp") == 0
+		return
+	endif
+	let iFire := 0
+	let aRefs := player.GetRefs 0 1 0 400
+	if eval aRefs != Ar_Null
+		foreach aEntry <- aRefs
+			let rItem := aEntry["value"]
+			if eval IsFormValid rItem
+				let sName := GetName (rItem.GetBaseObject)
+				if eval (sv_Find "campfire" sName) >= 0
+					let iFire := 1
+					break
+				endif
+			endif
+		loop
+	endif
+	let aRefs := Ar_Null
+	if iFire == 0
+		return
+	endif
+	let rFn := CompileScript "FissionPower/Nutri.txt"
+	let fTotal := player.AuxVarGetFlt "_fpPasteRem"
+	let iItems := 0
+	let iNum := player.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := player.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		if eval (GetType rItem) != 47
+			continue
+		endif
+		let fMag := call rFn rItem
+		if fMag > 0
+			let iN := player.GetItemCount rItem
+			let fTotal += fMag * iN
+			let iItems += iN
+		endif
+	loop
+	let iServ := Floor (fTotal / 40)
+	if iItems < 1 || iServ < 1
+		return
+	endif
+	let rCb := CompileScript "FissionPower/CampBtn.txt"
+	MessageBoxExAlt rCb "^Campfire^Turn all your food into Nutrient Paste? %.0f food items make about %.0f servings (40 hunger each), much lighter to carry, and no power used.|Make paste|Keep the food" iItems iServ
+end

@@ -1,0 +1,132 @@
+; Fission Power: the suit's food system (2026-11-17), once a second while you wear powered armor
+; (Tick.txt). The suit keeps a reservoir of Nutrient Paste ("_fpPaste", in hunger points; it holds
+; "_fpPasteMax", default 400; one serving, FissionPower.esp FPNutrientPaste 0x801, is 40).
+; 1. Paste you carry goes into the reservoir while there's room (no power).
+; 2. Every 10 seconds, if there's room for a whole food item's nutrition (Nutri.txt), the suit
+;    mulches one: the heaviest for what it gives first, so the most weight leaves your pack. Richer
+;    food makes more paste. It costs power: "_fpMulch" steps' worth of battery per hunger point
+;    (default 1: Cram, 50 hunger, about 50 seconds of standby).
+; 3. In Hardcore, out of combat, when hunger comes within the margin of its first penalty stage
+;    (Smart Loot's "_seEarly", or 50), the suit feeds you a serving from the reservoir. Off with
+;    player.AuxVarSetFlt "_fpFeed" 0 (and mulching with "_fpMulch" 0).
+int iPlug
+int iN
+int iRoom
+int iNum
+int iIdx
+int iT
+float fRes
+float fMax
+float fMag
+float fScore
+float fBest
+float fBestMag
+float fWt
+float fCost
+float fLeft
+float fAt
+float fNeed
+ref rPaste
+ref rItem
+ref rBest
+ref rFn
+ref rStage
+
+begin Function {}
+	let iPlug := GetModIndex "FissionPower.esp"
+	let rPaste := BuildRef iPlug 2049	; FPNutrientPaste
+	if eval (IsFormValid rPaste) == 0
+		return
+	endif
+	let fRes := player.AuxVarGetFlt "_fpPaste"
+	let fMax := player.AuxVarGetFlt "_fpPasteMax"
+	if fMax <= 0
+		let fMax := 400
+	endif
+
+	; 1. carried paste into the reservoir
+	let iN := player.GetItemCount rPaste
+	if iN > 0
+		let iRoom := Floor ((fMax - fRes) / 40)
+		if iN > iRoom
+			let iN := iRoom
+		endif
+		if iN > 0
+			player.RemoveItem rPaste iN 1
+			let fRes += iN * 40
+		endif
+	endif
+
+	; 2. mulching, every 10 seconds
+	let fCost := player.AuxVarGetFlt "_fpMulch"
+	let iT := player.AuxVarGetFlt "*_fpMulchT"
+	let iT += 1
+	if iT >= 10 && fCost > 0
+		let iT := 0
+		let rFn := CompileScript "FissionPower/Nutri.txt"
+		let rBest := 0
+		let fBest := -1
+		let fBestMag := 0
+		let iNum := player.GetNumItems
+		let iIdx := 0
+		while iIdx < iNum
+			let rItem := player.GetInventoryObject iIdx
+			let iIdx += 1
+			if eval (IsFormValid rItem) == 0
+				continue
+			endif
+			if eval (GetType rItem) != 47
+				continue
+			endif
+			let fMag := call rFn rItem
+			if fMag <= 0 || fMag > fMax - fRes
+				continue
+			endif
+			let fWt := GetWeight rItem
+			let fScore := fWt / fMag
+			if fScore > fBest
+				let fBest := fScore
+				let fBestMag := fMag
+				let rBest := rItem
+			endif
+		loop
+		if eval IsFormValid rBest
+			player.RemoveItem rBest 1 1
+			let fRes += fBestMag
+			let fLeft := player.AuxVarGetFlt "_fpLeft"
+			let fLeft -= fBestMag * fCost
+			if fLeft < 1
+				let fLeft := 1
+			endif
+			player.AuxVarSetFlt "_fpLeft" fLeft
+			if eval (player.AuxVarGetFlt "_fpMulchSeen") == 0
+				player.AuxVarSetFlt "_fpMulchSeen" 1
+				MessageBoxEx "Power armor%rThe suit's processor mulches the food you carry into Nutrient Paste whenever its reservoir has room, at a little power, and feeds you from it in Hardcore. Paste made at a campfire costs no power."
+			endif
+		endif
+	endif
+	player.AuxVarSetFlt "*_fpMulchT" iT
+
+	; 3. feeding
+	if eval fRes >= 40 && (player.AuxVarGetFlt "_fpFeed") == 1
+		if eval player.IsHardcore
+			if eval (player.IsInCombat) == 0
+				let rStage := BuildRef 0 1448198	; hunger1 (0x161906)
+				let fAt := GetHardcoreStageThreshold rStage
+				if fAt <= 0
+					let fAt := 200
+				endif
+				let fNeed := player.AuxVarGetFlt "_seEarly"
+				if fNeed <= 0
+					let fNeed := 50
+				endif
+				if eval (player.GetAV Hunger) >= fAt - fNeed
+					player.AddItem rPaste 1 1
+					player.EquipItem rPaste 0 1
+					let fRes -= 40
+				endif
+			endif
+		endif
+	endif
+	player.AuxVarSetFlt "_fpPaste" fRes
+end

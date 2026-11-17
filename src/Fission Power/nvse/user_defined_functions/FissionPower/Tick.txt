@@ -129,6 +129,11 @@ begin Function {}
 		endif
 	endif
 	player.AuxVarSetFlt "_fpLeft" fLeft
+	; the suit's food system while it has power: paste, mulching, feeding (Suit.txt)
+	if fLeft > 0
+		let rSnd := CompileScript "FissionPower/Suit.txt"
+		call rSnd
+	endif
 	if fLeft > 0
 		call rFn 0 rSuit
 	else
