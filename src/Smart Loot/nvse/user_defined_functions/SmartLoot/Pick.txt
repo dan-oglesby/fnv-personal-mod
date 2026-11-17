@@ -8,12 +8,21 @@
 ;     sparingly.
 ; Never quest items. Addictive items (chems, alcohol) only if allowed. Irradiated items (any
 ; radiation damage) are used only when nothing clean will do, or never, or freely, per the setting.
+; With the FNV Cheat Terminal installed, its "personal storage" boxes count as your inventory: when
+; you carry nothing that will do (or, unless irradiated items are allowed freely, only irradiated
+; items), the boxes are searched the same way, and one of the item picked there is moved to you so it
+; can be used (2026-11-16; the boxes are listed in Wasteland Tweaks' Stash.txt).
 int iNum
 int iIdx
 int iEff
 int iK
 int iRad
 int iBestRad
+int iSrc
+int iSrcMax
+int iPlug
+int iId
+int iRadSet
 float fAmt
 float fMag
 float fWt
@@ -29,6 +38,9 @@ ref rPick
 ref rClean
 ref rRadEff
 ref rEff
+ref rSrc
+ref rPickSrc
+ref rCleanSrc
 int iMode
 
 begin Function {rEff, iMode}
@@ -40,71 +52,108 @@ begin Function {rEff, iMode}
 	let fBestClean := -1
 	let fBestVal := 0
 	let fBestCleanVal := 0
-	let iNum := player.GetNumItems
-	let iIdx := 0
-	while iIdx < iNum
-		let rItem := player.GetInventoryObject iIdx
-		let iIdx += 1
-		if eval (IsFormValid rItem) == 0
+	let iRadSet := player.AuxVarGetFlt "_seRad"
+	let iSrcMax := 0
+	if eval IsModLoaded "FalloutNVCheatTerminal.esp"
+		let iSrcMax := 8
+		let iPlug := GetModIndex "FalloutNVCheatTerminal.esp"
+	endif
+	; source 0 is you; 1-8 are the cheat terminal's storage boxes, searched only if you carry nothing
+	; that will do
+	let iSrc := 0
+	while iSrc <= iSrcMax
+		if iSrc == 0
+			let rSrc := player
+		else
+			if eval IsFormValid rClean
+				break
+			endif
+			if eval (IsFormValid rPick) && iRadSet == 2
+				break
+			endif
+			; 18444-18448 = 0x480C-0x4810, 41961-41963 = 0xA3E9-0xA3EB (FalloutNVCheatTerminal.esp)
+			if iSrc <= 5
+				let iId := 18443 + iSrc
+			else
+				let iId := 41955 + iSrc
+			endif
+			let rSrc := BuildRef iPlug iId
+		endif
+		let iSrc += 1
+		if eval (IsFormValid rSrc) == 0
 			continue
 		endif
-		if eval (GetType rItem) != 47
-			continue
-		endif
-		if eval IsQuestItem rItem
-			continue
-		endif
-		if eval (player.AuxVarGetFlt "_seAddict") == 0
-			if eval (GetAddictionChance rItem) > 0
+		let iNum := rSrc.GetNumItems
+		let iIdx := 0
+		while iIdx < iNum
+			let rItem := rSrc.GetInventoryObject iIdx
+			let iIdx += 1
+			if eval (IsFormValid rItem) == 0
 				continue
 			endif
-		endif
-		; how much it gives, and whether it irradiates
-		let fAmt := 0
-		let iRad := 0
-		let iEff := GetNumEffects rItem
-		let iK := 0
-		while iK < iEff
-			let rBase := GetNthEffectBase rItem iK
-			if eval rBase == rEff
-				let fMag := GetNthEffectTraitNumeric rItem iK 0
-				if fMag > fAmt
-					let fAmt := fMag
+			if eval (GetType rItem) != 47
+				continue
+			endif
+			if eval IsQuestItem rItem
+				continue
+			endif
+			if eval (player.AuxVarGetFlt "_seAddict") == 0
+				if eval (GetAddictionChance rItem) > 0
+					continue
 				endif
-			elseif eval rBase == rRadEff
-				let iRad := 1
 			endif
-			let iK += 1
+			; how much it gives, and whether it irradiates
+			let fAmt := 0
+			let iRad := 0
+			let iEff := GetNumEffects rItem
+			let iK := 0
+			while iK < iEff
+				let rBase := GetNthEffectBase rItem iK
+				if eval rBase == rEff
+					let fMag := GetNthEffectTraitNumeric rItem iK 0
+					if fMag > fAmt
+						let fAmt := fMag
+					endif
+				elseif eval rBase == rRadEff
+					let iRad := 1
+				endif
+				let iK += 1
+			loop
+			if fAmt <= 0
+				continue
+			endif
+			let fWt := GetWeight rItem
+			let fVal := GetValue rItem
+			if iMode == 0
+				let fScore := fWt / fAmt
+			else
+				let fScore := 0 - fVal
+			endif
+			; best overall (ties: cheaper first)
+			if fScore > fBest || (fScore == fBest && fVal < fBestVal)
+				let fBest := fScore
+				let fBestVal := fVal
+				let rPick := rItem
+				let rPickSrc := rSrc
+				let iBestRad := iRad
+			endif
+			if iRad == 0
+				if fScore > fBestClean || (fScore == fBestClean && fVal < fBestCleanVal)
+					let fBestClean := fScore
+					let fBestCleanVal := fVal
+					let rClean := rItem
+					let rCleanSrc := rSrc
+				endif
+			endif
 		loop
-		if fAmt <= 0
-			continue
-		endif
-		let fWt := GetWeight rItem
-		let fVal := GetValue rItem
-		if iMode == 0
-			let fScore := fWt / fAmt
-		else
-			let fScore := 0 - fVal
-		endif
-		; best overall (ties: cheaper first)
-		if fScore > fBest || (fScore == fBest && fVal < fBestVal)
-			let fBest := fScore
-			let fBestVal := fVal
-			let rPick := rItem
-			let iBestRad := iRad
-		endif
-		if iRad == 0
-			if fScore > fBestClean || (fScore == fBestClean && fVal < fBestCleanVal)
-				let fBestClean := fScore
-				let fBestCleanVal := fVal
-				let rClean := rItem
-			endif
-		endif
 	loop
 	; irradiated items: 0 never, 1 only when nothing clean (default), 2 freely
-	let iRad := player.AuxVarGetFlt "_seRad"
+	let iRad := iRadSet
 	if eval IsFormValid rClean
 		if iRad < 2
+			if eval rCleanSrc != player
+				rCleanSrc.RemoveItemTarget rClean player 1 1	; from storage: one comes to you
+			endif
 			SetFunctionValue rClean
 			return
 		endif
@@ -114,6 +163,9 @@ begin Function {rEff, iMode}
 	endif
 	if iBestRad == 1 && iRad == 0
 		return
+	endif
+	if eval rPickSrc != player
+		rPickSrc.RemoveItemTarget rPick player 1 1
 	endif
 	SetFunctionValue rPick
 end

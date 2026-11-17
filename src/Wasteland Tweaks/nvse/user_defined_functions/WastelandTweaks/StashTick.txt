@@ -1,0 +1,96 @@
+; Wasteland Tweaks: keeps you supplied from the cheat terminal's personal storage (Stash.txt), once a
+; second of play, in combat too (registered by ln_wasteland_tweaks.txt only when
+; FalloutNVCheatTerminal.esp is loaded; never in menus, paused or during VATS playback).
+; - Ammo: when you carry fewer than two magazines' worth (at least 20 rounds) of the ammo your weapon
+;   is loaded with, enough comes out of storage to make four magazines (at least 40 rounds). If you
+;   carry none of any ammo the weapon takes and storage has none of the loaded kind, it fetches
+;   another kind the weapon takes.
+; - Fission batteries (with Fission Power): wearing power armor with no spare, one comes out.
+; Off: player.AuxVarSetFlt "_twNoStash" 1
+int iClip
+int iHave
+int iLow
+int iWant
+int iGot
+int iN
+int iK
+ref rW
+ref rAmmo
+ref rList
+ref rSuit
+ref rStash
+
+begin Function {}
+	if player.GetDead
+		return
+	endif
+	if IsInKillCam
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_twNoStash") == 1
+		return
+	endif
+	let rStash := CompileScript "WastelandTweaks/Stash.txt"
+
+	let rW := player.GetEquippedObject 5
+	if eval IsFormValid rW
+		if eval (GetType rW) == 40
+			let rList := GetWeaponAmmo rW	; one ammo form, or a form list of them (85)
+			if eval IsFormValid rList
+				let iClip := GetWeaponClipRounds rW
+				let iLow := iClip * 2
+				if iLow < 20
+					let iLow := 20
+				endif
+				let iWant := iClip * 4
+				if iWant < 40
+					let iWant := 40
+				endif
+				let rAmmo := GetPlayerCurrentAmmo
+				if eval (IsFormValid rAmmo) == 0 && (GetType rList) == 41
+					let rAmmo := rList
+				endif
+				let iHave := 0
+				if eval IsFormValid rAmmo
+					let iHave := player.GetItemCount rAmmo
+					if iHave < iLow
+						let iN := iWant - iHave
+						let iGot := call rStash rAmmo iN
+						let iHave += iGot
+					endif
+				endif
+				if eval iHave == 0 && (GetType rList) == 85
+					let iN := ListGetCount rList
+					let iK := 0
+					while iK < iN
+						let rAmmo := ListGetNthForm rList iK
+						let iK += 1
+						if eval IsFormValid rAmmo
+							let iHave += player.GetItemCount rAmmo
+						endif
+					loop
+					let iK := 0
+					while iK < iN && iHave == 0
+						let rAmmo := ListGetNthForm rList iK
+						let iK += 1
+						if eval IsFormValid rAmmo
+							let iHave := call rStash rAmmo iWant
+						endif
+					loop
+				endif
+			endif
+		endif
+	endif
+
+	if eval IsModLoaded "FissionPower.esp"
+		let rSuit := player.GetEquippedObject 2
+		if eval IsFormValid rSuit
+			if eval IsPowerArmor rSuit
+				let rAmmo := BuildRef 0 211910	; Fission Battery (FalloutNV.esm 0x033BC6)
+				if eval (player.GetItemCount rAmmo) == 0
+					call rStash rAmmo 1
+				endif
+			endif
+		endif
+	endif
+end

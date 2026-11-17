@@ -27,6 +27,13 @@
 ;      player.AuxVarSetFlt "_twNoConsoleLog" 1
 ;    Other mods' scripts can't be made to log what they do step by step without editing them; this
 ;    catches whatever they print, and falloutnv_error.log already records their script errors.
+;
+; 4. Cheat terminal storage (only with FalloutNVCheatTerminal.esp): its "personal storage" boxes
+;    count as your inventory. Ammo for the weapon in your hands is topped up from them, a fission
+;    battery comes out when you wear power armor with no spare (Fission Power), Smart Loot's
+;    auto-consume uses food, water and aid from them when you carry none, and Auto Smoke lights
+;    smokes from them. Nothing is in those boxes unless you put it there. To turn it off:
+;      player.AuxVarSetFlt "_twNoStash" 1
 
 if eval (player.AuxVarGetFlt "_twInit") < 1
 	player.AuxVarSetFlt "_twInit" 1
@@ -67,5 +74,16 @@ endif
 if eval (player.AuxVarGetFlt "_twNoConsoleLog") == 0
 	if GetGameRestarted
 		con_SCOF "ConsoleLog.txt"
+	endif
+endif
+
+; cheat terminal storage link, once a second outside menus (flags 4 + 16), only with the terminal
+if eval IsModLoaded "FalloutNVCheatTerminal.esp"
+	let ref rTwStash := CompileScript "WastelandTweaks/StashTick.txt"
+	let ref rTwStashFn := CompileScript "WastelandTweaks/Stash.txt"
+	if eval (IsFormValid rTwStash) && (IsFormValid rTwStashFn) && (IsFormValid rTwTrue)
+		CallWhilePerSeconds 1 rTwStash rTwTrue 20
+	else
+		print "Wasteland Tweaks: the cheat terminal storage link is off because its scripts failed to compile (see nvse.log)"
 	endif
 endif

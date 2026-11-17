@@ -1,12 +1,17 @@
 ; Auto Smoke: light the next smoke, as if used from the Pip-Boy (EquipItem on the aid item runs
 ; the smoking mod's own script). Order: cigarettes, then cigarillos, then cigars. Lucky cigarettes
 ; are left for you to smoke yourself. With no loose smokes, opens a pack, or else a carton, if
-; that setting is on; the next check lights one from it.
+; that setting is on; the next check lights one from it. With none on you, the same come out of
+; the cheat terminal's personal storage, if it's installed (WastelandTweaks/Stash.txt).
 ; Returns 0 lit one, 1 opened a pack or carton, 2 something is in your mouth slot (a gas mask or
 ; similar, which lighting up would take off), 3 nothing to smoke.
 int iPlugin
+int iK
+int iGot
+int iId
 ref rCig
 ref rMouth
+ref rStash
 
 begin Function {}
 	let rMouth := player.GetEquippedObject 16	; mouth object slot, where a lit smoke goes
@@ -37,6 +42,41 @@ begin Function {}
 			SetFunctionValue 1
 			return
 		endif
+	endif
+	; cheat terminal storage: a cigarette, cigarillo or cigar, then (if on) a pack or carton
+	let rStash := CompileScript "WastelandTweaks/Stash.txt"
+	if eval IsFormValid rStash
+		let iK := 0
+		while iK < 5
+			if iK == 0
+				let iId := 39432	; AidCigarette
+			elseif iK == 1
+				let iId := 56462	; AidCigarillo
+			elseif iK == 2
+				let iId := 56448	; AidCigar
+			elseif iK == 3
+				let iId := 37960	; AidCigarettePack
+			else
+				let iId := 37226	; AidCigaretteCarton
+			endif
+			let iK += 1
+			if iK > 3
+				if eval (player.AuxVarGetFlt "_asPacks") == 0
+					break
+				endif
+			endif
+			let rCig := BuildRef iPlugin iId
+			let iGot := call rStash rCig 1
+			if iGot > 0
+				player.EquipItem rCig 0 1
+				if iK > 3
+					SetFunctionValue 1
+				else
+					SetFunctionValue 0
+				endif
+				return
+			endif
+		loop
 	endif
 	SetFunctionValue 3
 end
