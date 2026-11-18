@@ -257,7 +257,7 @@ class Tail:
     """New lines of one log since we last looked. A file that shrank was started over (a new launch)."""
 
     def __init__(self, path, since):
-        self.path, self.pos, self.rest = path, 0, b""
+        self.path, self.pos, self.rest, self.locked = path, 0, b"", None
         try:
             st = path.stat()
             if st.st_mtime < since:        # last written before this launch: only what comes next
@@ -274,9 +274,14 @@ class Tail:
             self.pos, self.rest = 0, b""
         if size == self.pos:
             return []
-        with open(self.path, "rb") as f:
-            f.seek(self.pos)
-            data = f.read(min(size - self.pos, 4 << 20))
+        try:
+            with open(self.path, "rb") as f:
+                f.seek(self.pos)
+                data = f.read(min(size - self.pos, 4 << 20))
+        except PermissionError:          # the game holds falloutnv_error.log open with no sharing:
+            self.locked = size           # only its size can be seen until it exits
+            return []
+        self.locked = None
         self.pos += len(data)
         data = self.rest + data
         parts = data.split(b"\n")
@@ -348,7 +353,7 @@ def live(pid=None, wait=True, summary_wait=120):
     timeline = open(out / "timeline.jsonl", "a", encoding="utf-8")
     samples = open(out / "samples.csv", "a", newline="", encoding="utf-8")
     cols = ["t", "private_mb", "ws_mb", "va_used_mb", "va_largest_free_mb", "handles", "threads", "cpu_s",
-            "hung", "havok_lines", "cell", "cell_id", "x", "y", "z"]
+            "hung", "havok_lines", "errlog_kb", "cell", "cell_id", "x", "y", "z"]
     writer = csv.DictWriter(samples, cols, extrasaction="ignore")
     if samples.tell() == 0:
         writer.writeheader()
@@ -359,9 +364,9 @@ def live(pid=None, wait=True, summary_wait=120):
     last_cell, hung_since, n, next_sample, va = None, None, 0, 0.0, {}
     probing = True
     while not proc.exited():
+        now = time.time()
+        stamp = dt.datetime.now().strftime("%H:%M:%S")
         try:
-            now = time.time()
-            stamp = dt.datetime.now().strftime("%H:%M:%S")
             for name, t in tails.items():
                 groups = collections.OrderedDict()
                 for line in t.lines():
@@ -378,6 +383,9 @@ def live(pid=None, wait=True, summary_wait=120):
                     if p.name not in seen_crashes:
                         seen_crashes.add(p.name)
                         emit({"t": stamp, "src": "Crash Logs", "kind": "crash", "msg": p.name, "n": 1})
+        except Exception:
+            note(traceback.format_exc())
+        try:
             if now >= next_sample:
                 next_sample = now + SAMPLE_S
                 row = {"t": stamp, **proc.counters()}
@@ -395,6 +403,10 @@ def live(pid=None, wait=True, summary_wait=120):
                           "msg": "responding again after %d s" % (now - hung_since), "n": 1})
                     hung_since = None
                 row["havok_lines"] = sum(len(t.lines()) for t in counted.values())
+                try:                     # the error log is locked while the game runs: its growth
+                    row["errlog_kb"] = (GAME / "falloutnv_error.log").stat().st_size >> 10   # shows storms
+                except OSError:
+                    pass
                 if probing:
                     try:
                         p = probe(proc)
@@ -419,10 +431,17 @@ def live(pid=None, wait=True, summary_wait=120):
     ended = dt.datetime.now()
     time.sleep(8)                                 # the crash logger and the game finish writing
     stamp = ended.strftime("%H:%M:%S")
-    for name, t in tails.items():
+    for name, t in tails.items():              # what is left, including the error log the game kept
+        groups = collections.OrderedDict()     # locked: no times for those lines, so grouped
         for line in t.lines():
             kind, _ = classify(name, line)
-            emit({"t": stamp, "src": name, "kind": kind, "msg": line[:400], "n": 1})
+            key = (kind, signature(line))
+            if key in groups:
+                groups[key]["n"] += 1
+            else:
+                groups[key] = {"t": stamp, "src": name, "kind": kind, "msg": line[:400], "n": 1, "untimed": True}
+        for ev in groups.values():
+            emit(ev)
     emit({"t": stamp, "src": "watch", "kind": "exit", "msg": "0x%08X %s" % (code, EXIT_CODES.get(code, "")), "n": 1})
     timeline.close()
     samples.close()
@@ -538,9 +557,12 @@ def report(session):
         for ev in timeline:
             if ev["kind"] == "script error" and ev["src"] == "falloutnv_error.log":
                 name = SCRIPT_RE.search(ev["msg"]).group(1)
-                e = errs.setdefault(name, {"count": 0, "first": ev["t"], "last": ev["t"], "example": ev["msg"], "lines": set()})
+                t0 = None if ev.get("untimed") else ev["t"]
+                e = errs.setdefault(name, {"count": 0, "first": t0, "last": t0, "example": ev["msg"], "lines": set()})
                 e["count"] += ev.get("n", 1)
-                e["last"] = ev["t"]
+                if t0:
+                    e["first"] = e["first"] or t0
+                    e["last"] = t0
                 e["lines"].update(LINE_RE.findall(ev["msg"]))
     else:
         for l in errlog.splitlines():
@@ -585,8 +607,8 @@ def report(session):
         r["landmarks"] = [ev for ev in timeline if ev["kind"] in keep][-60:]
         end = timeline[-1]["t"]
         endt = dt.datetime.strptime(end, "%H:%M:%S")
-        r["last_two_minutes"] = [ev for ev in timeline
-                                 if (endt - dt.datetime.strptime(ev["t"], "%H:%M:%S")).total_seconds() % 86400 <= 120][-80:]
+        r["last_two_minutes"] = [ev for ev in timeline if not ev.get("untimed") and
+                                 (endt - dt.datetime.strptime(ev["t"], "%H:%M:%S")).total_seconds() % 86400 <= 120][-80:]
         r["hangs"] = [ev for ev in timeline if ev["kind"] in ("hang", "hang end")]
     loads = len(re.findall(r"DoLoadGameHook", nvse))
     r["saves_loaded"] = loads
