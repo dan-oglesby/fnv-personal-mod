@@ -28,6 +28,10 @@ begin Function {}
 		return
 	endif
 	let fMax := GetHealth rItem
+	if fMax <= 0
+		MessageEx "That can't be repaired."	; no condition to restore (review 2026-11-18)
+		return
+	endif
 	let fCur := player.GetEquippedCurrentHealth iSlot
 	let fC := fCur / fMax
 	let fPct := fC * 100

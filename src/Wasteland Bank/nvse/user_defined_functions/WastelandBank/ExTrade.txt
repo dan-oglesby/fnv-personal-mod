@@ -32,6 +32,8 @@ int iNeed
 ref rStage
 ref rFlow
 
+float fPost
+
 begin Function {iT, iAct, fAmt}
 	let rHere := CompileScript "WastelandBank/SqHere.txt"
 	let iHere := call rHere
@@ -95,6 +97,17 @@ begin Function {iT, iAct, fAmt}
 				return
 			endif
 		endif
+		if iT == 16
+			; the bank's price rises with your stake (ExPrice.txt), so a trade is priced at the stake
+			; after it: bought at the top of the move, sold at the bottom. Priced before it, buying
+			; every share and selling them back made about 60 percent a round trip (review 2026-11-18).
+			let fPost := fH + fQ
+			player.AuxVarSetFlt "_wxH" fPost iT
+			let fP := call rPrice iT
+			player.AuxVarSetFlt "_wxH" fH iT
+			let fAsk := fP * 1.015
+			let fQ := fAmt / fAsk
+		endif
 		let fH += fQ
 		let fC += fAmt
 		let fV := 0 - fAmt
@@ -109,6 +122,13 @@ begin Function {iT, iAct, fAmt}
 			return
 		endif
 		let fQ := fH * fAmt
+		if iT == 16
+			let fPost := fH - fQ	; priced at the stake after the sale (see buying)
+			player.AuxVarSetFlt "_wxH" fPost iT
+			let fP := call rPrice iT
+			player.AuxVarSetFlt "_wxH" fH iT
+			let fBid := fP * 0.985
+		endif
 		let fV := fQ * fBid
 		let fPart := fC * fAmt
 		let fH -= fQ
