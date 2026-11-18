@@ -1,4 +1,4 @@
-; Auto Smoke (Dan, 2026-11-11; part of Wasteland Tweaks since 2026-11-15): an add-on for "Light Up and Smoke Those Cigarettes" (edisleado,
+; Auto Smoke (2026-11-11; part of Wasteland Tweaks since 2026-11-15): an add-on for "Light Up and Smoke Those Cigarettes" (edisleado,
 ; Nexus 49677). Lights your next smoke for you, the same as using it from the Pip-Boy, so the
 ; mod's own lighting, effects, addiction and butts all apply. Butts and empty packs and cartons are
 ; dropped where you stand (Litter.txt), like a real smoker.

@@ -1,4 +1,4 @@
-// Scan Null Fix (Dan, 2026-11-13): an xNVSE plugin that stops reference scans (GetFirstRef /
+// Scan Null Fix (2026-11-13): an xNVSE plugin that stops reference scans (GetFirstRef /
 // GetNextRef, GetNumRefs and the array versions) crashing on a reference with no base form.
 //
 // The crash: xNVSE 6.4.9's RefMatcherFormType::Accept, RefMatcherActor::Accept and
@@ -155,7 +155,9 @@ static bool ApplyPatches(FILE* log)
 		*s.falseOut = (DWORD)(base + s.falseRva);
 		*s.backOut = (DWORD)(at + s.len);
 		DWORD old;
-		VirtualProtect(at, s.len, PAGE_EXECUTE_READWRITE, &old);
+		VirtualProtect(at, s.len, PAGE_EXECUTE_READWRITE, &old);	// TODO (review 2026-11-18): check the
+		// result and skip the site if it fails; held back until the harness can run (antivirus
+		// blocks the freshly built harness.exe here).
 		at[0] = 0xE9;	// jmp rel32 to the stub
 		*(DWORD*)(at + 1) = (DWORD)s.stub - (DWORD)(at + 5);
 		for (int i = 5; i < s.len; i++) at[i] = 0x90;	// nop the rest

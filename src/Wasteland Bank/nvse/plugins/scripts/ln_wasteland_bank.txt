@@ -1,4 +1,4 @@
-; Wasteland Bank (Dan, 2026-11-11): a rewrite of "Bank Card" (BankCard.esp, Nexus 39741, 2011)
+; Wasteland Bank (2026-11-11): a rewrite of "Bank Card" (BankCard.esp, Nexus 39741, 2011)
 ; without its bugs. Since 2026-11-16 money has weight and cash moves through courier squads you
 ; call with the card (fees: 2 percent of cash moved, 1 cap a pound for the vault); see
 ; docs/wasteland-bank-couriers.md. Deposit and withdraw caps with daily interest, take a loan with weekly

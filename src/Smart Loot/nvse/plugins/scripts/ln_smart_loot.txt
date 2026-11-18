@@ -1,4 +1,4 @@
-; Smart Loot (Dan, 2026-11-14): auto-loot that takes what is useful to you now instead of whole
+; Smart Loot (2026-11-14): auto-loot that takes what is useful to you now instead of whole
 ; categories. Ammo for the weapons you carry (up to a cap), weapons with more DPS than your best,
 ; spares for repairs, weapon mods that fit, a few of each aid item, keys, notes, anything weightless
 ; with value, and anything else worth enough caps per pound. Loose items, unowned containers (unlocked

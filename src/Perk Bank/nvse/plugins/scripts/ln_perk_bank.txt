@@ -1,4 +1,4 @@
-; Perk Bank (Dan, 2026-11-15): lets you finish the level-up menu without taking a perk, and saves
+; Perk Bank (2026-11-15): lets you finish the level-up menu without taking a perk, and saves
 ; the perk for later. Banked perks come back at your next perk level: after you take that level's
 ; perk the menu opens again, once per banked perk. Useful when every perk you qualify for is taken
 ; (the perk page then shows only greyed-out perks and Done can never be clicked).

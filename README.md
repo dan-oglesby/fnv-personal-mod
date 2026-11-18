@@ -1,6 +1,6 @@
 # Fallout: New Vegas personal mods
 
-Dan's own small mods for New Vegas, built on top of the stability base (Gopher's Stable New Vegas
+Small personal mods for New Vegas, built on top of the stability base (Gopher's Stable New Vegas
 collection in Vortex: xNVSE, JIP LN NVSE and friends). Quality of life, not cheats.
 
 The stability setup these are built on (mod list with Nexus links, settings, things to avoid) is in

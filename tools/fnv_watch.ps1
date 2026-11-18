@@ -1,4 +1,4 @@
-# Fallout: New Vegas session watcher (Dan, 2026-11-14).
+# Fallout: New Vegas session watcher (2026-11-14).
 #
 # Waits quietly for FalloutNV.exe. While it runs, records its memory every 10 s. When it exits,
 # saves that session's logs into Documents\My Games\FalloutNV\SessionLogs\<start time>\ with a

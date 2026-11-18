@@ -1,4 +1,4 @@
-; Wasteland Market (Dan, 2026-11-15): a living Mojave economy. Prices move by category with your
+; Wasteland Market (2026-11-15): a living Mojave economy. Prices move by category with your
 ; trading (buying pushes a category up, selling pushes it down, at most 50 percent either way),
 ; drift back about halfway in a week, and scarce goods (energy cells, fission batteries, medicine,
 ; pre-war goods) keep part of any rise. Traders you deal with bring in stock of anything selling

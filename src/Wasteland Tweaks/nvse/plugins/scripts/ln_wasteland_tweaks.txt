@@ -1,4 +1,4 @@
-; Wasteland Tweaks (Dan, 2026-11-15): small adjustments that don't need a mod of their own. No
+; Wasteland Tweaks (2026-11-15): small adjustments that don't need a mod of their own. No
 ; plugin. Run by JIP LN NVSE's script runner (ln_: new game and every load); game settings are not
 ; saved, so they are set again on every load. Needs xNVSE.
 ;

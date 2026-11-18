@@ -1,4 +1,4 @@
-; Fission Power (Dan, 2026-11-15): power armor runs on fission batteries. Walking drains the one in
+; Fission Power (2026-11-15): power armor runs on fission batteries. Walking drains the one in
 ; the suit, and so, more slowly, does just having it online; when it runs out the spent battery is ejected at your feet and the next goes in. With none
 ; left the suit is dead weight (Agility -2, no Strength bonus, 25 percent slower) until you find
 ; another. Batteries are
