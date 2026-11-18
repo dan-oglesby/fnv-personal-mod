@@ -1,5 +1,10 @@
-; Target Readout: four times a second of play (registered by ln_target_readout.txt; not in menus or
-; paused). Finds the actor under the crosshair (Valid.txt: an NPC or creature within "_trRange"),
+; Target Readout: four times a second (registered by ln_target_readout.txt; also in menus, not while
+; paused). With "_trVats" 1 (the default, 2026-11-17) the readout shows only while targeting in VATS
+; (the VATS menu, 1056): outside it nothing is drawn and the actor under the crosshair is only
+; remembered ("*_trLast"), since VATS selects that one first. In VATS the target is the actor last
+; queued (VatsPick.txt, JIP GetVATSTargets), else the one under the crosshair, else the remembered
+; one. In other menus it is hidden.
+; Finds the actor under the crosshair (Valid.txt: an NPC or creature within "_trRange"),
 ; writes its readout (Readout.txt) to the HUD and shows it (TargetReadout.xml draws it).
 ; The crosshair reference: JIP LN's GetCrosshairRefEx when Pick.txt compiled ("*_trEx" 1), which
 ; reaches beyond activation distance, else xNVSE's GetCrosshairRef (about activation reach).
@@ -21,6 +26,11 @@ ref rX
 ref rFn
 ref rValid
 ref rPrev
+int iVats
+int iVm
+int iPj
+float fSX
+float fSY
 int iLen
 int iShown
 string_var sText
@@ -34,6 +44,17 @@ begin Function {}
 	if eval IsInKillCam
 		SetUIFloat "HUDMainMenu/_TRVis" 0
 		player.AuxVarSetFlt "*_trMiss" 99
+		return
+	endif
+	let iVats := player.AuxVarGetFlt "_trVats"
+	let iVm := 0
+	if eval MenuMode 1056
+		let iVm := 1
+	elseif eval MenuMode
+		; another menu: nothing shown, and the next showing types out again
+		SetUIFloat "HUDMainMenu/_TRVis" 0
+		player.AuxVarSetFlt "*_trMiss" 99
+		player.AuxVarSetRef "*_trRef" player
 		return
 	endif
 	; colour: one of three text tiles is visible
@@ -59,6 +80,12 @@ begin Function {}
 	let iOk := 0
 	let rX := 0
 	let rValid := CompileScript "TargetReadout/Valid.txt"
+	if eval iVm == 1 && (player.AuxVarGetFlt "*_trVq") == 1
+		let rFn := CompileScript "TargetReadout/VatsPick.txt"
+		let rX := call rFn
+		let iOk := call rValid rX
+	endif
+	if iOk == 0
 	let iEx := player.AuxVarGetFlt "*_trEx"
 	if iEx == 1
 		let rFn := CompileScript "TargetReadout/Pick.txt"
@@ -67,6 +94,21 @@ begin Function {}
 	endif
 	if iOk == 0
 		let rX := GetCrosshairRef
+		let iOk := call rValid rX
+	endif
+	endif
+	if iVats == 1 && iVm == 0
+		; outside VATS: only remember who is under the crosshair, VATS picks them first
+		if iOk == 1
+			player.AuxVarSetRef "*_trLast" rX
+		endif
+		SetUIFloat "HUDMainMenu/_TRVis" 0
+		player.AuxVarSetFlt "*_trMiss" 99
+		player.AuxVarSetRef "*_trRef" player
+		return
+	endif
+	if iOk == 0 && iVm == 1
+		let rX := player.AuxVarGetRef "*_trLast"
 		let iOk := call rValid rX
 	endif
 	if iOk == 1
@@ -91,6 +133,30 @@ begin Function {}
 			player.AuxVarSetFlt "*_trN" iLen
 			player.AuxVarSetFlt "*_trLen" iLen
 			SetUIStringEx "HUDMainMenu/_TRText" "%z" sText
+		endif
+		; where: beside the target in VATS (Proj.txt, JohnnyGuitar's WorldToScreen), else above and to
+		; the right of the reticle; the XML scales these shares by the screen's size
+		let iPj := 0
+		if eval iVm == 1 && (player.AuxVarGetFlt "*_trPj") == 1
+			let rFn := CompileScript "TargetReadout/Proj.txt"
+			let iPj := call rFn rX
+		endif
+		if iPj == 1
+			let fSX := player.AuxVarGetFlt "*_trSX"
+			let fSY := player.AuxVarGetFlt "*_trSY"
+			SetUIFloat "HUDMainMenu/_TRSX" fSX
+			SetUIFloat "HUDMainMenu/_TRSY" fSY
+			let fVal := 0.5
+			SetUIFloat "HUDMainMenu/_TRYK" fVal	; centred on the point
+			SetUIFloat "HUDMainMenu/_TRGap" 0
+			SetUIFloat "HUDMainMenu/_TRDX" 40
+		else
+			let fVal := 0.5
+			SetUIFloat "HUDMainMenu/_TRSX" fVal
+			SetUIFloat "HUDMainMenu/_TRSY" fVal
+			SetUIFloat "HUDMainMenu/_TRYK" 1	; its bottom just above the reticle
+			SetUIFloat "HUDMainMenu/_TRGap" 16
+			SetUIFloat "HUDMainMenu/_TRDX" 48
 		endif
 		let fAlpha := 255
 		SetUIFloat "HUDMainMenu/_TRAlpha" fAlpha

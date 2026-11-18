@@ -1,0 +1,36 @@
+; Target Readout: where the actor rX is on screen, so the readout can sit beside it in VATS
+; (2026-11-17). JohnnyGuitar NVSE's WorldToScreen projects a point "_trAimZ" units (default 90,
+; about chest height on a person) above the actor's feet; its output is the share of the screen
+; across (0 left to 1 right) and down (0 top to 1 bottom). Handle type 2: no clamping. It is called
+; as a plain statement so its three output variables are passed as variables; a point off screen
+; reads outside 0-1, and behind the camera it stops early and leaves them at -1. Stores "*_trSX" and
+; "*_trSY" and returns 1, or returns 0 when the point isn't on screen. Optional: if JohnnyGuitar
+; isn't installed this fails to compile and the readout stays by the reticle ("*_trPj" 0).
+ref rX
+int iHT
+float fSX
+float fSY
+float fSZ
+float fOX
+float fOY
+float fOZ
+
+begin Function {rX}
+	let fOX := 0
+	let fOY := 0
+	let fOZ := player.AuxVarGetFlt "_trAimZ"
+	if fOZ <= 0
+		let fOZ := 90
+	endif
+	let iHT := 2
+	let fSX := -1
+	let fSY := -1
+	WorldToScreen fSX fSY fSZ fOX fOY fOZ iHT rX
+	if fSX < 0 || fSX > 1 || fSY < 0 || fSY > 1
+		SetFunctionValue 0
+		return
+	endif
+	player.AuxVarSetFlt "*_trSX" fSX
+	player.AuxVarSetFlt "*_trSY" fSY
+	SetFunctionValue 1
+end

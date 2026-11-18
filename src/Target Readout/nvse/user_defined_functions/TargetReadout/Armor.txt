@@ -1,0 +1,29 @@
+; Target Readout: the ARMOR line for the actor rX (Readout.txt; 2026-11-17): the body armor worn
+; (equipment slot 2) and its damage threshold, e.g. "NCR RANGER COMBAT ARMOR / DT 15", or NONE.
+ref rX
+ref rArm
+float fDT
+string_var sName
+string_var sOut
+
+begin Function {rX}
+	let sOut := "NONE"
+	let rArm := rX.GetEquippedObject 2
+	if eval (IsFormValid rArm) == 0
+		SetFunctionValue sOut
+		return
+	endif
+	if eval (GetType rArm) != 24
+		SetFunctionValue sOut
+		return
+	endif
+	let fDT := GetArmorDT rArm
+	let sName := sv_Construct "%n" rArm
+	if eval (sv_Length sName) == 0 || sName == "<no name>"
+		let sOut := sv_Construct "DT %.0f" fDT
+	else
+		let sName := sv_ToUpper sName
+		let sOut := sv_Construct "%z / DT %.0f" sName fDT
+	endif
+	SetFunctionValue sOut
+end

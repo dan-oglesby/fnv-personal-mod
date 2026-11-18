@@ -1,8 +1,8 @@
 ; Target Readout (2026-11-17): a Terminator-style readout beside the reticle while the crosshair is
 ; on an NPC or creature within range: its name, level and condition (or DECEASED), faction (or a
 ; creature's class), status towards you (HOSTILE, ENGAGED, NEUTRAL, FRIENDLY, ALLY) and weapon.
-; Updates four times a second, holds the last target about a second after the crosshair leaves it,
-; and hides in menus, VATS and the kill camera. Added to the HUD through UI Organizer, the same way
+; By default it shows only while targeting in VATS ("_trVats"; 0 shows it whenever the crosshair is
+; on someone), types itself out with terminal clicks, and hides in other menus and the kill camera. Added to the HUD through UI Organizer, the same way
 ; as Needs Meters (Data/uio/public/TargetReadout.txt -> Data/menus/prefabs/TargetReadout/TargetReadout.xml).
 ;
 ; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.2.8+, JIP LN
@@ -14,6 +14,7 @@
 ;                                         alternate colour)
 ;   player.AuxVarSetFlt "_trX" -40        move it 40 left (+ = right)
 ;   player.AuxVarSetFlt "_trY" 30         move it 30 down (+ = down)
+;   player.AuxVarSetFlt "_trVats" 0       show it outside VATS too, whenever the crosshair is on someone
 ;   player.AuxVarSetFlt "_trType" 0       show each readout at once instead of typing it out
 ;   player.AuxVarSetFlt "_trStep" 5       type faster (letters per frame, default 3)
 ;   player.AuxVarSetFlt "_trSound" 0      no typing clicks
@@ -33,11 +34,6 @@ let rChk := CompileScript "TargetReadout/Faction.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 	print "Target Readout: TargetReadout/Faction.txt failed to compile, so the part that uses it is off (details: nvse.log)"
-endif
-let rChk := CompileScript "TargetReadout/Hide.txt"
-if eval (IsFormValid rChk) == 0
-	let iBad += 1
-	print "Target Readout: TargetReadout/Hide.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "TargetReadout/Init.txt"
 if eval (IsFormValid rChk) == 0
@@ -117,10 +113,29 @@ if iBad >= 0	; always (2026-11-17): each part below is registered only if its ow
 	endif
 	player.AuxVarSetFlt "*_trMiss" 99
 	SetUIFloat "HUDMainMenu/_TRVis" 0
-	; the VATS menu opening hides the readout (Tick.txt doesn't run in menus)
-	let ref rHide := CompileScript "TargetReadout/Hide.txt"
-	if eval (IsFormValid rHide)
-		SetOnMenuOpenEventHandler rHide 1 1056
+	; Proj.txt, JohnnyGuitar NVSE's WorldToScreen (the readout beside the target in VATS); optional
+	let rChk := CompileScript "TargetReadout/Proj.txt"
+	if eval (IsFormValid rChk) == 0
+		player.AuxVarSetFlt "*_trPj" 0
+		print "Target Readout: Proj.txt failed to compile (is JohnnyGuitar NVSE installed?), so it sits by the reticle. Details: nvse.log"
+	else
+		player.AuxVarSetFlt "*_trPj" 1
+	endif
+	; Armor.txt, the ARMOR line (xNVSE GetArmorDT); optional
+	let rChk := CompileScript "TargetReadout/Armor.txt"
+	if eval (IsFormValid rChk) == 0
+		player.AuxVarSetFlt "*_trAr" 0
+		print "Target Readout: Armor.txt failed to compile, so there is no ARMOR line. Details: nvse.log"
+	else
+		player.AuxVarSetFlt "*_trAr" 1
+	endif
+	; VatsPick.txt, JIP's GetEnemyHealthTarget and GetVATSTargets (the selected VATS target); optional
+	let rChk := CompileScript "TargetReadout/VatsPick.txt"
+	if eval (IsFormValid rChk) == 0
+		player.AuxVarSetFlt "*_trVq" 0
+		print "Target Readout: VatsPick.txt failed to compile, so in VATS it reads the crosshair target. Details: nvse.log"
+	else
+		player.AuxVarSetFlt "*_trVq" 1
 	endif
 	; the typewriter (Type.txt), every frame or so; without it each readout shows at once
 	let ref rType := CompileScript "TargetReadout/Type.txt"
@@ -128,14 +143,14 @@ if iBad >= 0	; always (2026-11-17): each part below is registered only if its ow
 	player.AuxVarSetFlt "*_trTyp" 0
 	if eval (IsFormValid rType) && (IsFormValid rTypeTrue)
 		player.AuxVarSetFlt "*_trTyp" 1
-		CallWhilePerSeconds 0.02 rType rTypeTrue 20
+		CallWhilePerSeconds 0.02 rType rTypeTrue 16	; also in menus (VATS), not while paused
 	else
 		print "Target Readout: Type.txt failed to compile, so readouts show at once. Details: nvse.log"
 	endif
 	let ref rTick := CompileScript "TargetReadout/Tick.txt"
 	let ref rTrue := CompileScript "TargetReadout/Always.txt"
-	; four times a second of play: flags 4 + 16 = not in menus, not while paused
+	; four times a second: flag 16 = not while paused, but also in menus (VATS targeting is one)
 	if eval (IsFormValid rTick) && (IsFormValid rTrue)
-		CallWhilePerSeconds 0.25 rTick rTrue 20
+		CallWhilePerSeconds 0.25 rTick rTrue 16
 	endif
 endif

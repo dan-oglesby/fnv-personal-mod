@@ -266,6 +266,12 @@ comes from JIP's `GetCrosshairRefEx`, which reaches past activation distance. If
 be used, the readout falls back to xNVSE's `GetCrosshairRef`, and the console says that targets are
 read only within reach.
 
+**Only in VATS (default):** the readout shows while you're targeting in VATS, beside the target VATS
+has lit up (JIP's `GetEnemyHealthTarget`; placed with JohnnyGuitar NVSE's `WorldToScreen`, else by the
+reticle), and follows as you switch targets, so it isn't always lighting up the HUD. A sixth line gives
+the body armor and its DT. `"_trAimZ" 120` moves the point it sits beside higher up the target. `"_trVats" 0` shows it
+whenever the crosshair is on someone, as before.
+
 **Typing it out:** each new target's readout types itself out in the game's terminal font, line by line
 behind a block cursor, with the terminal's character clicks, in well under a second. The same target
 updates in place without retyping; look away and back and it types again.

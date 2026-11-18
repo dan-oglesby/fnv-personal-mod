@@ -1,0 +1,24 @@
+; Target Readout: the VATS target. First the one VATS has selected (lit up): JIP LN's
+; GetEnemyHealthTarget, the actor whose health bar the HUD is showing, which in VATS is the selected
+; target. Failing that, the actor last queued for attack (JIP GetVATSTargets, in order). Optional,
+; like Pick.txt: in a file of its own so that if a command's form differs and this fails to compile,
+; only this choice is lost ("*_trVq" 1 when it compiled). Returns 0 when there's neither.
+int iN
+ref rX
+array_var aQ
+
+begin Function {}
+	let rX := GetEnemyHealthTarget
+	if eval IsFormValid rX
+		SetFunctionValue rX
+		return
+	endif
+	let rX := 0
+	let aQ := GetVATSTargets
+	if eval (Ar_Size aQ) > 0
+		let iN := (Ar_Size aQ) - 1
+		let rX := aQ[iN]
+	endif
+	let aQ := Ar_Null
+	SetFunctionValue rX
+end

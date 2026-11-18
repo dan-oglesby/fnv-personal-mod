@@ -4,6 +4,7 @@
 ;   FACTION: THE CHAIRMEN         (Faction.txt)
 ;   STATUS: NEUTRAL               (Status.txt)
 ;   WEAPON: MARIA / PISTOL        (Weapon.txt)
+;   ARMOR: ... / DT 15            (Armor.txt, when it compiled: "*_trAr" 1)
 ; Lines are separated by %r newlines, which only sv_Construct (and other format strings) turn into
 ; real newlines. GetHealthPercentage reads 0 to 1. %n gives "<no name>" for a form without a name
 ; (xNVSE's GetFullName), so that reads UNKNOWN too.
@@ -46,5 +47,11 @@ begin Function {rX}
 	let sName := call rFn rX
 	let sLine := sv_Construct "WEAPON: %z" sName
 	let sOut := sOut + sLine
+	if eval (player.AuxVarGetFlt "*_trAr") == 1
+		let rFn := CompileScript "TargetReadout/Armor.txt"
+		let sName := call rFn rX
+		let sLine := sv_Construct "%rARMOR: %z" sName
+		let sOut := sOut + sLine
+	endif
 	SetFunctionValue sOut
 end

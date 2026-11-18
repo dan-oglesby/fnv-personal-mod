@@ -16,4 +16,14 @@ begin Function {}
 		player.AuxVarSetFlt "_trStep" 3		; letters typed per frame (higher is faster)
 		player.AuxVarSetFlt "_trSound" 1	; the terminal's character clicks while it types (0 silent)
 	endif
+	if eval (player.AuxVarGetFlt "_trInit") < 3
+		; version 3 (2026-11-17): only in VATS, so it isn't always lighting up the HUD
+		player.AuxVarSetFlt "_trInit" 3
+		player.AuxVarSetFlt "_trVats" 1		; 1 only while targeting in VATS, 0 whenever the crosshair is on someone
+	endif
+	if eval (player.AuxVarGetFlt "_trInit") < 4
+		; version 4 (2026-11-17): in VATS the readout sits beside the selected target
+		player.AuxVarSetFlt "_trInit" 4
+		player.AuxVarSetFlt "_trAimZ" 90		; the point it sits beside: units above the target's feet
+	endif
 end

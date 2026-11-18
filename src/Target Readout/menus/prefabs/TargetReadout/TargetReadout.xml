@@ -10,6 +10,13 @@
 <_TRHudOn> 0 </_TRHudOn>
 <_TRAltOn> 0 </_TRAltOn>
 <_TRX> 0 </_TRX>
+<!-- Where it sits (Tick.txt): a point as shares of the screen (_TRSX across, _TRSY down), _TRDX to -->
+<!-- its right, with _TRYK of the text's height above it (1 above, 0.5 centred) and _TRGap more. -->
+<_TRSX> 0.5 </_TRSX>
+<_TRSY> 0.5 </_TRSY>
+<_TRDX> 48 </_TRDX>
+<_TRYK> 1 </_TRYK>
+<_TRGap> 16 </_TRGap>
 <_TRY> 0 </_TRY>
 
 <!-- Up and to the right of the reticle (the screen's centre): the text's bottom line ends 16 units -->
@@ -28,17 +35,18 @@
 	<width> 320 </width>
 	<height> 200 </height>
 	<_trh><copy src="child(red)" trait="height"/><max src="child(hud)" trait="height"/><max src="child(alt)" trait="height"/></_trh>
+	<_trhk><copy src="me()" trait="_trh"/><mul src="io()" trait="_TRYK"/></_trhk>
 	<x>
 		<copy src="screen()" trait="width"/>
-		<div> 2 </div>
-		<add> 48 </add>
+		<mul src="io()" trait="_TRSX"/>
+		<add src="io()" trait="_TRDX"/>
 		<add src="io()" trait="_TRX"/>
 	</x>
 	<y>
 		<copy src="screen()" trait="height"/>
-		<div> 2 </div>
-		<sub src="me()" trait="_trh"/>
-		<sub> 16 </sub>
+		<mul src="io()" trait="_TRSY"/>
+		<sub src="me()" trait="_trhk"/>
+		<sub src="io()" trait="_TRGap"/>
 		<add src="io()" trait="_TRY"/>
 	</y>
 	<!-- Terminator red (_trRed 1, the default): plain RGB traits, no systemcolor -->
