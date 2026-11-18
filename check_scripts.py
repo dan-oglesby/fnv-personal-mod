@@ -121,6 +121,12 @@ def compile_traps(text):
             out.append("line %d: array element outside an NVSE expression (copy it into a variable first)" % n)
         if re.search(r'AuxVarSetStr\s+"[^"]*"\s+(""|\$)', code, re.I):
             out.append("line %d: AuxVarSetStr from \"\" or a $variable" % n)
+        # A message box whose message is only "%z" and has no "|" of its own takes the first item of
+        # that string as the message, and every button below it does the work of the one above it
+        # (2026-11-18, the managed account's companies menu). Put the message text, then "|", first.
+        m = re.search(r'MessageBoxExAlt\s+\w+\s+"([^"]*)"', code, re.I)
+        if m and "|" not in m.group(1) and re.fullmatch(r"\^[^^]*\^%z", m.group(1)):
+            out.append("line %d: message box whose message is a bare %%z: its first button becomes the message" % n)
         # High-traffic game events must be filtered: xNVSE queues events fired on background threads
         # (NPCs equipping gear during cell loads) onto an unlocked list, a race that crashed the
         # loaders on 2026-11-14. A filter (e.g. "second"::yourItem) drops other events first.

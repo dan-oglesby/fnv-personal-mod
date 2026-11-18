@@ -1,5 +1,7 @@
 ; Wasteland Bank: leave single companies out of the managed account, two pages ("*_wmaPage" 0:
 ; tickers 0-6, 1: tickers 7-12). Each button toggles one; "(out)" marks the ones left out.
+; The message text comes before the first "|" (2026-11-18: without it, the first company's name
+; was taken as the message and every button below it toggled the company above it).
 int iPage
 int iK
 int iT
@@ -36,6 +38,6 @@ begin Function {}
 		let sBtns := sBtns + "First page|Back"
 	endif
 	let rCb := CompileScript "WastelandBank/MaCoBtn.txt"
-	MessageBoxExAlt rCb "^Leave out companies^%z" sBtns
+	MessageBoxExAlt rCb "^Leave out companies^Pick a company to leave it out of the managed account, or to let it back in. (out) marks the ones left out.|%z" sBtns
 	let aNames := Ar_Null
 end

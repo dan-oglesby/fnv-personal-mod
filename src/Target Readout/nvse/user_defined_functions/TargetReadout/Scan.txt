@@ -1,0 +1,96 @@
+; Target Readout: the passive scan (2026-11-18), once a second of play (not in menus or paused).
+; Every "_trScanT" seconds (default 6) it outlines the living people and creatures around you for
+; "_trScanD" seconds (default 2), in the colours of the STATUS line (Status.txt): HOSTILE and
+; ENGAGED red, ALLY and FRIENDLY green, anything else amber. The outlines are softened copies of the
+; game's Spotter perk outline (TargetReadout.esp TRScanHostile / TRScanNeutral / TRScanFriendly,
+; 0x800-0x802), played with PlayMagicShaderVisuals, so they shimmer gently and fade on their own.
+; Who: actors in high process (JIP GetActorsByProcessingLevel 0: the ones near you, read on the main
+; thread, as Smart Loot does), within "_trScanR" units (default 4000), not dead or disabled, and,
+; unless "_trScanLOS" is 0, in your line of sight. Only while your weapon is out, unless "_trScanW"
+; is 0. "_trScan" 0 switches it off. Needs TargetReadout.esp (the loader checks it).
+int iN
+int iEvery
+int iPlug
+float fR
+float fDur
+ref rX
+ref rFn
+ref rSh
+ref rHos
+ref rNeu
+ref rFri
+string_var sSt
+array_var aAct
+array_var aEntry
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_trScan") == 0
+		return
+	endif
+	if player.GetDead
+		return
+	endif
+	if eval IsInKillCam
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_trScanW") != 0 && (player.IsWeaponOut) == 0
+		player.AuxVarSetFlt "*_trScanN" 0
+		return
+	endif
+	let iEvery := player.AuxVarGetFlt "_trScanT"
+	if iEvery < 1
+		let iEvery := 6
+	endif
+	let iN := player.AuxVarGetFlt "*_trScanN"
+	let iN += 1
+	if iN < iEvery
+		player.AuxVarSetFlt "*_trScanN" iN
+		return
+	endif
+	player.AuxVarSetFlt "*_trScanN" 0
+	let iPlug := GetModIndex "TargetReadout.esp"
+	let rHos := BuildRef iPlug 2048	; TRScanHostile 0x800
+	let rNeu := BuildRef iPlug 2049	; TRScanNeutral 0x801
+	let rFri := BuildRef iPlug 2050	; TRScanFriendly 0x802
+	if eval (IsFormValid rHos) == 0 || (IsFormValid rNeu) == 0 || (IsFormValid rFri) == 0
+		return
+	endif
+	let fR := player.AuxVarGetFlt "_trScanR"
+	if fR <= 0
+		let fR := 4000
+	endif
+	let fDur := player.AuxVarGetFlt "_trScanD"
+	if fDur <= 0
+		let fDur := 2
+	endif
+	let rFn := CompileScript "TargetReadout/Status.txt"
+	let aAct := GetActorsByProcessingLevel 0
+	if eval aAct == Ar_Null
+		return
+	endif
+	foreach aEntry <- aAct
+		let rX := aEntry["value"]
+		if eval (IsFormValid rX) == 0 || rX == player
+			continue
+		endif
+		if eval rX.GetDead || rX.GetDisabled
+			continue
+		endif
+		if eval (player.GetDistance rX) > fR
+			continue
+		endif
+		if eval (player.AuxVarGetFlt "_trScanLOS") != 0 && (player.GetLOS rX) == 0
+			continue
+		endif
+		let sSt := call rFn rX
+		if eval sSt == "HOSTILE" || sSt == "ENGAGED"
+			let rSh := rHos
+		elseif eval sSt == "ALLY" || sSt == "FRIENDLY"
+			let rSh := rFri
+		else
+			let rSh := rNeu
+		endif
+		rX.PlayMagicShaderVisuals rSh fDur
+	loop
+	let aAct := Ar_Null
+end

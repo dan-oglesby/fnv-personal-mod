@@ -26,4 +26,14 @@ begin Function {}
 		player.AuxVarSetFlt "_trInit" 4
 		player.AuxVarSetFlt "_trAimZ" 90		; the point it sits beside: units above the target's feet
 	endif
+	if eval (player.AuxVarGetFlt "_trInit") < 5
+		; version 5 (2026-11-18): the passive scan (Scan.txt)
+		player.AuxVarSetFlt "_trInit" 5
+		player.AuxVarSetFlt "_trScan" 1		; outline the people around you now and then (0 off)
+		player.AuxVarSetFlt "_trScanT" 6		; seconds between scans
+		player.AuxVarSetFlt "_trScanD" 2		; seconds an outline lasts
+		player.AuxVarSetFlt "_trScanR" 4000	; range in units (about 57 m)
+		player.AuxVarSetFlt "_trScanW" 1		; 1 only while your weapon is out, 0 always
+		player.AuxVarSetFlt "_trScanLOS" 1	; 1 only those in your line of sight, 0 through walls too
+	endif
 end

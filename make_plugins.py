@@ -441,6 +441,51 @@ def misc_plugin(edid, name, model, icon, value, weight) -> bytes:
     return header + group("MISC", misc)
 
 
+# Target Readout's passive scan (2026-11-18): three outline shaders, copies of vanilla's Spotter perk
+# outline (fxSpotterShader, FalloutNV.esm 1441632: an edge glow with no texture or particles, gently
+# pulsing), recoloured and softened so it isn't overbearing: enemies red, neutrals amber, friends
+# and allies green. EffectShaderData offsets (JIP LN's GameForms.h): edge colour RGBA at 0x38, edge
+# fade in / full / fade out at 0x3C / 0x40 / 0x44, persistent alpha 0x48, pulse amplitude and
+# frequency 0x4C / 0x50, full alpha ratio 0x58. Applied by TargetReadout/Scan.txt.
+SCAN_PLUGIN = ("TargetReadout.esp", "Target Readout")
+SPOTTER_SHADER = 1441632
+SCAN_SHADERS = [   # object ID, editor ID, edge colour (R, G, B)
+    (0x800, "TRScanHostile", (235, 45, 40)),
+    (0x801, "TRScanNeutral", (235, 175, 45)),
+    (0x802, "TRScanFriendly", (70, 225, 100)),
+]
+
+
+def scan_plugin():
+    """TargetReadout.esp: the scan's three outline shaders. None without the ESM."""
+    base = _vanilla_records("EFSH", {SPOTTER_SHADER})
+    if base is None:
+        return None
+    flags, subs = base[SPOTTER_SHADER]
+    body_all = b""
+    for objid, edid, (r, g, b) in SCAN_SHADERS:
+        body = b""
+        for t, d in subs:
+            if t == "EDID":
+                d = z(edid)
+            elif t == "DATA":
+                d = bytearray(d)
+                d[0x38:0x3C] = bytes((r, g, b, 0))
+                struct.pack_into("<fff", d, 0x3C, 0.25, 0.0, 0.5)    # fade in, full, fade out (s)
+                struct.pack_into("<f", d, 0x48, 0.55)                # persistent alpha: softer
+                struct.pack_into("<ff", d, 0x4C, 0.35, 1.6)          # a quicker, smaller shimmer
+                struct.pack_into("<f", d, 0x58, 0.8)                 # full alpha ratio
+                d = bytes(d)
+            body += sub(t, d)
+        body_all += record("EFSH", 0, 0x01000000 | objid, body)
+    header = record("TES4", 0, 0,
+                    sub("HEDR", struct.pack("<fiI", 1.34, len(SCAN_SHADERS), 0x803))
+                    + sub("CNAM", z("fnv-personal-mod"))
+                    + sub("MAST", z("FalloutNV.esm"))
+                    + sub("DATA", bytes(8)))
+    return header + _grup(b"EFSH", 0, body_all)
+
+
 def main():
     for fname, mod, edid, name, model, icon, small in ITEMS:
         out = ROOT / "src" / mod / fname
@@ -458,6 +503,14 @@ def main():
         if not out.exists() or out.read_bytes() != data:
             out.write_bytes(data)
             print("wrote", out.relative_to(ROOT))
+    fname, mod = SCAN_PLUGIN
+    out = ROOT / "src" / mod / fname
+    data = scan_plugin()
+    if data is None:
+        print("make_plugins: FalloutNV.esm not found (set FNV_DATA); kept", out.name, "as it is")
+    elif not out.exists() or out.read_bytes() != data:
+        out.write_bytes(data)
+        print("wrote", out.relative_to(ROOT))
     for fname, mod, edid, name, model, icon, value, weight in MISC_ITEMS:
         out = ROOT / "src" / mod / fname
         out.parent.mkdir(parents=True, exist_ok=True)
