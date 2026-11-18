@@ -43,10 +43,14 @@ begin Function {rX}
 	if eval rX.GetDisabled
 		return
 	endif
-	let fRange := player.AuxVarGetFlt "_trRange"
-	let fD := player.GetDistance rX
-	if fD > fRange
-		return
+	; the range applies outside VATS; in VATS the game has already decided what can be targeted, and
+	; its reach can exceed ours (review 2026-11-18)
+	if eval (MenuMode 1056) == 0
+		let fRange := player.AuxVarGetFlt "_trRange"
+		let fD := player.GetDistance rX
+		if fD > fRange
+			return
+		endif
 	endif
 	SetFunctionValue 1
 end
