@@ -2,10 +2,14 @@
 ; menus or while paused). Skipped while dead or, unless set otherwise, in combat.
 ; 1. Rebuilds the want-lists (Want.txt) when the number of stacks you carry changes, or every 8th
 ;    check.
-; 2. One scan of references within reach (xNVSE GetRefs with type 0, which skips the typed matcher
-;    that crashes on a reference with no base item), sorted into loose items and containers or
-;    corpses. Nothing is picked up during the scan: picking up mid-scan is what crashed Auto Loot
-;    Enhanced.
+; 2. Scans of references within reach, sorted into loose items and containers or corpses. Nothing
+;    is picked up during the scan: picking up mid-scan is what crashed Auto Loot Enhanced.
+;    With Scan Null Fix loaded: three typed scans, containers (27), actors (200) and items (201).
+;    Without it: one scan of every reference (type 0), because xNVSE's typed matchers crash on a
+;    reference with no base form, and Scan Null Fix is what patches them (it unloads itself when
+;    it can't). 2026-11-18: the untyped scan made the script loop over every rock, tree and static
+;    in reach, 30-100 ms per pass in the open world, once or twice a second while you walked: a
+;    rhythmic stutter Engine Watch caught (hitches 1.0 and 1.5 s apart, 31x an even spread).
 ; 3. Then up to 10 pickups (an enemy's things are made yours first, so it's no theft): loose items by activating them for you (the same as pressing E: their
 ;    scripts run and the game adds them as usual), then containers and corpses (Box.txt).
 int iInv
@@ -101,9 +105,31 @@ begin Function {}
 	player.AuxVarSetFlt "*_slLastF" fX
 
 	let fRad := player.AuxVarGetFlt "_slRad"
-	let aRefs := player.GetRefs 0 1 0 fRad
-	if eval aRefs == Ar_Null
-		let aRefs := Ar_Construct "array"
+	if eval IsPluginInstalled "Scan Null Fix"
+		; only what could be looted: containers, actors (200) and inventory items (201)
+		let aRefs := player.GetRefs 27 1 0 fRad
+		if eval aRefs == Ar_Null
+			let aRefs := Ar_Construct "array"
+		endif
+		let aPers := player.GetRefs 200 1 0 fRad
+		if eval aPers != Ar_Null
+			foreach aEntry <- aPers
+				let rRef := aEntry["value"]
+				Ar_Append aRefs rRef
+			loop
+		endif
+		let aPers := player.GetRefs 201 1 0 fRad
+		if eval aPers != Ar_Null
+			foreach aEntry <- aPers
+				let rRef := aEntry["value"]
+				Ar_Append aRefs rRef
+			loop
+		endif
+	else
+		let aRefs := player.GetRefs 0 1 0 fRad
+		if eval aRefs == Ar_Null
+			let aRefs := Ar_Construct "array"
+		endif
 	endif
 	; Persistent actors (quest-placed, like the Legion assassin squads) live outside the cells GetRefs
 	; walks. Every loaded actor is in the game's process lists, which only the main thread changes,

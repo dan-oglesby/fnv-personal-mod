@@ -179,14 +179,22 @@ __declspec(dllexport) bool NVSEPlugin_Query(const NVSEInterface* nvse, PluginInf
 	return !nvse->isEditor;
 }
 
+// The load reports whether the patches went in (2026-11-18). When they didn't, xNVSE unloads the
+// plugin, so IsPluginInstalled "Scan Null Fix" is true exactly when typed reference scans (GetRefs
+// with a form type, 200 for actors or 201 for items) are safe. Smart Loot relies on that: with the
+// fix it scans only containers, actors and items instead of every reference in reach.
 __declspec(dllexport) bool NVSEPlugin_Load(const NVSEInterface* nvse)
 {
 	if (nvse->isEditor)
 		return false;
 	FILE* log = OpenLog();
-	ApplyPatches(log);
-	if (log) fclose(log);
-	return true;
+	bool ok = ApplyPatches(log);
+	if (log) {
+		if (!ok)
+			fputs("reporting a failed load, so scripts can tell the typed scans aren't safe\n", log);
+		fclose(log);
+	}
+	return ok;
 }
 
 }
