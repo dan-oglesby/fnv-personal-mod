@@ -1223,6 +1223,15 @@ def report(session):
     if real:
         ending = "crash: %s at %s+%s" % (real[-1]["kind"], *real[-1]["top"])
     r["ending"], r["exit_code"], r["crashes"] = ending, code, crashes
+    # how much play a crash cost: the last save (any kind) before the end of the recording
+    saves = [ev for ev in timeline if ev["kind"] == "saved" and not ev.get("untimed")]
+    if saves and timeline and ("crash" in ending or "violation" in ending or (code not in (None, 0))):
+        try:
+            gap = (dt.datetime.strptime(timeline[-1]["t"], "%H:%M:%S") -
+                   dt.datetime.strptime(saves[-1]["t"], "%H:%M:%S")).total_seconds() % 86400
+            r["last_save"] = {"t": saves[-1]["t"], "minutes_before_end": round(gap / 60, 1), "save": saves[-1]["msg"][-60:]}
+        except ValueError:
+            pass
     m = re.search(r"session (\S+ \S+) -> (\S+)\s+\((\d+) min\)", summary)
     r["minutes"] = int(m.group(3)) if m else None
     if meta.get("started") and meta.get("ended"):
@@ -1336,6 +1345,10 @@ def report(session):
 def render(r):
     L = ["# New Vegas session %s" % r["session"], ""]
     L.append("**Ended:** %s%s" % (r["ending"], "  (%s min)" % r["minutes"] if r.get("minutes") is not None else ""))
+    if r.get("last_save"):
+        L.append("")
+        L.append("**Last save before the end:** %s, %.1f min before (%s)" % (
+            r["last_save"]["t"], r["last_save"]["minutes_before_end"], r["last_save"]["save"]))
     L.append("")
     if not r["recorded_live"]:
         L += ["_Recorded before Engine Watch, or without it: counts only, no times or places._", ""]
