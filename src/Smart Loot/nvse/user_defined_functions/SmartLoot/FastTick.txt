@@ -7,6 +7,8 @@
 ; walking doesn't triple how often that happens) and every 0.5 s for the crosshair. Standing still
 ; costs nothing extra: no scan happens here, only a position check and the crosshair reference
 ; (xNVSE GetCrosshairRef).
+; slot weight: light (tools/timer_slots.py): a position and crosshair check; the full pass it may
+; start runs at most once a second, and Tick.txt skips its own timed pass right after one.
 ; It also lets a searched container finish opening as soon as your crosshair is on it (2026-11-17):
 ; Ajar.txt holds its "Open" animation at speed 0, and the game waits for that animation before it
 ; shows the container, so a held one could never be opened by hand. Once a visit ("*_slThaw",

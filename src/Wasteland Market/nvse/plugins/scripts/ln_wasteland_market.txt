@@ -139,8 +139,9 @@ if eval IsModLoaded "WastelandMarket.esp"
 		; once every 5 s of play: flags 4 + 16 = not in menus, not while paused
 		let ref rTick := CompileScript "WastelandMarket/Tick.txt"
 		let ref rTrue := CompileScript "WastelandMarket/Always.txt"
-		if eval (IsFormValid rTick) && (IsFormValid rTrue)
-			CallWhilePerSeconds 5 rTick rTrue 20
+		let ref rStart := CompileScript "WastelandMarket/Start.txt"
+		if eval (IsFormValid rTick) && (IsFormValid rTrue) && (IsFormValid rStart)
+			CallAfterSeconds 0.525 rStart 1 rTick rTrue 5 20	; timer slot 0.525 s (tools/timer_slots.py)
 		endif
 		if iMenuBad == 0
 			let int iWM := GetModIndex "WastelandMarket.esp"

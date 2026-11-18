@@ -1,0 +1,16 @@
+; Monocyte Limb Regen: once a second (the loader starts it at its slot). With the Monocyte Breeder
+; implant (ImplantRegenPerk, FalloutNV.esm 0x14CCE1), each limb gets 0.1 condition back, the
+; implant's own Health rate.
+ref rP
+
+begin Function {}
+	let rP := BuildRef 0 1363169
+	if eval player.HasPerk rP
+		player.RestoreAV PerceptionCondition 0.1
+		player.RestoreAV EnduranceCondition 0.1
+		player.RestoreAV LeftAttackCondition 0.1
+		player.RestoreAV RightAttackCondition 0.1
+		player.RestoreAV LeftMobilityCondition 0.1
+		player.RestoreAV RightMobilityCondition 0.1
+	endif
+end

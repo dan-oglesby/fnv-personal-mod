@@ -6,6 +6,7 @@
 ; - Walk off (about 36 m) once they've asked, and they take it as a refusal (CollectBtn.txt 1).
 ; - Fighting: over when they're all down or you're about 60 m away; they come back in a week.
 ; - Leaving: they run back the way they came, removed out of sight.
+; slot weight: light (tools/timer_slots.py): returns at once while no collectors are out.
 int iState
 int iPlug
 int iIdx

@@ -11,5 +11,5 @@ begin Function {iMenu}
 	player.AuxVarSetFlt "*_pbCur" 0
 	let rWatch := CompileScript "PerkBank/Watch.txt"
 	let rCond := CompileScript "PerkBank/InMenu.txt"
-	CallWhile rWatch rCond
+	CallWhile rWatch rCond	; slot: exempt (every frame, only while the perk menu is open)
 end

@@ -146,7 +146,7 @@ if iBad >= 0	; always (2026-11-17): each part below is registered only if its ow
 	player.AuxVarSetFlt "*_trTyp" 0
 	if eval (IsFormValid rType) && (IsFormValid rTypeTrue)
 		player.AuxVarSetFlt "*_trTyp" 1
-		CallWhilePerSeconds 0.02 rType rTypeTrue 16	; also in menus (VATS), not while paused
+		CallWhilePerSeconds 0.02 rType rTypeTrue 16	; also in menus (VATS), not while paused; slot: exempt (every frame; returns at once unless a readout is typing)
 	else
 		print "Target Readout: Type.txt failed to compile, so readouts show at once. Details: nvse.log"
 	endif
@@ -154,8 +154,9 @@ if iBad >= 0	; always (2026-11-17): each part below is registered only if its ow
 	if eval IsModLoaded "TargetReadout.esp"
 		let ref rScan := CompileScript "TargetReadout/Scan.txt"
 		let ref rScanTrue := CompileScript "TargetReadout/Always.txt"
-		if eval (IsFormValid rScan) && (IsFormValid rScanTrue)
-			CallWhilePerSeconds 1 rScan rScanTrue 20
+		let ref rStart := CompileScript "TargetReadout/Start.txt"
+		if eval (IsFormValid rScan) && (IsFormValid rScanTrue) && (IsFormValid rStart)
+			CallAfterSeconds 0.15 rStart 1 rScan rScanTrue 1 20	; timer slot 0.150 s (tools/timer_slots.py)
 		else
 			print "Target Readout: Scan.txt failed to compile, so there is no passive scan. Details: nvse.log"
 		endif
@@ -165,7 +166,8 @@ if iBad >= 0	; always (2026-11-17): each part below is registered only if its ow
 	let ref rTick := CompileScript "TargetReadout/Tick.txt"
 	let ref rTrue := CompileScript "TargetReadout/Always.txt"
 	; four times a second: flag 16 = not while paused, but also in menus (VATS targeting is one)
-	if eval (IsFormValid rTick) && (IsFormValid rTrue)
-		CallWhilePerSeconds 0.25 rTick rTrue 16
+	let ref rStart2 := CompileScript "TargetReadout/Start.txt"
+	if eval (IsFormValid rTick) && (IsFormValid rTrue) && (IsFormValid rStart2)
+		CallAfterSeconds 0.025 rStart2 1 rTick rTrue 0.25 16	; timer slot 0.025 s (tools/timer_slots.py)
 	endif
 endif

@@ -9,19 +9,14 @@
 ; Run by JIP LN NVSE's script runner (ln_: new game and every load). xNVSE clears all repeating
 ; calls on every load and new game, so registering here never stacks. Ticks once a second, only
 ; in game mode and not while paused (flags 4 + 16), like the implant's own effect script.
-; Needs xNVSE 6.2.8+ (CallWhilePerSeconds) and JIP LN 56.95+.
+; Needs xNVSE 6.2.8+ (CallWhilePerSeconds) and JIP LN 56.95+. The tick is MonocyteRegen/Tick.txt,
+; started at its own slot within the second (tools/timer_slots.py) by MonocyteRegen/Start.txt.
 
-CallWhilePerSeconds 1 (begin function {}
-ref rP
-let rP := BuildRef 0 1363169
-if player.HasPerk rP
-player.RestoreAV PerceptionCondition 0.1
-player.RestoreAV EnduranceCondition 0.1
-player.RestoreAV LeftAttackCondition 0.1
-player.RestoreAV RightAttackCondition 0.1
-player.RestoreAV LeftMobilityCondition 0.1
-player.RestoreAV RightMobilityCondition 0.1
+let ref rTick := CompileScript "MonocyteRegen/Tick.txt"
+let ref rTrue := CompileScript "MonocyteRegen/Always.txt"
+let ref rStart := CompileScript "MonocyteRegen/Start.txt"
+if eval (IsFormValid rTick) && (IsFormValid rTrue) && (IsFormValid rStart)
+	CallAfterSeconds 0.2 rStart 1 rTick rTrue 1 20	; timer slot 0.200 s (tools/timer_slots.py)
+else
+	print "Monocyte Limb Regen: its script functions failed to compile, so limbs don't regenerate. Details: nvse.log"
 endif
-end) (begin function {}
-SetFunctionValue 1
-end) 20

@@ -61,9 +61,10 @@ endif
 let ref rTwWatch := CompileScript "WastelandTweaks/VatsWatch.txt"
 let ref rTwKey := CompileScript "WastelandTweaks/VatsKey.txt"
 let ref rTwTrue := CompileScript "WastelandTweaks/Always.txt"
-if eval (IsFormValid rTwWatch) && (IsFormValid rTwKey) && (IsFormValid rTwTrue)
+let ref rStart := CompileScript "WastelandTweaks/Start.txt"
+if eval (IsFormValid rTwWatch) && (IsFormValid rTwKey) && (IsFormValid rTwTrue) && (IsFormValid rStart)
 	; once a second, outside menus (VATS playback isn't a menu) and not while paused: flags 4 + 16
-	CallWhilePerSeconds 1 rTwWatch rTwTrue 20
+	CallAfterSeconds 0.35 rStart 1 rTwWatch rTwTrue 1 20	; timer slot 0.350 s (tools/timer_slots.py)
 	let int iTwKey := player.AuxVarGetFlt "_twVatsKey"
 	if iTwKey > 0
 		SetOnKeyDownEventHandler rTwKey 1 iTwKey
@@ -84,8 +85,9 @@ endif
 if eval IsModLoaded "FalloutNVCheatTerminal.esp"
 	let ref rTwStash := CompileScript "WastelandTweaks/StashTick.txt"
 	let ref rTwStashFn := CompileScript "WastelandTweaks/Stash.txt"
-	if eval (IsFormValid rTwStash) && (IsFormValid rTwStashFn) && (IsFormValid rTwTrue)
-		CallWhilePerSeconds 1 rTwStash rTwTrue 20
+	let ref rStart2 := CompileScript "WastelandTweaks/Start.txt"
+	if eval (IsFormValid rTwStash) && (IsFormValid rTwStashFn) && (IsFormValid rTwTrue) && (IsFormValid rStart2)
+		CallAfterSeconds 0 rStart2 1 rTwStash rTwTrue 1 20	; timer slot 0.000 s (tools/timer_slots.py)
 	else
 		print "Wasteland Tweaks: the cheat terminal storage link is off because its scripts failed to compile (see nvse.log)"
 	endif

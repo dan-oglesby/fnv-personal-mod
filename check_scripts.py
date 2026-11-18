@@ -244,6 +244,10 @@ def main():
         err = balance(text)
         if err:
             problems.append("%s: %s" % (rel, err))
+    # repeating timers: each starts at its own slot within the second (tools/timer_slots.py)
+    sys.path.insert(0, str(ROOT / "tools"))
+    import timer_slots
+    problems += timer_slots.check()
     for p in problems:
         print("SCRIPT PROBLEM:", p)
     if not problems:

@@ -229,13 +229,15 @@ if eval IsModLoaded "SmartLoot.esp"
 		; every 1.5 s of play: flags 4 + 16 = not in menus, not while paused
 		let ref rTick := CompileScript "SmartLoot/Tick.txt"
 		let ref rTrue := CompileScript "SmartLoot/Always.txt"
-		if eval (IsFormValid rTick) && (IsFormValid rTrue)
-			CallWhilePerSeconds 1.5 rTick rTrue 20
+		let ref rStart := CompileScript "SmartLoot/Start.txt"
+		if eval (IsFormValid rTick) && (IsFormValid rTrue) && (IsFormValid rStart)
+			CallAfterSeconds 0.375 rStart 1 rTick rTrue 1.5 20	; timer slot 0.375 s (tools/timer_slots.py)
 		endif
 		; and the light check every 0.25 s that runs a pass early when you move or look at loot
 		let ref rFast := CompileScript "SmartLoot/FastTick.txt"
-		if eval (IsFormValid rFast) && (IsFormValid rTrue)
-			CallWhilePerSeconds 0.25 rFast rTrue 20
+		let ref rStart2 := CompileScript "SmartLoot/Start.txt"
+		if eval (IsFormValid rFast) && (IsFormValid rTrue) && (IsFormValid rStart2)
+			CallAfterSeconds 0.175 rStart2 1 rFast rTrue 0.25 20	; timer slot 0.175 s (tools/timer_slots.py)
 		endif
 	endif
 endif

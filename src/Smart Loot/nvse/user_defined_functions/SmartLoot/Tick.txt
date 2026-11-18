@@ -72,6 +72,12 @@ begin Function {}
 		endif
 	endif
 
+	; one pass at a time (2026-11-18): when FastTick.txt ran a pass less than half a second ago (two
+	; of its ticks), this timed pass would find nothing new, so it skips the scan
+	let fX := player.AuxVarGetFlt "*_slLastF"
+	if eval fX > 0 && ((player.AuxVarGetFlt "*_slFastN") - fX) < 2
+		return
+	endif
 	let iInv := player.GetNumItems
 	let iT := player.AuxVarGetFlt "*_slT"
 	let iT += 1

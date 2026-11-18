@@ -1,0 +1,4 @@
+; Monocyte Limb Regen: the timer's condition, always true (the timer runs until the next load).
+begin Function {}
+	SetFunctionValue 1
+end

@@ -19,6 +19,8 @@
 ;   back the way they came; or at once if you're about 60 m away, out of sight.
 ; Goods (the vault, ammo, selling, orders) are at the Mojave Express dropboxes now (MEMenu.txt);
 ; MEPick.txt runs here every second for them.
+; slot weight: light (tools/timer_slots.py): with no squad out it only checks the five dropboxes'
+; distances (MEPick.txt) and returns.
 int iState
 int iPlug
 int iIdx

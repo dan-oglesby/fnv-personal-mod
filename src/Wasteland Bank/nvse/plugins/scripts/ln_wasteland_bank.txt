@@ -619,6 +619,10 @@ let rChk := CompileScript "WastelandBank/StageInfo.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/Start.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/StipDay.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -736,34 +740,40 @@ if iBad >= 0	; always (2026-11-17): each part below is registered only if its ow
 	; not in menus, not while paused
 	let ref rTick := CompileScript "WastelandBank/Tick.txt"
 	let ref rTrue := CompileScript "WastelandBank/Always.txt"
-	if eval (IsFormValid rTick) && (IsFormValid rTrue)
-		CallWhilePerSeconds 10 rTick rTrue 20
+	let ref rStart := CompileScript "WastelandBank/Start.txt"
+	if eval (IsFormValid rTick) && (IsFormValid rTrue) && (IsFormValid rStart)
+		CallAfterSeconds 0.675 rStart 1 rTick rTrue 10 20	; timer slot 0.675 s (tools/timer_slots.py)
 	endif
 	; courier squad: arrival, first meeting, leaving (once a second, same flags)
 	let ref rSq := CompileScript "WastelandBank/SqTick.txt"
-	if eval (IsFormValid rSq) && (IsFormValid rTrue)
-		CallWhilePerSeconds 1 rSq rTrue 20
+	let ref rStart2 := CompileScript "WastelandBank/Start.txt"
+	if eval (IsFormValid rSq) && (IsFormValid rTrue) && (IsFormValid rStart2)
+		CallAfterSeconds 0.1 rStart2 1 rSq rTrue 1 20	; timer slot 0.100 s (tools/timer_slots.py)
 	endif
 	; debt collectors, when a loan runs two weeks overdue (ColTick.txt; same flags)
 	let ref rCol := CompileScript "WastelandBank/ColTick.txt"
-	if eval (IsFormValid rCol) && (IsFormValid rTrue)
-		CallWhilePerSeconds 1 rCol rTrue 20
+	let ref rStart3 := CompileScript "WastelandBank/Start.txt"
+	if eval (IsFormValid rCol) && (IsFormValid rTrue) && (IsFormValid rStart3)
+		CallAfterSeconds 0.125 rStart3 1 rCol rTrue 1 20	; timer slot 0.125 s (tools/timer_slots.py)
 	endif
 	; caravan ventures: escorts and outcomes (CvTick.txt; same flags)
 	let ref rCvT := CompileScript "WastelandBank/CvTick.txt"
-	if eval (IsFormValid rCvT) && (IsFormValid rTrue)
-		CallWhilePerSeconds 1 rCvT rTrue 20
+	let ref rStart4 := CompileScript "WastelandBank/Start.txt"
+	if eval (IsFormValid rCvT) && (IsFormValid rTrue) && (IsFormValid rStart4)
+		CallAfterSeconds 0.325 rStart4 1 rCvT rTrue 1 20	; timer slot 0.325 s (tools/timer_slots.py)
 	endif
 	; the representatives (Caravan Agent, Publicanus): placed by their places, talked to in person
 	; (RepTick.txt; every 2 s, same flags)
 	let ref rRepT := CompileScript "WastelandBank/RepTick.txt"
-	if eval (IsFormValid rRepT) && (IsFormValid rTrue)
-		CallWhilePerSeconds 2 rRepT rTrue 20
+	let ref rStart5 := CompileScript "WastelandBank/Start.txt"
+	if eval (IsFormValid rRepT) && (IsFormValid rTrue) && (IsFormValid rStart5)
+		CallAfterSeconds 0.45 rStart5 1 rRepT rTrue 2 20	; timer slot 0.450 s (tools/timer_slots.py)
 	endif
 	; hired guards: deaths, leaving, catching up (GuardTick.txt; every second, same flags)
 	let ref rGdT := CompileScript "WastelandBank/GuardTick.txt"
-	if eval (IsFormValid rGdT) && (IsFormValid rTrue)
-		CallWhilePerSeconds 1 rGdT rTrue 20
+	let ref rStart6 := CompileScript "WastelandBank/Start.txt"
+	if eval (IsFormValid rGdT) && (IsFormValid rTrue) && (IsFormValid rStart6)
+		CallAfterSeconds 0.3 rStart6 1 rGdT rTrue 1 20	; timer slot 0.300 s (tools/timer_slots.py)
 	endif
 	; the vault's container screen closing: charge for what the couriers carried
 	let ref rVaultClose := CompileScript "WastelandBank/VaultClose.txt"

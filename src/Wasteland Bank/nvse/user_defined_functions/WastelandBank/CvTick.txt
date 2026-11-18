@@ -14,6 +14,7 @@
 ;   destination (within about 11 m) pays the escorted return (2). Lose sight of it (about 60 m) for
 ;   30 seconds and it goes on alone at the route's odds.
 ; - On its own: at "_cvArr" the route's odds decide (CvEnd.txt 0 or 1).
+; slot weight: light (tools/timer_slots.py): returns at once while no caravan venture is running.
 int iState
 int iR
 int iId
