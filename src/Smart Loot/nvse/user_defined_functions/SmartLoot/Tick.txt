@@ -189,6 +189,12 @@ begin Function {}
 		if eval (IsFormValid rRef) == 0 || rRef.GetDisabled
 			continue
 		endif
+		; not while it is still loading (review 2026-11-18): picking up a reference whose model isn't
+		; in yet is the half-loaded state a dropped-weapon crash came from (2026-11-16); it is taken
+		; on a later check instead
+		if eval (rRef.HasLoaded3D) == 0
+			continue
+		endif
 		let rBase := rRef.GetBaseObject
 		if eval (IsFormValid rBase) == 0
 			continue
