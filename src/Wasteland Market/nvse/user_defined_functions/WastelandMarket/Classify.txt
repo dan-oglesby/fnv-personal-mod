@@ -1,5 +1,8 @@
-; Wasteland Market: sorts every loaded item into a price category, on every load (base values are
-; never saved, so they are vanilla again on each load and are read fresh here). Items are listed with
+; Wasteland Market: sorts every loaded item into a price category, on every load. An item's original
+; value is read once per game session and kept ("*_wmV"): JIP's SetBaseItemValue changes the base form
+; until the game exits, loading a save doesn't undo it, and JIP keeps temporary aux variables across
+; loads too, so re-reading GetValue after a reload took the market's price as the original and
+; compounded it with every reload (review 2026-11-18). Items are listed with
 ; JIP GetLoadedTypeArray: ammo 41, aid 47, weapons 40, armor 24, misc 31. Each item's category and
 ; original value are kept on the item form itself, as temporary aux variables ("*_wmCat" = category
 ; + 1, "*_wmV"), and every categorised item in "*_wmItem" (count "*_wmN").
@@ -21,6 +24,8 @@ array_var aTypes
 array_var aForms
 array_var aCur
 string_var sName
+
+float fV0
 
 begin Function {}
 	; currency stays out of the market (caps, NCR $5/$20/$100, Legion Denarius/Aureus/mangled,
@@ -63,6 +68,10 @@ begin Function {}
 				continue
 			endif
 			let iVal := GetValue rForm
+			let fV0 := AuxVarGetFlt "*_wmV" 0 rForm
+			if fV0 >= 1
+				let iVal := fV0	; the value first read this session, before any price was applied
+			endif
 			if iVal < 1
 				continue
 			endif
