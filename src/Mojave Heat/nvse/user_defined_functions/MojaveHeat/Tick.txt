@@ -247,7 +247,14 @@ begin Function {}
 			if fGot >= 1
 				let fBaseD := player.GetBaseAV Dehydration	; raise the base value, as the game's own thirst does (a ModAV
 				let fBaseD += fGot	; would leave a lasting modifier that drinking never clears)
-				player.SetAV Dehydration fBaseD
+				; heat never takes you past 950 by itself (1000 kills): a long sleep or wait in the heat
+				; is charged at once, and must not be what kills you on waking (review 2026-11-18)
+				if fBaseD > 950
+					let fBaseD := 950
+				endif
+				if eval fBaseD > (player.GetBaseAV Dehydration)
+					player.SetAV Dehydration fBaseD
+				endif
 				let fAcc -= fGot
 			endif
 			let iN := 0
