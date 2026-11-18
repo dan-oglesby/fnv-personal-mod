@@ -1,0 +1,11 @@
+; Needs Meters: default settings, set once per save (JIP auxiliary variables on the player).
+; Change them from the console, e.g. player.AuxVarSetFlt "_nmNum" 0
+; Later versions go after this block as < 2, < 3 and so on, in rising order.
+begin Function {}
+	if eval (player.AuxVarGetFlt "_nmSet") < 1
+		player.AuxVarSetFlt "_nmSet" 1
+		player.AuxVarSetFlt "_nmNum" 1		; 0 = segmented meters, 1 = numbers (default), 2 = meters and numbers
+		player.AuxVarSetFlt "_nmClock" 1	; 0 = no clock, 1 = 12-hour (default), 2 = 24-hour
+		player.AuxVarSetFlt "_nmTemp" 1		; 1 = temperature line while Mojave Heat runs, 0 = hide it
+	endif
+end

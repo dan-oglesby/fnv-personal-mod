@@ -9,7 +9,22 @@
 <_NMBlink> 0 </_NMBlink>
 <_NMPower> -1 </_NMPower>
 <_NMBatt> 0 </_NMBatt>
+<!-- Number strings, built by Tick.txt (SetUIStringEx): -->
+<_NMWaterS> 0 </_NMWaterS>
+<_NMFoodS> 0 </_NMFoodS>
+<_NMSleepS> 0 </_NMSleepS>
+<_NMRadsS> 0 </_NMRadsS>
+<_NMPowerS> 0 </_NMPowerS>
+<!-- Info lines: the clock and (with Mojave Heat) the temperature; _NMHot 1 while heat adds thirst: -->
+<_NMClock> 0 </_NMClock>
+<_NMClockOn> 0 </_NMClockOn>
+<_NMTempS> 0 </_NMTempS>
+<_NMTempOn> 0 </_NMTempOn>
+<_NMHot> 0 </_NMHot>
 <!-- Settings, also set by Tick.txt from the player's saved settings: -->
+<!-- display mode (_nmNum): meters _NMBars, numbers _NMNums; these defaults look like the old meters -->
+<_NMBars> 1 </_NMBars>
+<_NMNums> 0 </_NMNums>
 <_NMOn> 1 </_NMOn>
 <_NMX> 0 </_NMX>
 <_NMGap> 10 </_NMGap>
@@ -23,12 +38,24 @@
 		<copy src="io()" trait="_NMOn"/>
 		<and src="ActionPoints" trait="visible"/>
 	</visible>
-	<width> 166 </width>
-	<height> 200 </height>
+	<!-- x of the number column: after the meters, or where they would start -->
+	<_numx>
+		<copy src="io()" trait="_NMBars"/>
+		<mul> 128 </mul>
+		<add> 44 </add>
+	</_numx>
+	<!-- 166 with meters only, 92 with numbers only, 220 with both -->
+	<width>
+		<copy src="io()" trait="_NMNums"/>
+		<mul> 54 </mul>
+		<add src="me()" trait="_numx"/>
+		<sub> 6 </sub>
+	</width>
+	<height> 280 </height>
 	<x>
 		<copy src="screen()" trait="width"/>
 		<sub> 50 </sub>
-		<sub> 166 </sub>
+		<sub src="me()" trait="width"/>
 		<add src="io()" trait="_NMX"/>
 	</x>
 	<y>
@@ -37,6 +64,66 @@
 		<sub> 230 </sub>
 		<add src="io()" trait="_NMY"/>
 	</y>
+	<!-- NMTemp -->
+	<rect name="NMTemp">
+		<locus> &true; </locus>
+		<x> 0 </x>
+		<_lblh><copy src="child(v)" trait="height"/><max src="child(vw)" trait="height"/></_lblh>
+		<y>
+			<copy src="me()" trait="_lblh"/>
+			<add src="io()" trait="_NMGap"/>
+			<mul> -2 </mul>
+		</y>
+		<width><copy src="parent()" trait="width"/></width>
+		<height><copy src="me()" trait="_lblh"/></height>
+		<visible><copy src="io()" trait="_NMTempOn"/></visible>
+		<text name="v">
+			<x><copy src="parent()" trait="width"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &right; </justify>
+			<systemcolor> &hudmain; </systemcolor>
+			<string><copy src="io()" trait="_NMTempS"/></string>
+			<visible>
+				<copy src="io()" trait="_NMHot"/>
+				<lt> 1 </lt>
+			</visible>
+		</text>
+		<text name="vw">
+			<x><copy src="parent()" trait="width"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &right; </justify>
+			<systemcolor> &hudalt; </systemcolor>
+			<string><copy src="io()" trait="_NMTempS"/></string>
+			<visible>
+				<copy src="io()" trait="_NMHot"/>
+				<gte> 1 </gte>
+			</visible>
+		</text>
+	</rect>
+	<!-- NMClock -->
+	<rect name="NMClock">
+		<locus> &true; </locus>
+		<x> 0 </x>
+		<_lblh><copy src="child(v)" trait="height"/></_lblh>
+		<y>
+			<copy src="me()" trait="_lblh"/>
+			<add src="io()" trait="_NMGap"/>
+			<mul> -1 </mul>
+		</y>
+		<width><copy src="parent()" trait="width"/></width>
+		<height><copy src="me()" trait="_lblh"/></height>
+		<visible><copy src="io()" trait="_NMClockOn"/></visible>
+		<text name="v">
+			<x><copy src="parent()" trait="width"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &right; </justify>
+			<systemcolor> &hudmain; </systemcolor>
+			<string><copy src="io()" trait="_NMClock"/></string>
+		</text>
+	</rect>
 	<!-- H2O -->
 	<rect name="NMWater">
 		<locus> &true; </locus>
@@ -47,7 +134,8 @@
 			<add src="io()" trait="_NMGap"/>
 			<mul> 0 </mul>
 		</y>
-		<width> 166 </width>
+		<width><copy src="parent()" trait="width"/></width>
+		<_numx><copy src="parent()" trait="_numx"/></_numx>
 		<height><copy src="me()" trait="_lblh"/></height>
 		<visible>
 			<copy src="io()" trait="_NMHardcore"/>
@@ -92,6 +180,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b1">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -105,6 +194,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b2">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -118,6 +208,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b3">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -131,6 +222,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b4">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -144,6 +236,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="f0">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -175,6 +268,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w0">
@@ -207,6 +301,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f1">
@@ -239,6 +334,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w1">
@@ -271,6 +367,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f2">
@@ -303,6 +400,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w2">
@@ -335,6 +433,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f3">
@@ -367,6 +466,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w3">
@@ -399,6 +499,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f4">
@@ -431,6 +532,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w4">
@@ -463,8 +565,51 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
+		<text name="n">
+			<x><copy src="parent()" trait="_numx"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<systemcolor> &hudmain; </systemcolor>
+			<string><copy src="io()" trait="_NMWaterS"/></string>
+			<alpha>
+				<copy> 255 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<lt> 1 </lt>
+				<and src="io()" trait="_NMNums"/>
+			</visible>
+		</text>
+		<text name="nw">
+			<x><copy src="parent()" trait="_numx"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<systemcolor> &hudalt; </systemcolor>
+			<string><copy src="io()" trait="_NMWaterS"/></string>
+			<alpha>
+				<copy> 255 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<gte> 1 </gte>
+				<and src="io()" trait="_NMNums"/>
+			</visible>
+		</text>
 	</rect>
 	<!-- FOD -->
 	<rect name="NMFood">
@@ -476,7 +621,8 @@
 			<add src="io()" trait="_NMGap"/>
 			<mul> 1 </mul>
 		</y>
-		<width> 166 </width>
+		<width><copy src="parent()" trait="width"/></width>
+		<_numx><copy src="parent()" trait="_numx"/></_numx>
 		<height><copy src="me()" trait="_lblh"/></height>
 		<visible>
 			<copy src="io()" trait="_NMHardcore"/>
@@ -521,6 +667,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b1">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -534,6 +681,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b2">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -547,6 +695,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b3">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -560,6 +709,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b4">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -573,6 +723,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="f0">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -604,6 +755,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w0">
@@ -636,6 +788,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f1">
@@ -668,6 +821,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w1">
@@ -700,6 +854,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f2">
@@ -732,6 +887,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w2">
@@ -764,6 +920,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f3">
@@ -796,6 +953,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w3">
@@ -828,6 +986,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f4">
@@ -860,6 +1019,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w4">
@@ -892,8 +1052,51 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
+		<text name="n">
+			<x><copy src="parent()" trait="_numx"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<systemcolor> &hudmain; </systemcolor>
+			<string><copy src="io()" trait="_NMFoodS"/></string>
+			<alpha>
+				<copy> 255 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<lt> 1 </lt>
+				<and src="io()" trait="_NMNums"/>
+			</visible>
+		</text>
+		<text name="nw">
+			<x><copy src="parent()" trait="_numx"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<systemcolor> &hudalt; </systemcolor>
+			<string><copy src="io()" trait="_NMFoodS"/></string>
+			<alpha>
+				<copy> 255 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<gte> 1 </gte>
+				<and src="io()" trait="_NMNums"/>
+			</visible>
+		</text>
 	</rect>
 	<!-- SLP -->
 	<rect name="NMSleep">
@@ -905,7 +1108,8 @@
 			<add src="io()" trait="_NMGap"/>
 			<mul> 2 </mul>
 		</y>
-		<width> 166 </width>
+		<width><copy src="parent()" trait="width"/></width>
+		<_numx><copy src="parent()" trait="_numx"/></_numx>
 		<height><copy src="me()" trait="_lblh"/></height>
 		<visible>
 			<copy src="io()" trait="_NMHardcore"/>
@@ -950,6 +1154,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b1">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -963,6 +1168,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b2">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -976,6 +1182,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b3">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -989,6 +1196,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b4">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1002,6 +1210,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="f0">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1033,6 +1242,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w0">
@@ -1065,6 +1275,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f1">
@@ -1097,6 +1308,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w1">
@@ -1129,6 +1341,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f2">
@@ -1161,6 +1374,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w2">
@@ -1193,6 +1407,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f3">
@@ -1225,6 +1440,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w3">
@@ -1257,6 +1473,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f4">
@@ -1289,6 +1506,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w4">
@@ -1321,8 +1539,51 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
+		<text name="n">
+			<x><copy src="parent()" trait="_numx"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<systemcolor> &hudmain; </systemcolor>
+			<string><copy src="io()" trait="_NMSleepS"/></string>
+			<alpha>
+				<copy> 255 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<lt> 1 </lt>
+				<and src="io()" trait="_NMNums"/>
+			</visible>
+		</text>
+		<text name="nw">
+			<x><copy src="parent()" trait="_numx"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<systemcolor> &hudalt; </systemcolor>
+			<string><copy src="io()" trait="_NMSleepS"/></string>
+			<alpha>
+				<copy> 255 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<gte> 1 </gte>
+				<and src="io()" trait="_NMNums"/>
+			</visible>
+		</text>
 	</rect>
 	<!-- RAD -->
 	<rect name="NMRads">
@@ -1334,11 +1595,12 @@
 			<add src="io()" trait="_NMGap"/>
 			<mul> 3 </mul>
 		</y>
-		<width> 166 </width>
+		<width><copy src="parent()" trait="width"/></width>
+		<_numx><copy src="parent()" trait="_numx"/></_numx>
 		<height><copy src="me()" trait="_lblh"/></height>
 		<visible>
 			<copy src="io()" trait="_NMRads"/>
-			<gt> 0 </gt>
+			<gte> 0.5 </gte>
 		</visible>
 		<_need><copy src="io()" trait="_NMRads"/></_need>
 		<_fill>
@@ -1379,6 +1641,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b1">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1392,6 +1655,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b2">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1405,6 +1669,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b3">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1418,6 +1683,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b4">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1431,6 +1697,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="f0">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1462,6 +1729,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w0">
@@ -1494,6 +1762,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f1">
@@ -1526,6 +1795,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w1">
@@ -1558,6 +1828,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f2">
@@ -1590,6 +1861,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w2">
@@ -1622,6 +1894,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f3">
@@ -1654,6 +1927,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w3">
@@ -1686,6 +1960,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f4">
@@ -1718,6 +1993,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w4">
@@ -1750,8 +2026,51 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
+		<text name="n">
+			<x><copy src="parent()" trait="_numx"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<systemcolor> &hudmain; </systemcolor>
+			<string><copy src="io()" trait="_NMRadsS"/></string>
+			<alpha>
+				<copy> 255 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<lt> 1 </lt>
+				<and src="io()" trait="_NMNums"/>
+			</visible>
+		</text>
+		<text name="nw">
+			<x><copy src="parent()" trait="_numx"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<systemcolor> &hudalt; </systemcolor>
+			<string><copy src="io()" trait="_NMRadsS"/></string>
+			<alpha>
+				<copy> 255 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<gte> 1 </gte>
+				<and src="io()" trait="_NMNums"/>
+			</visible>
+		</text>
 	</rect>
 	<!-- PWR -->
 	<rect name="NMPower">
@@ -1763,7 +2082,8 @@
 			<add src="io()" trait="_NMGap"/>
 			<mul> 4 </mul>
 		</y>
-		<width> 166 </width>
+		<width><copy src="parent()" trait="width"/></width>
+		<_numx><copy src="parent()" trait="_numx"/></_numx>
 		<height><copy src="me()" trait="_lblh"/></height>
 		<visible>
 			<copy src="io()" trait="_NMPower"/>
@@ -1808,6 +2128,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b1">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1821,6 +2142,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b2">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1834,6 +2156,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b3">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1847,6 +2170,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="b4">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1860,6 +2184,7 @@
 			<width> 22 </width>
 			<height> 8 </height>
 			<alpha> 48 </alpha>
+			<visible><copy src="io()" trait="_NMBars"/></visible>
 		</image>
 		<image name="f0">
 			<filename> Interface\Shared\solid.dds </filename>
@@ -1891,6 +2216,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w0">
@@ -1923,6 +2249,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f1">
@@ -1955,6 +2282,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w1">
@@ -1987,6 +2315,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f2">
@@ -2019,6 +2348,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w2">
@@ -2051,6 +2381,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f3">
@@ -2083,6 +2414,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w3">
@@ -2115,6 +2447,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="f4">
@@ -2147,6 +2480,7 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<lt> 1 </lt>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
 		<image name="w4">
@@ -2179,14 +2513,61 @@
 			<visible>
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
+				<and src="io()" trait="_NMBars"/>
 			</visible>
 		</image>
+		<text name="n">
+			<x><copy src="parent()" trait="_numx"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<systemcolor> &hudmain; </systemcolor>
+			<string><copy src="io()" trait="_NMPowerS"/></string>
+			<alpha>
+				<copy> 255 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<lt> 1 </lt>
+				<and src="io()" trait="_NMNums"/>
+			</visible>
+		</text>
+		<text name="nw">
+			<x><copy src="parent()" trait="_numx"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<systemcolor> &hudalt; </systemcolor>
+			<string><copy src="io()" trait="_NMPowerS"/></string>
+			<alpha>
+				<copy> 255 </copy>
+				<sub>
+					<copy> 160 </copy>
+					<onlyif src="parent()" trait="_crit"/>
+					<onlyif src="io()" trait="_NMBlink"/>
+				</sub>
+			</alpha>
+			<visible>
+				<copy src="parent()" trait="_warn"/>
+				<gte> 1 </gte>
+				<and src="io()" trait="_NMNums"/>
+			</visible>
+		</text>
 		<text name="spare">
 			<x> 172 </x>
 			<y> 0 </y>
 			<font> 7 </font>
 			<justify> &left; </justify>
 			<string><copy src="io()" trait="_NMBatt"/></string>
+			<visible>
+				<copy src="io()" trait="_NMNums"/>
+				<lt> 1 </lt>
+			</visible>
 		</text>
 	</rect>
 </rect>

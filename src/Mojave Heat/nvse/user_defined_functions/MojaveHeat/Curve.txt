@@ -1,0 +1,74 @@
+; Mojave Heat: the temperature (F) at game hour fHr (0-24) for the profile Profile.txt cached on the
+; player ("*_mhHi" day maximum, "*_mhLo" night minimum, "*_mhFix" fixed temperature or 0, "*_mhFlg"
+; weather flags). Used every tick (Tick.txt) and, step by step, for waits, sleep and fast travel.
+; Minimum at 06:00, maximum at 15:00; smoothstep pieces that meet with zero slope there; a fast fall
+; after the peak (85 percent of the range by 23:00), then a slow one overnight.
+; Weather (flags, summed): cloudy 1: -5 F in sun, +3 F at night; rain 2: -12 F in sun, -2 F at night;
+; fog 4: -4 F in sun; storm/wind 8: -3 F; nuke 16: +3 F. "In sun" is the curve's share of its range.
+float fHr
+float fHi
+float fLo
+float fFix
+float fRng
+float fTt
+float fEase
+float fTc
+float fSun
+float fAdj
+float fDd
+int iFlg
+
+begin Function {fHr}
+	let fFix := player.AuxVarGetFlt "*_mhFix"
+	if fFix > 0
+		SetFunctionValue fFix
+		return
+	endif
+	let fHi := player.AuxVarGetFlt "*_mhHi"
+	let fLo := player.AuxVarGetFlt "*_mhLo"
+	let fRng := fHi - fLo
+	if fHr >= 6 && fHr < 15
+		let fTt := (fHr - 6) / 9
+		let fEase := fTt * fTt * (3 - 2 * fTt)
+		let fTc := fLo + fRng * fEase
+	elseif fHr >= 15 && fHr < 23
+		let fTt := (fHr - 15) / 8
+		let fEase := fTt * fTt * (3 - 2 * fTt)
+		let fTc := fHi - 0.85 * fRng * fEase
+	else
+		if fHr >= 23
+			let fDd := fHr - 23
+		else
+			let fDd := fHr + 1
+		endif
+		let fTc := fLo + 0.15 * fRng * (1 - fDd / 7)
+	endif
+	let fSun := 0
+	if fRng > 0
+		let fSun := (fTc - fLo) / fRng
+	endif
+	; weather flags, highest bit first (plain comparisons: no bitwise operators needed)
+	let fAdj := 0
+	let iFlg := player.AuxVarGetFlt "*_mhFlg"
+	if iFlg >= 16
+		let fAdj += 3
+		let iFlg -= 16
+	endif
+	if iFlg >= 8
+		let fAdj -= 3
+		let iFlg -= 8
+	endif
+	if iFlg >= 4
+		let fAdj -= 4 * fSun
+		let iFlg -= 4
+	endif
+	if iFlg >= 2
+		let fAdj -= 12 * fSun + 2 * (1 - fSun)
+		let iFlg -= 2
+	endif
+	if iFlg >= 1
+		let fAdj += 3 * (1 - fSun) - 5 * fSun
+	endif
+	let fTc += fAdj
+	SetFunctionValue fTc
+end

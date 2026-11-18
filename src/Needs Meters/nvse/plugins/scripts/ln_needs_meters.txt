@@ -1,14 +1,21 @@
-; Needs Meters (Dan, 2026-11-14): Hardcore needs and radiation as four small meters on the HUD,
-; drawn like the vanilla HP and AP bars. Replaces Primary Needs HUD, which replaced the game's whole
+; Needs Meters: Hardcore needs and radiation on the HUD as numbers or small
+; meters drawn like the vanilla HP and AP bars, with a clock and (with Mojave Heat) the temperature
+; above them. Replaces Primary Needs HUD, which replaced the game's whole
 ; hud_main_menu.xml; this adds one file through UI Organizer instead (Data\uio\public\NeedsMeters.txt
 ; -> Data\menus\prefabs\NeedsMeters\NeedsMeters.xml).
 ;
 ; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.2.8+, JIP LN
-; 56.95+ and UI Organizer. No plugin (.esp) and nothing saved but three optional settings:
+; 56.95+ and UI Organizer. No plugin (.esp) and nothing saved but its settings:
 ;   player.AuxVarSetFlt "_nmOff" 1      hide the meters (0 shows them again)
 ;   player.AuxVarSetFlt "_nmX" -40      move them left 40 (+ = right)
 ;   player.AuxVarSetFlt "_nmY" 30       move them down 30 (+ = down)
 ;   player.AuxVarSetFlt "_nmGap" 16     more space between the rows (default 10)
+;   player.AuxVarSetFlt "_nmNum" 0      0 = segmented meters, 1 = numbers (default), 2 = both
+;   player.AuxVarSetFlt "_nmClock" 2    0 = no clock, 1 = 12-hour (default), 2 = 24-hour
+;   player.AuxVarSetFlt "_nmTemp" 0     hide the temperature line (1, the default, shows it while
+;                                       the Mojave Heat mod runs)
+; The numbers are raw values as the Pip-Boy counts them (H2O 240 = 240 dehydration points).
+; Defaults for _nmNum, _nmClock and _nmTemp are set once per save by NeedsMeters/Init.txt.
 ;
 ; Re-registering on every load is safe: xNVSE clears repeating calls on load and new game.
 
@@ -18,21 +25,37 @@ let int iBad := 0
 let ref rChk := CompileScript "NeedsMeters/Tick.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Needs Meters: NeedsMeters/Tick.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "NeedsMeters/Always.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Needs Meters: NeedsMeters/Always.txt failed to compile, so the part that uses it is off (details: nvse.log)"
+endif
+let rChk := CompileScript "NeedsMeters/Init.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+	print "Needs Meters: NeedsMeters/Init.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 if iBad > 0
-	print "Needs Meters: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
-	MessageEx "Needs Meters is switched off: a script failed to compile"
-else
+	print "Needs Meters: " + $iBad + " script function(s) failed to compile (named above). Everything else in it is running."
+	MessageEx "Needs Meters: part of it is off, a script failed to compile (see the console)"
+endif
+if iBad >= 0	; always (2026-11-17): each part below is registered only if its own function compiled
 	if eval (IsComponentLoaded "HUDMainMenu/NeedsMeters") == 0
 		print "Needs Meters: the HUD file was not injected (is UI Organizer installed and Data/uio/public/NeedsMeters.txt deployed?)"
 	endif
 	let ref rTick := CompileScript "NeedsMeters/Tick.txt"
 	let ref rTrue := CompileScript "NeedsMeters/Always.txt"
-	call rTick
+	let ref rInit := CompileScript "NeedsMeters/Init.txt"
+	if eval (IsFormValid rInit)
+		call rInit
+	endif
+	if eval (IsFormValid rTick)
+		call rTick
+	endif
 	; every second of play: flags 4 + 16 = not in menus, not while paused
-	CallWhilePerSeconds 1 rTick rTrue 20
+	if eval (IsFormValid rTick) && (IsFormValid rTrue)
+		CallWhilePerSeconds 1 rTick rTrue 20
+	endif
 endif

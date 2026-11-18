@@ -1,0 +1,245 @@
+; Mojave Heat: which climate the player is in. Called by Tick.txt only when the cache key changes
+; (weather, worldspace or interior cell, month while seasons are on, indoors or out). Writes the
+; cache on the player (not saved):
+;   "*_mhHi" / "*_mhLo"  day maximum / night minimum in F, already blended by season
+;   "*_mhFix"            a fixed temperature, or 0 for "use the curve" (Curve.txt)
+;   "*_mhFlg"            weather flags: 1 cloudy, 2 rain, 4 fog, 8 storm/wind, 16 nuke
+;   "*_mhWxK"            the weather's thirst factor: rain 0.75, storm 1.2, nuke 1.1 (multiplied)
+; Order: an interior (Inside.txt), then the current weather, then the worldspace, then the Mojave.
+; The weather comes first because child worldspaces (the Strip, Freeside) have their own climates,
+; so the weather alone names the sub-region. Unknown and mod weathers fall to the worldspace.
+; A plain Mojave or urban weather (profile 1 or 4, no flags) only names the climate family, so a
+; listed worldspace (Higgs Village, the Fort, Boulder City) still overrides it.
+; Profile codes: 1-17 climates (tables aHiJ, aLoJ, aHiW, aLoW: July and January highs and lows),
+; 20 sewer (64 F), 21 cave (60 F), 30 treat as an interior.
+;   1 Mojave  2 Goodsprings  3 Strip  4 urban (Freeside, the Fort, Gomorrah, Lucky 38)
+;   5 Boulder City and Hoover Dam  6 Colorado River  7 Searchlight  8 Black Mountain  9 Jacobstown
+;   10 Legate's camp  11 Sierra Madre  12 Zion valley  13 Zion Narrows  14 Big MT  15 Forbidden Zone
+;   16 the Divide  17 nuked ground (Long 15, Dry Wells, Courier's Mile)
+; Form IDs are decimal object IDs: FalloutNV.esm (index 0), then each DLC by its load-order index,
+; only when the DLC is loaded (an unknown ID builds no form and matches nothing).
+int iK
+int iId
+int iM
+int iP
+int iPass
+int iCode
+int iFlg
+int iHit
+int iMon
+float fWt
+float fHi
+float fLo
+float fHiJ
+float fLoJ
+float fHiW
+float fLoW
+float fFix
+float fWxK
+ref rKey
+ref rRef
+ref rCell
+ref rFn
+array_var aIdx
+array_var aW
+array_var aP
+array_var aF
+array_var aHiJ
+array_var aLoJ
+array_var aHiW
+array_var aLoW
+array_var aWt
+
+begin Function {}
+	let iCode := 1
+	let iFlg := 0
+	let iHit := 0
+	if eval player.IsInInterior
+		let iCode := 30
+		let iHit := 1
+	endif
+
+	; module indexes: FalloutNV.esm twice (its weather list is split in two, since Ar_List takes at
+	; most 20 values), Dead Money, Honest Hearts, Old World Blues, Lonesome Road
+	; (255 = not loaded, skipped)
+	let aIdx := Ar_List 0, 0, 255, 255, 255, 255
+	if eval IsModLoaded "DeadMoney.esm"
+		let aIdx[2] := GetModIndex "DeadMoney.esm"
+	endif
+	if eval IsModLoaded "HonestHearts.esm"
+		let aIdx[3] := GetModIndex "HonestHearts.esm"
+	endif
+	if eval IsModLoaded "OldWorldBlues.esm"
+		let aIdx[4] := GetModIndex "OldWorldBlues.esm"
+	endif
+	if eval IsModLoaded "LonesomeRoad.esm"
+		let aIdx[5] := GetModIndex "LonesomeRoad.esm"
+	endif
+
+	; pass 0: the current weather; pass 1: the worldspace
+	let iPass := 0
+	while iPass < 2 && iHit == 0
+		if iPass == 0
+			let rKey := GetCurrentWeather
+		else
+			let rKey := player.GetParentWorldspace
+		endif
+		if eval IsFormValid rKey
+			let iM := 0
+			while iM < 6 && iHit == 0
+				let iP := aIdx[iM]
+				; FalloutNV.esm's worldspaces fit in one list, so its second slot is weathers only
+				if iPass == 1 && iM == 1
+					let iP := 255
+				endif
+				if iP < 255
+					if iPass == 0
+						if iM == 0
+							let aW := Ar_List 1047688, 1533300, 1512069, 1051214, 1173218, 1095065, 931730, 1193943, 1446465, 1520996, 1223909, 1359966, 1521289
+							let aP := Ar_List 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4, 4, 5
+							let aF := Ar_List 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0
+						elseif iM == 1
+							let aW := Ar_List 1523699, 1523839, 1533301, 1520999, 1512068, 1448330, 1461156, 1521129, 1521127, 1435087, 1435088, 1481684
+							let aP := Ar_List 5, 5, 6, 7, 7, 8, 9, 10, 10, 20, 20, 30
+							let aF := Ar_List 0, 8, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
+						elseif iM == 2
+							let aW := Ar_List 74946, 74949, 75094, 51270, 58332, 44661, 24534, 15727
+							let aP := Ar_List 11, 11, 11, 11, 11, 11, 11, 11
+							let aF := Ar_List 0, 0, 0, 0, 0, 1, 1, 5
+						elseif iM == 3
+							let aW := Ar_List 61104, 59161, 59160, 39176, 68728, 62249, 60904, 50791, 34965
+							let aP := Ar_List 12, 12, 12, 12, 12, 13, 13, 21, 21
+							let aF := Ar_List 0, 0, 0, 0, 2, 0, 2, 0, 0
+						elseif iM == 4
+							let aW := Ar_List 58751, 58780, 58758
+							let aP := Ar_List 14, 14, 15
+							let aF := Ar_List 0, 0, 0
+						else
+							let aW := Ar_List 11493, 37876, 50240, 53713, 43020, 39979, 47440, 48714, 53052, 32175, 48983, 48330, 42344, 43073, 31028
+							let aP := Ar_List 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 21, 21, 21
+							let aF := Ar_List 0, 0, 0, 0, 8, 0, 8, 8, 12, 12, 16, 16, 0, 0, 0
+						endif
+					else
+						if iM == 0
+							let aW := Ar_List 894758, 1346565, 1291016, 1097450, 1235277, 1235278, 1496852, 1115688, 1222932, 1361699, 1294518
+							let aP := Ar_List 1, 1, 3, 4, 4, 4, 4, 4, 4, 5, 5
+						elseif iM == 2
+							let aW := Ar_List 2988, 4885, 28379, 13685, 45136, 30394, 38120
+							let aP := Ar_List 11, 11, 11, 11, 11, 11, 11
+						elseif iM == 3
+							; one worldspace, listed twice so the list is never a single value
+							let aW := Ar_List 26683, 26683
+							let aP := Ar_List 12, 12
+						elseif iM == 4
+							let aW := Ar_List 3713, 50938
+							let aP := Ar_List 14, 14
+						else
+							let aW := Ar_List 19805, 11390, 10342, 12147, 43501, 43521, 43522
+							let aP := Ar_List 16, 16, 16, 16, 17, 17, 17
+						endif
+					endif
+					let iK := 0
+					while iK < Ar_Size aW
+						let iId := aW[iK]
+						let rRef := BuildRef iP iId
+						if eval rKey == rRef
+							let iCode := aP[iK]
+							if iPass == 0
+								let iFlg := aF[iK]
+							endif
+							let iHit := 1
+							break
+						endif
+						let iK += 1
+					loop
+				endif
+				let iM += 1
+			loop
+		endif
+		; a plain Mojave or urban weather lets the worldspace pass refine it (pass 1 writes iCode
+		; only on a match, so an unlisted worldspace keeps the weather's profile)
+		if iPass == 0 && iHit == 1 && iFlg == 0
+			if iCode == 1 || iCode == 4
+				let iHit := 0
+			endif
+		endif
+		let iPass += 1
+	loop
+
+	; fixed temperatures: interiors by name, sewers, caves
+	let fFix := 0
+	if iCode == 30
+		let iFlg := 0
+		let rCell := player.GetParentCell
+		let rFn := CompileScript "MojaveHeat/Inside.txt"
+		let fFix := call rFn rCell
+	elseif iCode == 20
+		let fFix := 64
+	elseif iCode == 21
+		let fFix := 60
+	endif
+
+	; the climate: July and January highs and lows, blended by season
+	let iP := iCode
+	if iP < 1 || iP > 17
+		let iP := 1
+	endif
+	; one list per column, profiles 1-17 in order (Ar_List takes at most 20 values)
+	let aHiJ := Ar_List 104, 100, 106, 105, 103, 112, 98, 94, 80, 106, 88, 101, 88, 97, 100, 93, 108
+	let aLoJ := Ar_List 78, 72, 82, 80, 80, 86, 73, 70, 55, 80, 66, 68, 62, 60, 62, 60, 80
+	let aHiW := Ar_List 57, 54, 58, 58, 57, 64, 54, 48, 43, 59, 52, 53, 45, 50, 52, 45, 60
+	let aLoW := Ar_List 36, 32, 40, 39, 40, 43, 35, 30, 22, 40, 38, 29, 30, 20, 22, 22, 40
+	let iK := iP - 1
+	let fHiJ := aHiJ[iK]
+	let fLoJ := aLoJ[iK]
+	let fHiW := aHiW[iK]
+	let fLoW := aLoW[iK]
+	; season weight: 1 = July, 0 = January ("_mhSeason" 1 follows GameMonth, assumed 0 = January)
+	let fWt := 1
+	if eval (player.AuxVarGetFlt "_mhSeason") == 1
+		let iMon := GameMonth
+		if iMon >= 0 && iMon <= 11
+			let aWt := Ar_List 0, 0.08, 0.25, 0.45, 0.7, 0.92, 1, 0.95, 0.78, 0.55, 0.3, 0.08
+			let fWt := aWt[iMon]
+		endif
+	endif
+	let fHi := fHiW + fWt * (fHiJ - fHiW)
+	let fLo := fLoW + fWt * (fLoJ - fLoW)
+	if fFix > 0
+		let fHi := fFix
+		let fLo := fFix
+	endif
+
+	; the weather's thirst factor
+	let fWxK := 1
+	let iK := iFlg
+	if iK >= 16
+		let fWxK *= 1.1
+		let iK -= 16
+	endif
+	if iK >= 8
+		let fWxK *= 1.2
+		let iK -= 8
+	endif
+	if iK >= 4
+		let iK -= 4
+	endif
+	if iK >= 2
+		let fWxK *= 0.75
+	endif
+
+	player.AuxVarSetFlt "*_mhHi" fHi
+	player.AuxVarSetFlt "*_mhLo" fLo
+	player.AuxVarSetFlt "*_mhFix" fFix
+	player.AuxVarSetFlt "*_mhFlg" iFlg
+	player.AuxVarSetFlt "*_mhWxK" fWxK
+	let aIdx := Ar_Null
+	let aW := Ar_Null
+	let aP := Ar_Null
+	let aF := Ar_Null
+	let aHiJ := Ar_Null
+	let aLoJ := Ar_Null
+	let aHiW := Ar_Null
+	let aLoW := Ar_Null
+	let aWt := Ar_Null
+end

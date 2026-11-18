@@ -1,0 +1,21 @@
+; Mojave Heat: the fixed temperature (F) of an interior cell, from its name (sv_Find ignores case).
+; Caves and mines 62, vaults, bunkers and silos 68, sewers, tunnels and metro 66, anything else 74.
+; All are below the 85 F comfort point, so interiors add no thirst. Called by Profile.txt.
+ref rCell
+float fT
+string_var sName
+
+begin Function {rCell}
+	let fT := 74
+	if eval IsFormValid rCell
+		let sName := GetName rCell
+		if eval (sv_Find "cave" sName) >= 0 || (sv_Find "cavern" sName) >= 0 || (sv_Find "mine" sName) >= 0
+			let fT := 62
+		elseif eval (sv_Find "vault" sName) >= 0 || (sv_Find "bunker" sName) >= 0 || (sv_Find "silo" sName) >= 0
+			let fT := 68
+		elseif eval (sv_Find "sewer" sName) >= 0 || (sv_Find "tunnel" sName) >= 0 || (sv_Find "metro" sName) >= 0
+			let fT := 66
+		endif
+	endif
+	SetFunctionValue fT
+end

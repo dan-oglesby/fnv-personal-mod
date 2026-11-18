@@ -1,0 +1,260 @@
+; Mojave Heat: once a second of play (registered by ln_mojave_heat.txt; not in menus or paused).
+; 1. Where the player is: the climate cache (Profile.txt) is refreshed when the weather, worldspace
+;    or interior cell, month (seasons on) or indoors/outdoors changes.
+; 2. The temperature: Curve.txt at the game hour, smoothed (a tenth of the gap each second), snapped
+;    on the first tick after a load, a change of place, a game-time jump over 0.1 h or a gap over
+;    25 F. Published as "_mhTemp" (F) and "_mhTempC" (C), saved; "*_mhLive" 1 while this runs and
+;    "*_mhHeat" (the heat factor, 0 = no extra thirst) for Needs Meters.
+; 3. In Hardcore with "_mhOn" 1: extra thirst. Heat factor E = (temperature - "_mhComfort") /
+;    "_mhSpan", 0 to 2.5. Per game hour the extra is "_mhBase" x E x "_mhStr" x suit x weather x
+;    activity. Suit: worn power armor (upper body slot, flagged power armor, as Fission Power tests
+;    it) leaves "_mhPA" of the effect while powered, 1.25 when Fission Power says its battery is
+;    flat ("_fpLeft" 0, read only); anything else 1. Weather: rain 0.75, storm 1.2, nuke 1.1.
+;    Activity: combat 1.5, running (over 200 units a second) 1.3, otherwise 1.
+;    Time is measured from GameDaysPassed, so nothing is lost while this doesn't run. A jump of more
+;    than 0.1 game hours (wait, sleep, fast travel, long dialogue) is integrated in quarter-hour
+;    steps over the curve (up to 24 h, activity 1) and charged at once. Thirst builds in "_mhAcc"
+;    (saved) and is charged in whole points every 10 seconds by raising Dehydration's base value (GetBaseAV,
+;    SetAV), the value drinking lowers, so it clears as usual.
+int iIn
+int iMon
+int iNew
+int iSnap
+int iSteps
+int iK
+int iN
+int iApply
+float fDays
+float fLast
+float fDH
+float fHr
+float fTgt
+float fSm
+float fDiff
+float fTempC
+float fComf
+float fSpan
+float fBase
+float fStr
+float fE
+float fV
+float fSuit
+float fWxK
+float fAct
+float fX
+float fY
+float fSpd
+float fStep
+float fAcc
+float fGot
+float fHeat
+ref rPlace
+ref rWx
+ref rOld
+ref rSuit
+ref rFn
+ref rCurve
+float fBaseD
+
+begin Function {}
+	if eval player.GetDead
+		return
+	endif
+	; nothing during VATS playback (JIP IsInKillCam); time is measured from GameDaysPassed, so the
+	; skipped seconds are counted on the next tick
+	if eval IsInKillCam
+		return
+	endif
+
+	; where: the worldspace outdoors, the cell indoors
+	let rPlace := player.GetParentWorldspace
+	if eval (IsFormValid rPlace) == 0
+		let rPlace := player.GetParentCell
+	endif
+	if eval (IsFormValid rPlace) == 0
+		return
+	endif
+	let iIn := player.IsInInterior
+	let rWx := GetCurrentWeather
+	if eval (IsFormValid rWx) == 0
+		let rWx := rPlace
+	endif
+	let iMon := 0
+	if eval (player.AuxVarGetFlt "_mhSeason") == 1
+		let iMon := GameMonth + 1
+	endif
+
+	; game time since the last tick (0 on the first tick after a load: nothing is charged)
+	let fDays := GameDaysPassed
+	let fLast := player.AuxVarGetFlt "*_mhDay"
+	let fDH := 0
+	let iSnap := 0
+	if fLast > 0
+		let fDH := (fDays - fLast) * 24
+	else
+		let iSnap := 1
+	endif
+	player.AuxVarSetFlt "*_mhDay" fDays
+	if fDH > 0.1
+		let iSnap := 1
+	endif
+
+	; the climate cache
+	let iNew := 0
+	let rOld := player.AuxVarGetRef "*_mhWsRef"
+	if eval rOld != rPlace
+		let iNew := 1
+		let iSnap := 1
+	endif
+	let rOld := player.AuxVarGetRef "*_mhWxRef"
+	if eval rOld != rWx
+		let iNew := 1
+	endif
+	if eval (player.AuxVarGetFlt "*_mhMon") != iMon || (player.AuxVarGetFlt "*_mhIn") != iIn
+		let iNew := 1
+	endif
+	if iNew == 1
+		player.AuxVarSetRef "*_mhWsRef" rPlace
+		player.AuxVarSetRef "*_mhWxRef" rWx
+		player.AuxVarSetFlt "*_mhMon" iMon
+		player.AuxVarSetFlt "*_mhIn" iIn
+		let rFn := CompileScript "MojaveHeat/Profile.txt"
+		call rFn
+	endif
+
+	; the temperature: target from the curve, smoothed
+	let rCurve := CompileScript "MojaveHeat/Curve.txt"
+	let fHr := GameHour
+	let fTgt := call rCurve fHr
+	let fSm := player.AuxVarGetFlt "*_mhSm"
+	let fDiff := fTgt - fSm
+	if fDiff * fDiff > 625
+		let iSnap := 1
+	endif
+	if iSnap == 1
+		let fSm := fTgt
+	else
+		let fSm += fDiff * 0.1
+	endif
+	player.AuxVarSetFlt "*_mhSm" fSm
+	player.AuxVarSetFlt "_mhTemp" fSm
+	let fTempC := (fSm - 32) * 5 / 9
+	player.AuxVarSetFlt "_mhTempC" fTempC
+
+	; the heat factor
+	let fComf := player.AuxVarGetFlt "_mhComfort"
+	let fSpan := player.AuxVarGetFlt "_mhSpan"
+	if fSpan <= 0
+		let fSpan := 19
+	endif
+	let fBase := player.AuxVarGetFlt "_mhBase"
+	if fBase <= 0
+		let fBase := 12
+	endif
+	let fE := (fSm - fComf) / fSpan
+	if fE < 0
+		let fE := 0
+	elseif fE > 2.5
+		let fE := 2.5
+	endif
+
+	; power armor (read only from Fission Power: "_fpLeft" is the charge left in the worn suit)
+	let fSuit := 1
+	let rSuit := player.GetEquippedObject 2
+	if eval IsFormValid rSuit
+		if eval IsPowerArmor rSuit
+			let fSuit := player.AuxVarGetFlt "_mhPA"
+			if eval IsModLoaded "FissionPower.esp"
+				if eval (player.AuxVarGetFlt "_fpLeft") <= 0
+					let fSuit := 1.25
+				endif
+			endif
+		endif
+	endif
+
+	; the weather's thirst factor (Profile.txt)
+	let fWxK := player.AuxVarGetFlt "*_mhWxK"
+	if fWxK <= 0
+		let fWxK := 1
+	endif
+
+	; activity: combat, or running (distance in the last second, in the same place; a jump over
+	; 1,000 units is a door or fast travel and doesn't count)
+	let fAct := 1
+	let fX := player.GetPos X
+	let fY := player.GetPos Y
+	if eval (player.AuxVarGetFlt "*_mhLive") == 1
+		let rOld := player.AuxVarGetRef "*_mhWhere"
+		if eval rOld == rPlace
+			let fSpd := ((fX - (player.AuxVarGetFlt "*_mhX")) ^ 2 + (fY - (player.AuxVarGetFlt "*_mhY")) ^ 2) ^ 0.5
+			if fSpd > 1000
+				let fSpd := 0
+			endif
+			if fSpd > 200
+				let fAct := 1.3
+			endif
+		endif
+	endif
+	player.AuxVarSetFlt "*_mhX" fX
+	player.AuxVarSetFlt "*_mhY" fY
+	player.AuxVarSetRef "*_mhWhere" rPlace
+	if eval player.IsInCombat
+		let fAct := 1.5
+	endif
+
+	; thirst, in Hardcore only
+	let fHeat := 0
+	if eval (player.IsHardcore) && (player.AuxVarGetFlt "_mhOn") == 1
+		let fStr := player.AuxVarGetFlt "_mhStr"
+		let fHeat := fE * fStr * fSuit * fWxK
+		let fAcc := player.AuxVarGetFlt "_mhAcc"
+		let iApply := 0
+		if fDH > 0.1
+			; a jump: quarter-hour steps over the curve, at each step's middle hour
+			if fDH > 24
+				let fDH := 24
+			endif
+			let iSteps := Floor (fDH * 4)
+			if iSteps * 0.25 < fDH
+				let iSteps += 1
+			endif
+			let fStep := fDH / iSteps
+			let iK := 0
+			while iK < iSteps
+				let fHr := GameHour - fDH + (iK + 0.5) * fStep
+				if fHr < 0
+					let fHr += 24
+				endif
+				let fV := call rCurve fHr
+				let fV := (fV - fComf) / fSpan
+				if fV < 0
+					let fV := 0
+				elseif fV > 2.5
+					let fV := 2.5
+				endif
+				let fAcc += fBase * fV * fStr * fSuit * fWxK * fStep
+				let iK += 1
+			loop
+			let iApply := 1
+		elseif fDH > 0
+			let fAcc += fBase * fE * fStr * fSuit * fWxK * fAct * fDH
+		endif
+		; charge whole points every 10 seconds, or at once after a jump
+		let iN := player.AuxVarGetFlt "*_mhN"
+		let iN += 1
+		if iN >= 10 || iApply == 1
+			let fGot := Floor fAcc
+			if fGot >= 1
+				let fBaseD := player.GetBaseAV Dehydration	; raise the base value, as the game's own thirst does (a ModAV
+				let fBaseD += fGot	; would leave a lasting modifier that drinking never clears)
+				player.SetAV Dehydration fBaseD
+				let fAcc -= fGot
+			endif
+			let iN := 0
+		endif
+		player.AuxVarSetFlt "*_mhN" iN
+		player.AuxVarSetFlt "_mhAcc" fAcc
+	endif
+	player.AuxVarSetFlt "*_mhHeat" fHeat
+	player.AuxVarSetFlt "*_mhLive" 1
+end

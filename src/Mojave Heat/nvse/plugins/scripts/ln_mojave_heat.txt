@@ -1,0 +1,78 @@
+; Mojave Heat (2026-11-17): the Mojave's temperature, and in Hardcore, thirst that follows it.
+; The temperature follows the hour (coolest at 06:00, hottest at 15:00), the region (by weather,
+; then worldspace: the Strip, Goodsprings, the Colorado River, Jacobstown, the DLC areas and so on),
+; and the weather (cloud, rain, fog, storms, fallout); interiors hold a fixed temperature by kind.
+; Above 85 F, Hardcore thirst grows: double the vanilla rate at the Mojave's 104 F peak, nothing
+; extra on a Mojave night. Running and fighting add to it; powered power armor cools you (Fission
+; Power's battery, when it's installed, decides whether the suit has power). Waits, sleep and fast
+; travel are charged over the hours they skip. Drinking clears the extra thirst as usual.
+; Needs Meters shows the temperature on the HUD. No plugin (.esp).
+;
+; Settings (console; saved per character):
+;   player.AuxVarSetFlt "_mhOn" 0          no extra thirst (the temperature still shows)
+;   player.AuxVarSetFlt "_mhStr" 1.5       strength of the extra thirst (default 1; 2 = double)
+;   player.AuxVarSetFlt "_mhUnit" 1        Celsius on the HUD (default 0 = Fahrenheit)
+;   player.AuxVarSetFlt "_mhBase" 12       vanilla thirst per game hour the extra is scaled from
+;   player.AuxVarSetFlt "_mhComfort" 85    no extra thirst at or below this temperature (F)
+;   player.AuxVarSetFlt "_mhSpan" 19       degrees above comfort for +100 percent thirst
+;   player.AuxVarSetFlt "_mhSeason" 1      follow the calendar month (default 0 = always summer)
+;   player.AuxVarSetFlt "_mhPA" 0.15       share of the heat felt in powered power armor
+;
+; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.4+ and JIP LN.
+; Re-registering on every load is safe: xNVSE clears repeating calls on load and new game.
+
+; Every function must have compiled: a timer that calls a function that failed to compile can
+; crash xNVSE (2026-11-13). If one failed, register nothing and say so.
+let int iBad := 0
+let ref rChk := CompileScript "MojaveHeat/Always.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+	print "Mojave Heat: MojaveHeat/Always.txt failed to compile, so the part that uses it is off (details: nvse.log)"
+endif
+let rChk := CompileScript "MojaveHeat/Init.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+	print "Mojave Heat: MojaveHeat/Init.txt failed to compile, so the part that uses it is off (details: nvse.log)"
+endif
+let rChk := CompileScript "MojaveHeat/Profile.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+	print "Mojave Heat: MojaveHeat/Profile.txt failed to compile, so the part that uses it is off (details: nvse.log)"
+endif
+let rChk := CompileScript "MojaveHeat/Inside.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+	print "Mojave Heat: MojaveHeat/Inside.txt failed to compile, so the part that uses it is off (details: nvse.log)"
+endif
+let rChk := CompileScript "MojaveHeat/Curve.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+	print "Mojave Heat: MojaveHeat/Curve.txt failed to compile, so the part that uses it is off (details: nvse.log)"
+endif
+let rChk := CompileScript "MojaveHeat/Tick.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+	print "Mojave Heat: MojaveHeat/Tick.txt failed to compile, so the part that uses it is off (details: nvse.log)"
+endif
+if iBad > 0
+	print "Mojave Heat: " + $iBad + " script function(s) failed to compile (named above). Everything else in it is running."
+	MessageEx "Mojave Heat: part of it is off, a script failed to compile (see the console)"
+endif
+if iBad >= 0	; always (2026-11-17): each part below is registered only if its own function compiled
+	let ref rInit := CompileScript "MojaveHeat/Init.txt"
+	if eval (IsFormValid rInit)
+		call rInit
+	endif
+	; a fresh start after every load: no thirst charged on the first tick (day 0), the climate
+	; looked up again ("*_mhIn" 9 never matches), the HUD line off until the first tick
+	player.AuxVarSetFlt "*_mhLive" 0
+	player.AuxVarSetFlt "*_mhDay" 0
+	player.AuxVarSetFlt "*_mhIn" 9
+	player.AuxVarSetFlt "*_mhN" 0
+	; once a second of play: flags 4 + 16 = not in menus, not while paused
+	let ref rTick := CompileScript "MojaveHeat/Tick.txt"
+	let ref rTrue := CompileScript "MojaveHeat/Always.txt"
+	if eval (IsFormValid rTick) && (IsFormValid rTrue)
+		CallWhilePerSeconds 1 rTick rTrue 20
+	endif
+endif

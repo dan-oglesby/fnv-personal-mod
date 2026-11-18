@@ -2,14 +2,28 @@
 ; Copies the player's Hardcore needs and radiation to the HUD (NeedsMeters.xml draws them), plus the
 ; blink beat and the player's saved settings. Actor value names are the game's own, including its
 ; spelling of SleepDeprevation (checked against the game's name table, 2026-11-14).
-; Settings (JIP auxiliary variables on the player, kept in JIP's co-save):
+; Also builds the number strings (raw values, as the Pip-Boy counts them), the clock line and, while
+; Mojave Heat runs, the temperature line. Every command argument is a variable.
+; Settings (JIP auxiliary variables on the player, kept in JIP's co-save; defaults in Init.txt):
 ;   _nmOff 1 hides the meters; _nmX / _nmY move them (HUD units, + is right / down); _nmGap sets the
 ;   space between rows (default 10).
+;   _nmNum: 0 = segmented meters, 1 = numbers (default), 2 = both.
+;   _nmClock: 0 = no clock, 1 = 12-hour (default), 2 = 24-hour.
+;   _nmTemp: 1 = temperature line while Mojave Heat runs (default), 0 = hidden.
 float fWat
 float fFod
 float fSlp
 float fRad
 float fBeat
+int iN
+int iClk
+int iPM
+float fHr
+float fMn
+float fT
+float fHot
+float fPow
+float fSpare
 
 begin Function {}
 	let fWat := player.GetAV Dehydration
@@ -20,6 +34,18 @@ begin Function {}
 	SetUIFloat "HUDMainMenu/_NMFood" fFod
 	SetUIFloat "HUDMainMenu/_NMSleep" fSlp
 	SetUIFloat "HUDMainMenu/_NMRads" fRad
+	SetUIStringEx "HUDMainMenu/_NMWaterS" "%.0f" fWat
+	SetUIStringEx "HUDMainMenu/_NMFoodS" "%.0f" fFod
+	SetUIStringEx "HUDMainMenu/_NMSleepS" "%.0f" fSlp
+	SetUIStringEx "HUDMainMenu/_NMRadsS" "%.0f" fRad
+	; power armor (Fission Power sets _NMPower 0-1000, or -1 with no suit, and _NMBatt): "73 +2" is
+	; 73 percent charge and 2 spares
+	let fPow := GetUIFloat "HUDMainMenu/_NMPower"
+	if fPow >= 0
+		let fPow := fPow / 10
+		let fSpare := GetUIFloat "HUDMainMenu/_NMBatt"
+		SetUIStringEx "HUDMainMenu/_NMPowerS" "%.0f +%.0f" fPow fSpare
+	endif
 	if player.IsHardcore	; a reference function: bare, a function file has no calling reference and it reads 0
 		SetUIFloat "HUDMainMenu/_NMHardcore" 1
 	else
@@ -40,5 +66,91 @@ begin Function {}
 	let fBeat := player.AuxVarGetFlt "_nmGap"
 	if fBeat > 0
 		SetUIFloat "HUDMainMenu/_NMGap" fBeat
+	endif
+
+	; display mode: meters unless numbers only, numbers in modes 1 and 2
+	let iN := player.AuxVarGetFlt "_nmNum"
+	let fT := 1
+	if iN == 1
+		let fT := 0
+	endif
+	SetUIFloat "HUDMainMenu/_NMBars" fT
+	let fT := 0
+	if iN >= 1
+		let fT := 1
+	endif
+	SetUIFloat "HUDMainMenu/_NMNums" fT
+
+	; clock (GameHour 0-24): 2:05 PM, or 14:05
+	let iClk := player.AuxVarGetFlt "_nmClock"
+	if iClk == 0
+		SetUIFloat "HUDMainMenu/_NMClockOn" 0
+	else
+		SetUIFloat "HUDMainMenu/_NMClockOn" 1
+		let fHr := GameHour
+		let fMn := Floor fHr
+		let fMn := (fHr - fMn) * 60
+		let fMn := Floor fMn
+		let fHr := Floor fHr
+		if iClk == 2
+			if fHr < 10
+				if fMn < 10
+					SetUIStringEx "HUDMainMenu/_NMClock" "0%.0f:0%.0f" fHr fMn
+				else
+					SetUIStringEx "HUDMainMenu/_NMClock" "0%.0f:%.0f" fHr fMn
+				endif
+			else
+				if fMn < 10
+					SetUIStringEx "HUDMainMenu/_NMClock" "%.0f:0%.0f" fHr fMn
+				else
+					SetUIStringEx "HUDMainMenu/_NMClock" "%.0f:%.0f" fHr fMn
+				endif
+			endif
+		else
+			let iPM := 0
+			if fHr >= 12
+				let iPM := 1
+			endif
+			if fHr > 12
+				let fHr -= 12
+			elseif fHr == 0
+				let fHr := 12
+			endif
+			if iPM == 1
+				if fMn < 10
+					SetUIStringEx "HUDMainMenu/_NMClock" "%.0f:0%.0f PM" fHr fMn
+				else
+					SetUIStringEx "HUDMainMenu/_NMClock" "%.0f:%.0f PM" fHr fMn
+				endif
+			else
+				if fMn < 10
+					SetUIStringEx "HUDMainMenu/_NMClock" "%.0f:0%.0f AM" fHr fMn
+				else
+					SetUIStringEx "HUDMainMenu/_NMClock" "%.0f:%.0f AM" fHr fMn
+				endif
+			endif
+		endif
+	endif
+
+	; temperature from Mojave Heat (*_mhLive is not saved, so without that mod the line stays hidden)
+	if eval (player.AuxVarGetFlt "*_mhLive") == 1 && (player.AuxVarGetFlt "_nmTemp") == 1
+		SetUIFloat "HUDMainMenu/_NMTempOn" 1
+		if eval (player.AuxVarGetFlt "_mhUnit") == 1
+			let fT := player.AuxVarGetFlt "_mhTempC"
+			SetUIStringEx "HUDMainMenu/_NMTempS" "%.0fC" fT
+		else
+			let fT := player.AuxVarGetFlt "_mhTemp"
+			SetUIStringEx "HUDMainMenu/_NMTempS" "%.0fF" fT
+		endif
+		; the warning colour while heat is adding thirst (0.05 is about 1F above comfort at strength
+		; 1, so the colour doesn't flicker as the temperature crosses the comfort point)
+		let fHot := player.AuxVarGetFlt "*_mhHeat"
+		if fHot >= 0.05
+			SetUIFloat "HUDMainMenu/_NMHot" 1
+		else
+			SetUIFloat "HUDMainMenu/_NMHot" 0
+		endif
+	else
+		SetUIFloat "HUDMainMenu/_NMTempOn" 0
 	endif
 end

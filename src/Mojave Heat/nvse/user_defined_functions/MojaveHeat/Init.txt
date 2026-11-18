@@ -1,0 +1,17 @@
+; Mojave Heat: default settings, set once per save (JIP auxiliary variables on the player).
+; Change them from the console, e.g. player.AuxVarSetFlt "_mhStr" 1.5
+;   _mhSet  settings version; each version's block runs once, in rising order (later versions go
+;           after this block as < 2, < 3 and so on)
+begin Function {}
+	if eval (player.AuxVarGetFlt "_mhSet") < 1
+		player.AuxVarSetFlt "_mhSet" 1
+		player.AuxVarSetFlt "_mhOn" 1		; 1 = heat adds thirst in Hardcore, 0 = off (temperature still published)
+		player.AuxVarSetFlt "_mhStr" 1		; strength multiplier on the extra thirst (0.5 half, 2 double)
+		player.AuxVarSetFlt "_mhUnit" 0		; HUD units: 0 = Fahrenheit, 1 = Celsius
+		player.AuxVarSetFlt "_mhBase" 12	; vanilla Dehydration per game hour (calibration)
+		player.AuxVarSetFlt "_mhComfort" 85	; F: no extra thirst at or below this
+		player.AuxVarSetFlt "_mhSpan" 19	; F above comfort for +100 percent thirst (85 + 19 = 104, the Mojave peak)
+		player.AuxVarSetFlt "_mhSeason" 0	; 0 = fixed summer profile, 1 = follow GameMonth
+		player.AuxVarSetFlt "_mhPA" 0.15	; share of the heat effect left in powered power armor
+	endif
+end
