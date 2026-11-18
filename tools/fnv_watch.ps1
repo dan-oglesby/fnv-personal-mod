@@ -7,7 +7,8 @@
 # Runs at sign-in from a hidden shortcut in the Startup folder ("FNV Session Watcher"). One copy
 # at a time. To stop it for good: delete that shortcut (and end the powershell process).
 #
-# summary.txt answers the usual first questions: how long the session ran, whether it crashed
+# summary.txt answers the usual first questions (engine_watch.py, started from here, writes the full
+# report.md): how long the session ran, whether it crashed
 # (crash-logger file written this session, or a Windows "Application Error" for FalloutNV.exe),
 # peak memory against the 32-bit 4 GB ceiling, and what the game was doing last (save/load).
 
@@ -91,6 +92,8 @@ function Save-Session($start, $samples, $proc) {
     $s += "Saves loaded this session: $loads"
     $s += "Last save/load events in nvse.log:"
     $lastIO | ForEach-Object { $s += "  " + $_.Line.Trim() }
+    $s += ""
+    $s += "Full report (Engine Watch): report.md in this folder; all sessions: ..\history.md"
     $s | Set-Content (Join-Path $dir 'summary.txt')
 
     # keep the newest $keep sessions
@@ -109,6 +112,10 @@ while ($true) {
     if (-not $proc) { Start-Sleep -Seconds 15; continue }
 
     $start = $proc.StartTime
+    # Engine Watch records the session live (timestamps, memory and address space, hangs, where the
+    # player is, the exit code) and writes report.md beside this script's summary when the game exits
+    $ew = Join-Path $PSScriptRoot 'engine_watch.py'
+    if (Test-Path $ew) { Start-Process pythonw -ArgumentList @("`"$ew`"", 'live', '--pid', $proc.Id) -WindowStyle Hidden }
     $samples = New-Object System.Collections.Generic.List[object]
     while (-not $proc.HasExited) {
         $proc.Refresh()
