@@ -1,0 +1,8 @@
+; Timed Autosave: any save (a door's autosave, a quick or manual save, or this mod's own) starts the
+; count over, so it never saves twice in a row. xNVSE's SaveGame event handler (set by the loader);
+; the event passes the save's name.
+string_var sName
+
+begin Function {sName}
+	player.AuxVarSetFlt "*_taAcc" 0
+end

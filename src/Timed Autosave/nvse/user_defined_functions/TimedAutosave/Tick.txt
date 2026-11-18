@@ -1,0 +1,66 @@
+; Timed Autosave: every 5 seconds of play (the loader starts it at its slot; never in menus or while
+; paused). Counts play time in "*_taAcc" and, once "_taEvery" seconds have passed since the last
+; save, has the game autosave at the first safe moment (the rules are in ln_timed_autosave.txt).
+float fAcc
+float fEvery
+float fMinHP
+float fLate
+float fX
+float fY
+float fD
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_taOn") == 0
+		return
+	endif
+	let fAcc := player.AuxVarGetFlt "*_taAcc"
+	let fAcc += 5
+	player.AuxVarSetFlt "*_taAcc" fAcc
+	; how far you moved since the last tick, for the calm-moment wait
+	let fX := player.GetPos X
+	let fY := player.GetPos Y
+	let fD := ((fX - (player.AuxVarGetFlt "*_taX")) ^ 2 + (fY - (player.AuxVarGetFlt "*_taY")) ^ 2) ^ 0.5
+	player.AuxVarSetFlt "*_taX" fX
+	player.AuxVarSetFlt "*_taY" fY
+	let fEvery := player.AuxVarGetFlt "_taEvery"
+	if fEvery < 30
+		let fEvery := 120
+	endif
+	if fAcc < fEvery
+		return
+	endif
+
+	; a safe moment?
+	if player.GetDead
+		return
+	endif
+	if eval IsPCInCombat || player.IsInCombat
+		return
+	endif
+	if eval IsInKillCam
+		return
+	endif
+	if eval player.IsInAir || player.IsSwimming || player.GetIsRagdolled
+		return
+	endif
+	if eval (player.GetKnockedState) != 0
+		return
+	endif
+	if eval (GetPlayerControlsDisabled 1 0 0 0 0 0 0) || IsPlayerMovingIntoNewSpace
+		return
+	endif
+	let fMinHP := player.AuxVarGetFlt "_taMinHP"
+	if eval (player.GetHealthPercentage) < fMinHP
+		return
+	endif
+	; and, up to "_taCalmMax" seconds past due, a calm one
+	if eval (player.AuxVarGetFlt "_taCalm") != 0
+		let fLate := player.AuxVarGetFlt "_taCalmMax"
+		if eval fD >= 150 && fAcc < fEvery + fLate
+			return
+		endif
+	endif
+
+	player.AuxVarSetFlt "*_taAcc" 0
+	Autosave
+end

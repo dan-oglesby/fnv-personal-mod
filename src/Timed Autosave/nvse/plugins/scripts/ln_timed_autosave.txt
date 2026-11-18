@@ -1,0 +1,46 @@
+; Timed Autosave (2026-11-18): the game autosaves every couple of minutes of play, but only at a safe
+; moment, so a crash costs a couple of minutes instead of a trek across the wasteland. The saving is
+; the game's own (its Autosave function: the engine's own save path and "Autosaving..." notice;
+; lStewieAl's Tweaks' Save Manager, when installed, rotates those autosaves over its slots).
+;
+; The tick (TimedAutosave/Tick.txt, every 5 seconds of play, never in menus or while paused) counts
+; play time and saves once "_taEvery" seconds (default 120) have passed since the last save of any
+; kind (Saved.txt, on xNVSE's SaveGame event, starts the count over), when:
+;   you're alive, not in combat, not in VATS playback, on your feet (not in the air, swimming,
+;   knocked down or ragdolled), not in a scene that has taken your controls, not moving through a
+;   load door, and above "_taMinHP" of your health (default 0.25: never a doomed moment).
+; It also waits, up to "_taCalmMax" seconds (default 60) past due, for a calm moment (moving less
+; than 150 units in 5 seconds) so the save's short pause doesn't land mid-sprint ("_taCalm" 0: don't).
+;
+; Settings (saved with the game): player.AuxVarSetFlt "_taOn" 0 switches it off; "_taEvery" 180
+; saves every 3 minutes; "_taMinHP" 0 saves at any health.
+;
+; Run by JIP LN NVSE's script runner (ln_: new game and every load). xNVSE clears repeating calls on
+; every load; event handlers stay, so the handler is removed and set again rather than stacked.
+; Needs xNVSE 6.2.8+ and JIP LN NVSE.
+
+if eval (player.AuxVarGetFlt "_taInit") < 1
+	player.AuxVarSetFlt "_taInit" 1
+	player.AuxVarSetFlt "_taOn" 1
+	player.AuxVarSetFlt "_taEvery" 120
+	player.AuxVarSetFlt "_taMinHP" 0.25
+	player.AuxVarSetFlt "_taCalm" 1
+	player.AuxVarSetFlt "_taCalmMax" 60
+	MessageEx "Timed Autosave: the game now autosaves every 2 minutes of play, when it's safe"
+endif
+; a save just loaded is as good as a fresh save
+player.AuxVarSetFlt "*_taAcc" 0
+
+let ref rTaTick := CompileScript "TimedAutosave/Tick.txt"
+let ref rTaTrue := CompileScript "TimedAutosave/Always.txt"
+let ref rTaSaved := CompileScript "TimedAutosave/Saved.txt"
+let ref rStart := CompileScript "TimedAutosave/Start.txt"
+if eval (IsFormValid rTaTick) && (IsFormValid rTaTrue) && (IsFormValid rStart)
+	CallAfterSeconds 0.4 rStart 1 rTaTick rTaTrue 5 20	; timer slot 0.400 s (tools/timer_slots.py)
+else
+	print "Timed Autosave: its script functions failed to compile, so there are no timed saves. Details: nvse.log"
+endif
+if eval IsFormValid rTaSaved
+	RemoveEventHandler "SaveGame" rTaSaved
+	SetEventHandler "SaveGame" rTaSaved
+endif

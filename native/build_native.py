@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-TARGETS = {"ScanNullFix": "Scan Null Fix", "TextureMapLock": "Texture Map Lock"}
+TARGETS = {"ScanNullFix": "Scan Null Fix", "TextureMapLock": "Texture Map Lock", "DamageStagesGuard": "Damage Stages Guard"}
 
 
 def vcvars() -> Path:
