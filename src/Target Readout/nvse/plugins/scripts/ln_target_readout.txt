@@ -14,6 +14,9 @@
 ;                                         alternate colour)
 ;   player.AuxVarSetFlt "_trX" -40        move it 40 left (+ = right)
 ;   player.AuxVarSetFlt "_trY" 30         move it 30 down (+ = down)
+;   player.AuxVarSetFlt "_trType" 0       show each readout at once instead of typing it out
+;   player.AuxVarSetFlt "_trStep" 5       type faster (letters per frame, default 3)
+;   player.AuxVarSetFlt "_trSound" 0      no typing clicks
 ;
 ; Re-registering on every load is safe: xNVSE clears repeating calls on load and new game, and JIP
 ; keeps menu handlers in a set.
@@ -118,6 +121,16 @@ if iBad >= 0	; always (2026-11-17): each part below is registered only if its ow
 	let ref rHide := CompileScript "TargetReadout/Hide.txt"
 	if eval (IsFormValid rHide)
 		SetOnMenuOpenEventHandler rHide 1 1056
+	endif
+	; the typewriter (Type.txt), every frame or so; without it each readout shows at once
+	let ref rType := CompileScript "TargetReadout/Type.txt"
+	let ref rTypeTrue := CompileScript "TargetReadout/Always.txt"
+	player.AuxVarSetFlt "*_trTyp" 0
+	if eval (IsFormValid rType) && (IsFormValid rTypeTrue)
+		player.AuxVarSetFlt "*_trTyp" 1
+		CallWhilePerSeconds 0.02 rType rTypeTrue 20
+	else
+		print "Target Readout: Type.txt failed to compile, so readouts show at once. Details: nvse.log"
 	endif
 	let ref rTick := CompileScript "TargetReadout/Tick.txt"
 	let ref rTrue := CompileScript "TargetReadout/Always.txt"

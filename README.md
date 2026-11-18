@@ -266,12 +266,18 @@ comes from JIP's `GetCrosshairRefEx`, which reaches past activation distance. If
 be used, the readout falls back to xNVSE's `GetCrosshairRef`, and the console says that targets are
 read only within reach.
 
+**Typing it out:** each new target's readout types itself out in the game's terminal font, line by line
+behind a block cursor, with the terminal's character clicks, in well under a second. The same target
+updates in place without retyping; look away and back and it types again.
+
 **Settings (console):**
 - `player.AuxVarSetFlt "_trOn" 0` switches the readout off, and 1 switches it on again.
 - `player.AuxVarSetFlt "_trRange" 5000` reads actors up to 5000 units away. The default is 3000.
 - `player.AuxVarSetFlt "_trRed" 0` shows the text in the HUD colour. 1 is red, the default, and 2 is
   the HUD's alternate colour.
 - `player.AuxVarSetFlt "_trX" -40` moves it 40 left, and `"_trY" 30` moves it 30 down.
+- `"_trType" 0` shows each readout at once; `"_trStep" 5` types faster (letters per frame, default 3);
+  `"_trSound" 0` silences the clicks.
 
 Settings are saved with the game.
 

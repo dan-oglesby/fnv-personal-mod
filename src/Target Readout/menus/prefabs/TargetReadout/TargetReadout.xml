@@ -14,8 +14,8 @@
 
 <!-- Up and to the right of the reticle (the screen's centre): the text's bottom line ends 16 units -->
 <!-- above the reticle's line, so it stays clear of the game's activation prompt (name and "E) Talk"), -->
-<!-- which is centred just below the reticle. _trh is the text's real height (font 7 lines are taller -->
-<!-- than they look; Needs Meters measures its labels the same way): the tallest of the three text -->
+<!-- which is centred just below the reticle. _trh is the text's real height (font 5 is the game's terminal font, Fixedsys; -->
+<!-- Needs Meters measures its labels the same way): the tallest of the three text -->
 <!-- tiles, since only one of them is visible at a time. -->
 <!-- No systemcolor on the rect, so that the red tile's own colour isn't overridden. -->
 <rect name="TargetReadout">
@@ -25,7 +25,7 @@
 		<copy src="io()" trait="_TRVis"/>
 		<and src="ActionPoints" trait="visible"/>
 	</visible>
-	<width> 420 </width>
+	<width> 320 </width>
 	<height> 200 </height>
 	<_trh><copy src="child(red)" trait="height"/><max src="child(hud)" trait="height"/><max src="child(alt)" trait="height"/></_trh>
 	<x>
@@ -48,7 +48,7 @@
 		<blue> 24 </blue>
 		<x> 0 </x>
 		<y> 0 </y>
-		<font> 7 </font>
+		<font> 5 </font>
 		<justify> &left; </justify>
 		<string><copy src="io()" trait="_TRText"/></string>
 		<alpha><copy src="io()" trait="_TRAlpha"/></alpha>
@@ -59,7 +59,7 @@
 		<systemcolor> &hudmain; </systemcolor>
 		<x> 0 </x>
 		<y> 0 </y>
-		<font> 7 </font>
+		<font> 5 </font>
 		<justify> &left; </justify>
 		<string><copy src="io()" trait="_TRText"/></string>
 		<alpha><copy src="io()" trait="_TRAlpha"/></alpha>
@@ -70,7 +70,7 @@
 		<systemcolor> &hudalt; </systemcolor>
 		<x> 0 </x>
 		<y> 0 </y>
-		<font> 7 </font>
+		<font> 5 </font>
 		<justify> &left; </justify>
 		<string><copy src="io()" trait="_TRText"/></string>
 		<alpha><copy src="io()" trait="_TRAlpha"/></alpha>

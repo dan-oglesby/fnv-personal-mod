@@ -1,0 +1,46 @@
+; Target Readout: the typewriter (2026-11-17). Runs every frame or so (CallWhilePerSeconds 0.02).
+; When a new target comes under the crosshair, Tick.txt stores its readout ("*_trFull", length
+; "*_trLen") and starts the count of letters shown ("*_trN") at 0. Each run shows "_trStep" more
+; letters (default 3), with a block cursor at the end while it types, so the lines fill in one
+; after the other. While it types, every third run plays the terminal's single-character click
+; (FalloutNV.esm UIHackingCharSingle 85800), unless "_trSound" is 0. Nothing to do once it's all
+; shown.
+int iN
+int iLen
+int iStep
+int iClk
+string_var sFull
+string_var sPart
+ref rSnd
+
+begin Function {}
+	let iN := player.AuxVarGetFlt "*_trN"
+	let iLen := player.AuxVarGetFlt "*_trLen"
+	if iN >= iLen
+		return
+	endif
+	let iStep := player.AuxVarGetFlt "_trStep"
+	if iStep < 1
+		let iStep := 3
+	endif
+	let iN += iStep
+	if iN > iLen
+		let iN := iLen
+	endif
+	player.AuxVarSetFlt "*_trN" iN
+	let sFull := player.AuxVarGetStr "*_trFull"
+	let sPart := sv_Substring sFull 0 iN
+	if iN < iLen
+		let sPart := sPart + "_"
+	endif
+	SetUIStringEx "HUDMainMenu/_TRText" "%z" sPart
+	if eval (player.AuxVarGetFlt "_trSound") != 0 && iN < iLen
+		let iClk := player.AuxVarGetFlt "*_trClk"
+		let iClk += 1
+		player.AuxVarSetFlt "*_trClk" iClk
+		if eval (iClk % 3) == 1
+			let rSnd := BuildRef 0 85800	; UIHackingCharSingle
+			PlaySound rSnd
+		endif
+	endif
+end

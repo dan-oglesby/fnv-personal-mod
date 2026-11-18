@@ -7,6 +7,9 @@
 ; is then hidden ("*_trMiss" counts the ticks without one; 99 = nothing held).
 ; Also hidden while the readout is switched off ("_trOn" 0) and during VATS playback (JIP
 ; IsInKillCam). Hide.txt hides it when the VATS menu opens.
+; A new target's readout is typed out by Type.txt (2026-11-17): its text goes to "*_trFull" and the
+; count shown to 0. The same target keeps being updated in place (condition, status), without
+; retyping. With "_trType" 0, or if Type.txt failed to compile ("*_trTyp" 0), it shows at once.
 ; Settings copied to the HUD each tick: "_trRed" the text colour (1 red, 0 HUD colour, 2 the HUD's
 ; alternate colour) and "_trX" / "_trY" an offset from its place above and right of the reticle.
 int iOk
@@ -17,6 +20,9 @@ float fAlpha
 ref rX
 ref rFn
 ref rValid
+ref rPrev
+int iLen
+int iShown
 string_var sText
 
 begin Function {}
@@ -66,7 +72,26 @@ begin Function {}
 	if iOk == 1
 		let rFn := CompileScript "TargetReadout/Readout.txt"
 		let sText := call rFn rX
-		SetUIStringEx "HUDMainMenu/_TRText" "%z" sText
+		let iLen := sv_Length sText
+		let iShown := player.AuxVarGetFlt "*_trN"
+		let rPrev := player.AuxVarGetRef "*_trRef"
+		player.AuxVarSetStr "*_trFull" sText
+		if eval (player.AuxVarGetFlt "_trType") != 0 && (player.AuxVarGetFlt "*_trTyp") == 1 && rX != rPrev
+			; a new target: type it out from the start (Type.txt)
+			player.AuxVarSetRef "*_trRef" rX
+			player.AuxVarSetFlt "*_trN" 0
+			player.AuxVarSetFlt "*_trLen" iLen
+			SetUIStringEx "HUDMainMenu/_TRText" "_"
+		elseif eval iShown < (player.AuxVarGetFlt "*_trLen") && (player.AuxVarGetFlt "*_trTyp") == 1 && (player.AuxVarGetFlt "_trType") != 0
+			; still typing this target: it carries on with the updated text
+			player.AuxVarSetFlt "*_trLen" iLen
+		else
+			; all shown (or typing off): show the current text whole
+			player.AuxVarSetRef "*_trRef" rX
+			player.AuxVarSetFlt "*_trN" iLen
+			player.AuxVarSetFlt "*_trLen" iLen
+			SetUIStringEx "HUDMainMenu/_TRText" "%z" sText
+		endif
 		let fAlpha := 255
 		SetUIFloat "HUDMainMenu/_TRAlpha" fAlpha
 		SetUIFloat "HUDMainMenu/_TRVis" 1
@@ -88,5 +113,6 @@ begin Function {}
 	else
 		SetUIFloat "HUDMainMenu/_TRVis" 0
 		player.AuxVarSetFlt "*_trMiss" 99
+		player.AuxVarSetRef "*_trRef" player	; gone: the same target types out again next time
 	endif
 end

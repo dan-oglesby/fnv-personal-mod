@@ -1,14 +1,19 @@
 ; Target Readout: default settings, set once per save (JIP auxiliary variables on the player, kept
 ; in JIP's co-save). Change them from the console, e.g. player.AuxVarSetFlt "_trRange" 5000
-; Saves made with an older settings version get only the settings added since (add new versions
-; above this one's block, in rising order).
+; Each version's block runs once, in rising order, so older saves get only what was added since.
 begin Function {}
-	if eval (player.AuxVarGetFlt "_trInit") >= 1
-		return
+	if eval (player.AuxVarGetFlt "_trInit") < 1
+		; version 1 (2026-11-17): a new save, or the first load with this mod
+		player.AuxVarSetFlt "_trInit" 1
+		player.AuxVarSetFlt "_trOn" 1		; the readout is on (0 hides it)
+		player.AuxVarSetFlt "_trRange" 3000	; actors up to 3000 units away (about 43 m)
+		player.AuxVarSetFlt "_trRed" 1		; text colour: 1 red, 0 the HUD colour, 2 the HUD's alternate colour
 	endif
-	; version 1 (2026-11-17): a new save, or the first load with this mod
-	player.AuxVarSetFlt "_trInit" 1
-	player.AuxVarSetFlt "_trOn" 1		; the readout is on (0 hides it)
-	player.AuxVarSetFlt "_trRange" 3000	; actors up to 3000 units away (about 43 m)
-	player.AuxVarSetFlt "_trRed" 1		; text colour: 1 red, 0 the HUD colour, 2 the HUD's alternate colour
+	if eval (player.AuxVarGetFlt "_trInit") < 2
+		; version 2 (2026-11-17): the readout types itself out
+		player.AuxVarSetFlt "_trInit" 2
+		player.AuxVarSetFlt "_trType" 1		; 1 types each new target's readout out, 0 shows it at once
+		player.AuxVarSetFlt "_trStep" 3		; letters typed per frame (higher is faster)
+		player.AuxVarSetFlt "_trSound" 1	; the terminal's character clicks while it types (0 silent)
+	endif
 end
