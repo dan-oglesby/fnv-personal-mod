@@ -14,6 +14,18 @@ them. Only exact vanilla copies are forwarded: a plugin's own deliberate changes
 The output is built from the user's own files and contains YUP's record data, so it is not
 committed (the repo's rule for third-party content): it lives only in the local build and staging.
 Nothing is written when there is nothing to forward (and a stale patch is removed).
+
+Second job (2026-11-18): script variables for leveled spawns. A spawn point that re-rolls from one
+creature to another keeps the old creature's script variables. When the two creatures' scripts
+declare different variables, the new script reads or writes a variable its data doesn't have, and
+the engine logs it, about once a frame per creature: "Variable ID 2 not found ... vGlowingOneSCRIPT"
+and "Trying to set variableID 2 in script 'OblivionSpawnTestScript'" (8,400 errors in one minute
+near IWS spawns, whose null creature runs OblivionSpawnTestScript with one variable while Glowing
+Ones in the same lists run vGlowingOneSCRIPT with three). For every leveled list whose creatures
+run scripts with different variable numbers, each of those scripts gets the variables it lacks:
+added as unused floats ("float lvlPadN"), in the winning version of the script, with its compiled
+code untouched (code refers to variables only by number, so an unused one changes nothing). The
+source text gets the same declarations, so a recompile in the GECK numbers them the same way.
 """
 import struct
 import sys
@@ -85,6 +97,127 @@ def find(order, plugins):
     return out
 
 
+def subs_of(d):
+    return list(audit.subrecords(d))
+
+
+def script_var_fixes(order, plugins):
+    """[(record bytes, tag, edid, source plugin)]: scripts given the variables their leveled-list
+    neighbours use. Records come from the winning version; their form IDs stay in the source
+    plugin's numbering and are remapped by the caller."""
+    pos = {n: i for i, n in enumerate(order)}
+
+    def key(p, n, fid):
+        idx = fid >> 24
+        return ((p["masters"][idx] if idx < len(p["masters"]) else n).lower(), fid & 0xFFFFFF)
+
+    win = {}
+    for n in order:
+        p = plugins[n]
+        for tag, fid, flags, off, size in p["recs"]:
+            if tag in (b"CREA", b"NPC_", b"LVLC", b"LVLN", b"SCPT") and (fid >> 24) <= len(p["masters"]):
+                win[key(p, n, fid)] = (n, tag, fid, flags, off, size)
+    script_of, entries, varset = {}, {}, {}
+    for k, (n, tag, fid, flags, off, size) in win.items():
+        d = data_of(plugins[n], off, size, flags)
+        if d is None:
+            continue
+        subs = subs_of(d)
+        if tag in (b"CREA", b"NPC_"):
+            s_ = next((struct.unpack("<I", v)[0] for t, v in subs if t == b"SCRI" and len(v) == 4), 0)
+            if s_:
+                script_of[k] = key(plugins[n], n, s_)
+        elif tag == b"SCPT":
+            varset[k] = {struct.unpack_from("<I", v)[0] for t, v in subs if t == b"SLSD" and len(v) >= 4}
+        else:
+            entries[k] = [key(plugins[n], n, struct.unpack_from("<I", v, 4)[0]) for t, v in subs if t == b"LVLO" and len(v) >= 8]
+
+    def leaves(k, seen):
+        if k in seen:
+            return set()
+        seen.add(k)
+        if k in entries:
+            out = set()
+            for e in entries[k]:
+                out |= leaves(e, seen)
+            return out
+        return {k}
+
+    need = {}                                   # script -> variable numbers it should have
+    for lst in entries:
+        scripts = {script_of[c] for c in leaves(lst, set()) if c in script_of and script_of[c] in varset}
+        if len(scripts) < 2:
+            continue
+        union = set().union(*(varset[s_] for s_ in scripts))
+        for s_ in scripts:
+            if union - varset[s_]:
+                need.setdefault(s_, set()).update(union)
+    out = []
+    for s_, wanted in sorted(need.items()):
+        n, tag, fid, flags, off, size = win[s_]
+        p = plugins[n]
+        d = data_of(p, off, size, flags)
+        subs = subs_of(d)
+        have = varset[s_]
+        missing = sorted(wanted - have)
+        nl = b"\r\n"
+        rebuilt, inserted = b"", False
+        last_var = max((i for i, (t, v) in enumerate(subs) if t in (b"SCVR", b"SLSD")), default=None)
+        sctx_at = next((i for i, (t, v) in enumerate(subs) if t == b"SCTX"), None)
+        after = last_var if last_var is not None else (sctx_at if sctx_at is not None else
+                next(i for i, (t, v) in enumerate(subs) if t == b"SCDA"))
+        for i, (t, v) in enumerate(subs):
+            if t == b"SCHR":
+                hdr = bytearray(v)
+                struct.pack_into("<I", hdr, 12, max(struct.unpack_from("<I", hdr, 12)[0], max(missing)))
+                v = bytes(hdr)
+            elif t == b"SCTX":
+                decl = nl.join(b"float lvlPad%d" % m for m in missing)
+                text = v.rstrip(b"\0")
+                lines = text.split(b"\n")
+                # after the script's own declarations (before its first block), so a recompile
+                # numbers the old variables as before and the new ones after them
+                at = next((j + 1 for j, line in enumerate(lines) if line.strip().lower().startswith((b"scn", b"scriptname"))), 0)
+                for j, line in enumerate(lines):
+                    w = line.strip().lower().split(b";")[0].split()
+                    if w and w[0] == b"begin":
+                        break
+                    if w and w[0] in (b"short", b"int", b"long", b"float", b"ref", b"reference", b"array_var", b"string_var"):
+                        at = j + 1
+                v = b"\n".join(lines[:at] + [b"; script variables for leveled spawns (LoadOrderPatch)\r", decl + b"\r"] + lines[at:]) + b"\0"
+            rebuilt += sub(t, v)
+            if i == after and not inserted:
+                for m in missing:
+                    rebuilt += sub(b"SLSD", struct.pack("<I", m) + bytes(20)) + sub(b"SCVR", b"lvlPad%d\0" % m)
+                inserted = True
+        ed = next((v.rstrip(b"\0").decode("latin1") for t, v in subs if t == b"EDID"), "")
+        header = p["bytes"][off: off + 24]
+        rec = b"SCPT" + struct.pack("<I", len(rebuilt)) + struct.pack("<I", struct.unpack_from("<I", header, 8)[0] & ~0x40000) + header[12:24] + rebuilt
+        out.append((rec, b"SCPT", "%s: variables %s added" % (ed, ", ".join(map(str, missing))), n))
+    return out
+
+
+def remap(rec, src, masters, plugins):
+    """The record's form IDs (header and SCRO) moved from the source plugin's numbering to ours."""
+    names = list(plugins[src]["masters"]) + [src]
+    def fix(fid):
+        idx = fid >> 24
+        name = names[idx] if idx < len(names) else src
+        return (masters.index(name) << 24) | (fid & 0xFFFFFF)
+    rec = bytearray(rec)
+    struct.pack_into("<I", rec, 12, fix(struct.unpack_from("<I", rec, 12)[0]))
+    body = bytes(rec[24:])
+    out, i = b"", 0
+    while i + 6 <= len(body):
+        t, ln = body[i:i + 4], struct.unpack_from("<H", body, i + 4)[0]
+        v = body[i + 6: i + 6 + ln]
+        if t == b"SCRO" and ln == 4:
+            v = struct.pack("<I", fix(struct.unpack("<I", v)[0]))
+        out += sub(t, v)
+        i += 6 + ln
+    return bytes(rec[:24]) + out
+
+
 def main():
     if not audit.PLUGINS_TXT.exists() or not (audit.DATA / YUP).exists():
         print("gen_load_order_patch: no plugins.txt or no YUP; nothing to do")
@@ -94,19 +227,28 @@ def main():
         return
     plugins = {n: audit.read_plugin(audit.DATA / n) for n in order}
     found = find(order, plugins)
-    if not found:
+    scripts = script_var_fixes(order, plugins)
+    if not found and not scripts:
         if OUT.exists():
             OUT.unlink()
             print("gen_load_order_patch: nothing to forward; removed", OUT.relative_to(ROOT))
         return
     masters = list(plugins[YUP]["masters"]) + [YUP]
-    for _, _, _, winner in found:
-        if winner not in masters:
-            masters.append(winner)
+    pos = {n: i for i, n in enumerate(order)}
+    extra = {w for _, _, _, w in found} | {src for _, _, _, src in scripts}
+    for m in list(extra):                       # a source plugin's own masters come along
+        extra |= set(plugins[m]["masters"]) if m in plugins else set()
+    # masters stay in load order (the first ones are YUP's masters and YUP, as the forwarded
+    # records are numbered against them)
+    masters += sorted((m for m in extra if m not in masters and m in pos), key=lambda m: pos[m])
     groups = {}
     for raw, tag, _, _ in found:
         groups.setdefault(tag, b"")
         groups[tag] += raw
+    for raw, tag, _, src in scripts:
+        groups.setdefault(tag, b"")
+        groups[tag] += remap(raw, src, masters, plugins)
+    found = found + [(None, tag, ed, src) for _, tag, ed, src in scripts]
     body = b"".join(b"GRUP" + struct.pack("<I", 24 + len(g)) + tag + struct.pack("<iHHHH", 0, 0, 0, 0, 0) + g
                     for tag, g in groups.items())
     hdr = sub(b"HEDR", struct.pack("<fiI", 1.34, len(found), 0x800)) + sub(b"CNAM", b"fnv-personal-mod\0")
@@ -117,9 +259,12 @@ def main():
     OUT.parent.mkdir(parents=True, exist_ok=True)
     if not OUT.exists() or OUT.read_bytes() != data:
         OUT.write_bytes(data)
-    print("gen_load_order_patch: %d record(s) forwarded into %s" % (len(found), OUT.relative_to(ROOT)))
-    for _, tag, ed, winner in found:
-        print("  %s %s (undone by %s)" % (tag.decode(), ed, winner))
+    print("gen_load_order_patch: %d record(s) into %s" % (len(found), OUT.relative_to(ROOT)))
+    for raw, tag, ed, winner in found:
+        if raw is None:
+            print("  %s %s (from %s)" % (tag.decode(), ed, winner))
+        else:
+            print("  %s %s (undone by %s)" % (tag.decode(), ed, winner))
 
 
 if __name__ == "__main__":

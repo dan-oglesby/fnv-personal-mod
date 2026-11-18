@@ -32,8 +32,15 @@ begin Function {}
 	if IsInKillCam
 		return
 	endif
+	; the crosshair's target, if it is a placed reference (form types 0x3A-0x3C). On 2026-11-18 it
+	; once resolved to a creature's base record (an IWS spawn's reused temporary ID), and calling
+	; reference functions on that logged an error every check.
 	let rX := GetCrosshairRef
+	let iType := 0
 	if eval IsFormValid rX
+		let iType := GetType rX
+	endif
+	if iType >= 58 && iType <= 60
 		if eval (rX.AuxVarGetFlt "_slSearched") == 1 && (rX.AuxVarGetFlt "*_slThaw") == 0
 			rX.SetAnimSequenceFrequency "Open" 1
 			rX.AuxVarSetFlt "*_slThaw" 1
@@ -57,7 +64,11 @@ begin Function {}
 		let iGo := 1
 	elseif fD < 96
 		let rX := GetCrosshairRef
+		let iType := 0
 		if eval IsFormValid rX
+			let iType := GetType rX
+		endif
+		if iType >= 58 && iType <= 60
 			if eval (rX.AuxVarGetFlt "*_slXSeen") == 0
 				let fRad := player.AuxVarGetFlt "_slRad"
 				if eval (player.GetDistance rX) <= fRad

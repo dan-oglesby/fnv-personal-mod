@@ -12,22 +12,16 @@
 int iPlug
 int iN
 int iRoom
-int iNum
-int iIdx
 int iT
 float fRes
 float fMax
-float fMag
-float fScore
-float fBest
+float fRoom
 float fBestMag
-float fWt
 float fCost
 float fLeft
 float fAt
 float fNeed
 ref rPaste
-ref rItem
 ref rBest
 ref rFn
 ref rStage
@@ -57,43 +51,27 @@ begin Function {}
 		endif
 	endif
 
-	; 2. mulching, every 10 seconds
+	; save what step 1 did before anything that could fail (2026-11-18: the mulching search used to
+	; fail on every run, which skipped the saves at the end, so paste moved in was lost)
+	player.AuxVarSetFlt "_fpPaste" fRes
+
+	; 2. mulching, every 10 seconds. The timer is saved before the search (Mulch.txt) runs, so a
+	; failing search can't make it run, and fail, every second.
 	let fCost := player.AuxVarGetFlt "_fpMulch"
 	let iT := player.AuxVarGetFlt "*_fpMulchT"
 	let iT += 1
-	if iT >= 10 && fCost > 0
+	if eval iT >= 10 && fCost > 0
 		let iT := 0
-		let rFn := CompileScript "FissionPower/Nutri.txt"
+		player.AuxVarSetFlt "*_fpMulchT" 0
 		let rBest := 0
-		let fBest := -1
 		let fBestMag := 0
-		let iNum := player.GetNumItems
-		let iIdx := 0
-		while iIdx < iNum
-			let rItem := player.GetInventoryObject iIdx
-			let iIdx += 1
-			if eval (IsFormValid rItem) == 0
-				continue
-			endif
-			if eval (GetType rItem) != 47
-				continue
-			endif
-			if eval IsQuestItem rItem	; never a quest item (review 2026-11-18)
-				continue
-			endif
-			let fMag := call rFn rItem
-			if fMag <= 0 || fMag > fMax - fRes
-				continue
-			endif
-			let fWt := GetWeight rItem
-			let fScore := fWt / fMag
-			if fScore > fBest
-				let fBest := fScore
-				let fBestMag := fMag
-				let rBest := rItem
-			endif
-		loop
-		if eval IsFormValid rBest
+		let rFn := CompileScript "FissionPower/Mulch.txt"
+		if eval IsFormValid rFn
+			let fRoom := fMax - fRes
+			let rBest := call rFn fRoom
+			let fBestMag := player.AuxVarGetFlt "*_fpMulchMag"
+		endif
+		if eval (IsFormValid rBest) && fBestMag > 0
 			player.RemoveItem rBest 1 1
 			let fRes += fBestMag
 			let fLeft := player.AuxVarGetFlt "_fpLeft"

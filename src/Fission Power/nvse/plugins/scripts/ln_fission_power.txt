@@ -83,6 +83,11 @@ if eval IsModLoaded "FissionPower.esp"
 		let iBad += 1
 		print "Fission Power: FissionPower/Suit.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
+	let rChk := CompileScript "FissionPower/Mulch.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+		print "Fission Power: FissionPower/Mulch.txt failed to compile, so the suit doesn't mulch food (details: nvse.log)"
+	endif
 	let rChk := CompileScript "FissionPower/SuitWater.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1

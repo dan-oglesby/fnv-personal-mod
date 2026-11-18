@@ -149,6 +149,10 @@ begin Function {}
 			if eval (IsFormValid rRef) == 0 || rRef == player
 				continue
 			endif
+			let iType := GetType rRef
+			if iType < 58 || iType > 60
+				continue	; not a placed reference (see the main loop below)
+			endif
 			if eval rRef.GetDead && (player.GetDistance rRef) <= fRad
 				Ar_Append aRefs rRef
 			endif
@@ -158,7 +162,11 @@ begin Function {}
 	; neither list returned is still looted when you look at it. A persistent Viper Leader
 	; (FalloutNV.esm VViperGangLeader...Pers) wasn't picked up (2026-11-16).
 	let rRef := GetCrosshairRef
+	let iType := 0
 	if eval IsFormValid rRef
+		let iType := GetType rRef
+	endif
+	if iType >= 58 && iType <= 60
 		let iType := GetType (rRef.GetBaseObject)
 		if iType >= 42 && iType <= 45
 			if eval rRef.GetDead && (player.GetDistance rRef) <= fRad
@@ -172,6 +180,13 @@ begin Function {}
 	foreach aEntry <- aRefs
 		let rRef := aEntry["value"]
 		if eval (IsFormValid rRef) == 0 || rRef == player
+			continue
+		endif
+		; a placed reference only (form types 0x3A-0x3C: object, character, creature). IWS creates
+		; creatures with PlaceAtMe; their temporary IDs are reused, and on 2026-11-18 one resolved to
+		; a creature's base record, so calling reference functions on it logged errors every pass.
+		let iType := GetType rRef
+		if iType < 58 || iType > 60
 			continue
 		endif
 		let rBase := rRef.GetBaseObject
