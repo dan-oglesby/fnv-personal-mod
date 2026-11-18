@@ -26,6 +26,10 @@ int iKeep
 int iHave
 int iBox
 int iId
+int iFuel
+int iCap
+ref rSuit
+array_var aIds
 ref rItem
 ref rWpn
 ref rList
@@ -56,6 +60,38 @@ begin Function {}
 	player.AuxVarSetFlt "*_twFeedN" iPass
 
 	; 1. working amount of each kind of ammo (kept on the ammo form as *_twKeep, valid for this pass)
+	; Fission Power's fuel (review 2026-11-18): energy weapon ammo burned by a power armor suit, the
+	; same 12 kinds Smart Loot keeps (AlwaysTake.txt) and Fission Power burns (Cells.txt). While you
+	; wear or carry power armor, up to "_slCells" (200) of each stays in your pack: moving them to
+	; storage left the suit with no fuel while the storage was full of cells.
+	let iFuel := 0
+	let iCap := 0
+	if eval IsModLoaded "FissionPower.esp"
+		let rSuit := player.GetEquippedObject 2
+		if eval (player.AuxVarGetFlt "*_slPA") == 1
+			let iFuel := 1
+		elseif eval IsFormValid rSuit
+			if eval IsPowerArmor rSuit
+				let iFuel := 1
+			endif
+		endif
+	endif
+	if iFuel == 1
+		let iCap := player.AuxVarGetFlt "_slCells"
+		if iCap < 1
+			let iCap := 200
+		endif
+		let aIds := Ar_List 132978, 1409811, 1409759, 1409760, 17541, 1409810, 1409803, 1409804, 439614, 1409809, 1409805, 1409806
+		foreach aEntry <- aIds
+			let iId := aEntry["value"]
+			let rItem := BuildRef 0 iId
+			if eval IsFormValid rItem
+				AuxVarSetFlt "*_twFuel" iPass 0 rItem
+			endif
+		loop
+		let aIds := Ar_Null
+	endif
+
 	let rCur := 0
 	let rWpn := player.GetEquippedObject 5
 	if eval IsFormValid rWpn
@@ -145,6 +181,9 @@ begin Function {}
 			let iKeep := 0
 			if eval (AuxVarGetFlt "*_twKeepN" 0 rItem) == iPass
 				let iKeep := AuxVarGetFlt "*_twKeep" 0 rItem
+			endif
+			if eval iFuel == 1 && (AuxVarGetFlt "*_twFuel" 0 rItem) == iPass && iKeep < iCap
+				let iKeep := iCap
 			endif
 		else
 			if eval (GetIngestibleFlag rItem 2) == 0 || (GetIngestibleFlag rItem 4) || (GetAddictionChance rItem) > 0
