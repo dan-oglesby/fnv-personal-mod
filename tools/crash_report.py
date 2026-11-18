@@ -23,6 +23,12 @@ KNOWN = {
     ("FalloutNV", "0x00A61A74"): "texture streaming",
     ("FalloutNV", "0x00AAA60A"): "memory heap (animation in use freed)",
     ("ntdll", "0x10060DD5"): "heap corruption",
+    # lStewieAl's Tweaks' WeaponDamageStagesFix on a weapon an NPC dropped, through JIP's
+    # GetEntryDataHasMod hook (2026-11-16, -18 x2); guarded by Damage Stages Guard from 2026-11-18
+    ("jip_nvse", "0x10057400"): "dropped-weapon damage stages (Stewie)",
+    ("jip_nvse", "0x100573D0"): "dropped-weapon damage stages (Stewie)",
+    # the main thread finishing a background-loaded reference, bad object pointer (2026-11-18)
+    ("FalloutNV", "0x00401170"): "queued reference finish (unidentified)",
 }
 OVERLAYS = ("DiscordHook", "GameOverlayRenderer", "RTSSHooks", "obs-vulkan", "graphics-hook", "NahimicOSD")
 
