@@ -30,111 +30,133 @@ if eval IsModLoaded "SmartLoot.esp"
 	let rChk := CompileScript "SmartLoot/Always.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/Always.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Always.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/AlwaysTake.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/AlwaysTake.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: AlwaysTake.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Box.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/Box.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Box.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Init.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/Init.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Init.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/InitSurvival.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/InitSurvival.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: InitSurvival.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Judge.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/Judge.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Judge.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Note.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/Note.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Note.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Owned.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/Owned.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Owned.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Sound.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/Sound.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Sound.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Tick.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/Tick.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Tick.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Ajar.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/Ajar.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Ajar.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/FastTick.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/FastTick.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: FastTick.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Freeze.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/Freeze.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Freeze.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Want.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Smart Loot: SmartLoot/Want.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Want.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/OnEquip.txt"
 	if eval (IsFormValid rChk) == 0
 		let iMenuBad += 1
+		print "Smart Loot: SmartLoot/OnEquip.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: OnEquip.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/UseDuffel.txt"
 	if eval (IsFormValid rChk) == 0
 		let iMenuBad += 1
+		print "Smart Loot: SmartLoot/UseDuffel.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: UseDuffel.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Open.txt"
 	if eval (IsFormValid rChk) == 0
 		let iMenuBad += 1
+		print "Smart Loot: SmartLoot/Open.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Open.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/OpenBtn.txt"
 	if eval (IsFormValid rChk) == 0
 		let iMenuBad += 1
+		print "Smart Loot: SmartLoot/OpenBtn.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: OpenBtn.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Open2.txt"
 	if eval (IsFormValid rChk) == 0
 		let iMenuBad += 1
+		print "Smart Loot: SmartLoot/Open2.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Open2.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Open2Btn.txt"
 	if eval (IsFormValid rChk) == 0
 		let iMenuBad += 1
+		print "Smart Loot: SmartLoot/Open2Btn.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Open2Btn.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Open3.txt"
 	if eval (IsFormValid rChk) == 0
 		let iMenuBad += 1
+		print "Smart Loot: SmartLoot/Open3.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Open3.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Open3Btn.txt"
 	if eval (IsFormValid rChk) == 0
 		let iMenuBad += 1
+		print "Smart Loot: SmartLoot/Open3Btn.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 		print "Smart Loot: Open3Btn.txt failed to compile (see nvse.log)"
 	endif
 	let rChk := CompileScript "SmartLoot/Survive.txt"
@@ -159,9 +181,10 @@ if eval IsModLoaded "SmartLoot.esp"
 		player.AuxVarSetFlt "_seOk" 1
 	endif
 	if iBad > 0
-		print "Smart Loot: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
-		MessageEx "Smart Loot is switched off: a script failed to compile"
-	else
+		print "Smart Loot: " + $iBad + " script function(s) failed to compile (named above). Everything else in it is running."
+		MessageEx "Smart Loot: part of it is off, a script failed to compile (see the console)"
+	endif
+	if iBad >= 0	; always (2026-11-17): each part below is registered only if its own function compiled
 		if eval IsModLoaded "AutoLootEnhanced.esp"
 			print "Smart Loot: Auto Loot Enhanced is also enabled. Disable one of them, or both will loot."
 			MessageEx "Smart Loot: disable Auto Loot Enhanced, or both will loot"
@@ -175,9 +198,13 @@ if eval IsModLoaded "SmartLoot.esp"
 			MessageEx "Smart Loot: disable Auto Loot Ultimate, or both will loot"
 		endif
 		let ref rInit := CompileScript "SmartLoot/Init.txt"
-		call rInit
+		if eval (IsFormValid rInit)
+			call rInit
+		endif
 		let ref rAlways := CompileScript "SmartLoot/AlwaysTake.txt"
-		call rAlways
+		if eval (IsFormValid rAlways)
+			call rAlways
+		endif
 		let int iSL := GetModIndex "SmartLoot.esp"
 		let ref rBag := BuildRef iSL 2048	; SLDuffel 0x000800
 		if eval (player.GetItemCount rBag) == 0
@@ -185,10 +212,14 @@ if eval IsModLoaded "SmartLoot.esp"
 		endif
 		if iMenuBad == 0
 			let ref rOnEquip := CompileScript "SmartLoot/OnEquip.txt"
-			RemoveEventHandler "OnActorEquip" rOnEquip
+			if eval (IsFormValid rOnEquip)
+				RemoveEventHandler "OnActorEquip" rOnEquip
+			endif
 			; Filtered to the duffel ("second" = the equipped item): an unfiltered equip handler sends
 			; every NPC equip during cell loads into xNVSE's unlocked event queue (2026-11-14).
-			SetEventHandler "OnActorEquip" rOnEquip "second"::rBag
+			if eval (IsFormValid rOnEquip)
+				SetEventHandler "OnActorEquip" rOnEquip "second"::rBag
+			endif
 		else
 			print "Smart Loot: the settings menu is off because a page failed to compile. Looting still runs with your saved settings."
 			MessageEx "Smart Loot: settings menu unavailable (see console), looting still on"
@@ -198,9 +229,13 @@ if eval IsModLoaded "SmartLoot.esp"
 		; every 1.5 s of play: flags 4 + 16 = not in menus, not while paused
 		let ref rTick := CompileScript "SmartLoot/Tick.txt"
 		let ref rTrue := CompileScript "SmartLoot/Always.txt"
-		CallWhilePerSeconds 1.5 rTick rTrue 20
+		if eval (IsFormValid rTick) && (IsFormValid rTrue)
+			CallWhilePerSeconds 1.5 rTick rTrue 20
+		endif
 		; and the light check every 0.25 s that runs a pass early when you move or look at loot
 		let ref rFast := CompileScript "SmartLoot/FastTick.txt"
-		CallWhilePerSeconds 0.25 rFast rTrue 20
+		if eval (IsFormValid rFast) && (IsFormValid rTrue)
+			CallWhilePerSeconds 0.25 rFast rTrue 20
+		endif
 	endif
 endif

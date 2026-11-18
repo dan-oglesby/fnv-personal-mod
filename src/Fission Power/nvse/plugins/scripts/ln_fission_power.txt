@@ -41,64 +41,83 @@ if eval IsModLoaded "FissionPower.esp"
 	let ref rChk := CompileScript "FissionPower/Always.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/Always.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/Init.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/Init.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/Penalty.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/Penalty.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/Tick.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/Tick.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/Cells.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/Cells.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/Camp.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/Camp.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/CampBtn.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/CampBtn.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/Nutri.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/Nutri.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/Suit.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/Suit.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/SuitWater.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/SuitWater.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/SuitWeight.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/SuitWeight.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/Thirst.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Fission Power: FissionPower/Thirst.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	if iBad > 0
-		print "Fission Power: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
-		MessageEx "Fission Power is switched off: a script failed to compile"
-	else
+		print "Fission Power: " + $iBad + " script function(s) failed to compile (named above). Everything else in it is running."
+		MessageEx "Fission Power: part of it is off, a script failed to compile (see the console)"
+	endif
+	if iBad >= 0	; always (2026-11-17): each part below is registered only if its own function compiled
 		let ref rInit := CompileScript "FissionPower/Init.txt"
-		call rInit
+		if eval (IsFormValid rInit)
+			call rInit
+		endif
 		player.AuxVarSetFlt "*_fpHave" 0
 		; once a second of play: flags 4 + 16 = not in menus, not while paused
 		let ref rTick := CompileScript "FissionPower/Tick.txt"
 		let ref rTrue := CompileScript "FissionPower/Always.txt"
-		CallWhilePerSeconds 1 rTick rTrue 20
+		if eval (IsFormValid rTick) && (IsFormValid rTrue)
+			CallWhilePerSeconds 1 rTick rTrue 20
+		endif
 		; a campfire's recipe menu closing: the offer to turn food into Nutrient Paste (Camp.txt)
 		let ref rCamp := CompileScript "FissionPower/Camp.txt"
-		SetOnMenuCloseEventHandler rCamp 1 1077
+		if eval (IsFormValid rCamp)
+			SetOnMenuCloseEventHandler rCamp 1 1077
+		endif
 	endif
 endif

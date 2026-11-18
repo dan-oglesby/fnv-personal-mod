@@ -3,7 +3,7 @@
 ; nothing is in the weapon slot (slot 5; many creatures have no weapon form at all). A weapon with
 ; no name (%n gives an empty string or "<no name>") shows only its class.
 ref rX
-ref rW
+ref rWpn
 int iWT
 string_var sName
 string_var sCls
@@ -11,16 +11,16 @@ string_var sOut
 
 begin Function {rX}
 	let sOut := "UNARMED"
-	let rW := rX.GetEquippedObject 5
-	if eval (IsFormValid rW) == 0
+	let rWpn := rX.GetEquippedObject 5
+	if eval (IsFormValid rWpn) == 0
 		SetFunctionValue sOut
 		return
 	endif
-	if eval (GetType rW) != 40
+	if eval (GetType rWpn) != 40
 		SetFunctionValue sOut
 		return
 	endif
-	let iWT := GetWeaponType rW
+	let iWT := GetWeaponType rWpn
 	if iWT == 0
 		let sCls := "UNARMED"
 	elseif iWT == 1 || iWT == 2
@@ -48,7 +48,7 @@ begin Function {rX}
 	else
 		let sCls := "WEAPON"
 	endif
-	let sName := sv_Construct "%n" rW
+	let sName := sv_Construct "%n" rWpn
 	if eval (sv_Length sName) == 0 || sName == "<no name>"
 		let sOut := sCls
 	else

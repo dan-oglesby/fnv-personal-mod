@@ -676,19 +676,30 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 if iBad > 0
-	print "Wasteland Bank: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
-	MessageEx "Wasteland Bank is switched off: a script failed to compile"
-else
+	print "Wasteland Bank: " + $iBad + " script function(s) failed to compile (named above). Everything else in it is running."
+	MessageEx "Wasteland Bank: part of it is off, a script failed to compile (see the console)"
+endif
+if iBad >= 0	; always (2026-11-17): each part below is registered only if its own function compiled
 	let ref rInit := CompileScript "WastelandBank/Init.txt"
-	call rInit
+	if eval (IsFormValid rInit)
+		call rInit
+	endif
 	let rInit := CompileScript "WastelandBank/ExInit.txt"
-	call rInit	; Wasteland Exchange (stocks)
+	if eval (IsFormValid rInit)
+		call rInit	; Wasteland Exchange (stocks)
+	endif
 	let rInit := CompileScript "WastelandBank/FxApply.txt"
-	call rInit	; currency values (not saved by the game, so set on every load)
+	if eval (IsFormValid rInit)
+		call rInit	; currency values (not saved by the game, so set on every load)
+	endif
 	let rInit := CompileScript "WastelandBank/NoteApply.txt"
-	call rInit	; the bank's notes follow its share price (not saved either)
+	if eval (IsFormValid rInit)
+		call rInit	; the bank's notes follow its share price (not saved either)
+	endif
 	let rInit := CompileScript "WastelandBank/Weight.txt"
-	call rInit	; money has weight (not saved either)
+	if eval (IsFormValid rInit)
+		call rInit	; money has weight (not saved either)
+	endif
 	if eval IsModLoaded "WastelandBank.esp"
 		let int iWB := GetModIndex "WastelandBank.esp"
 		let ref rCard := BuildRef iWB 2048	; WBBankCard 0x000800
@@ -696,12 +707,16 @@ else
 			player.AddItem rCard 1
 		endif
 		let ref rOnEquip := CompileScript "WastelandBank/OnEquip.txt"
-		RemoveEventHandler "OnActorEquip" rOnEquip
+		if eval (IsFormValid rOnEquip)
+			RemoveEventHandler "OnActorEquip" rOnEquip
+		endif
 		; Filtered to the bank card ("second" = the equipped item): xNVSE queues equip events that fire on a
 		; background thread onto an unlocked list the main thread clears every frame, and an unfiltered
 		; handler sends every NPC equip during cell loads there. That race corrupted memory and crashed
 		; the game's loaders (2026-11-14). A filtered handler never sees other items.
-		SetEventHandler "OnActorEquip" rOnEquip "second"::rCard
+		if eval (IsFormValid rOnEquip)
+			SetEventHandler "OnActorEquip" rOnEquip "second"::rCard
+		endif
 	else
 		print "Wasteland Bank: WastelandBank.esp is not enabled, so there is no bank card to open the bank with"
 	endif
@@ -712,39 +727,61 @@ else
 	; not in menus, not while paused
 	let ref rTick := CompileScript "WastelandBank/Tick.txt"
 	let ref rTrue := CompileScript "WastelandBank/Always.txt"
-	CallWhilePerSeconds 10 rTick rTrue 20
+	if eval (IsFormValid rTick) && (IsFormValid rTrue)
+		CallWhilePerSeconds 10 rTick rTrue 20
+	endif
 	; courier squad: arrival, first meeting, leaving (once a second, same flags)
 	let ref rSq := CompileScript "WastelandBank/SqTick.txt"
-	CallWhilePerSeconds 1 rSq rTrue 20
+	if eval (IsFormValid rSq) && (IsFormValid rTrue)
+		CallWhilePerSeconds 1 rSq rTrue 20
+	endif
 	; debt collectors, when a loan runs two weeks overdue (ColTick.txt; same flags)
 	let ref rCol := CompileScript "WastelandBank/ColTick.txt"
-	CallWhilePerSeconds 1 rCol rTrue 20
+	if eval (IsFormValid rCol) && (IsFormValid rTrue)
+		CallWhilePerSeconds 1 rCol rTrue 20
+	endif
 	; caravan ventures: escorts and outcomes (CvTick.txt; same flags)
 	let ref rCvT := CompileScript "WastelandBank/CvTick.txt"
-	CallWhilePerSeconds 1 rCvT rTrue 20
+	if eval (IsFormValid rCvT) && (IsFormValid rTrue)
+		CallWhilePerSeconds 1 rCvT rTrue 20
+	endif
 	; the representatives (Caravan Agent, Publicanus): placed by their places, talked to in person
 	; (RepTick.txt; every 2 s, same flags)
 	let ref rRepT := CompileScript "WastelandBank/RepTick.txt"
-	CallWhilePerSeconds 2 rRepT rTrue 20
+	if eval (IsFormValid rRepT) && (IsFormValid rTrue)
+		CallWhilePerSeconds 2 rRepT rTrue 20
+	endif
 	; hired guards: deaths, leaving, catching up (GuardTick.txt; every second, same flags)
 	let ref rGdT := CompileScript "WastelandBank/GuardTick.txt"
-	CallWhilePerSeconds 1 rGdT rTrue 20
+	if eval (IsFormValid rGdT) && (IsFormValid rTrue)
+		CallWhilePerSeconds 1 rGdT rTrue 20
+	endif
 	; the vault's container screen closing: charge for what the couriers carried
 	let ref rVaultClose := CompileScript "WastelandBank/VaultClose.txt"
-	SetOnMenuCloseEventHandler rVaultClose 1 1008
+	if eval (IsFormValid rVaultClose)
+		SetOnMenuCloseEventHandler rVaultClose 1 1008
+	endif
 	; the consignment box closing: the couriers take what's in it to sell
 	let ref rSellClose := CompileScript "WastelandBank/SellClose.txt"
-	SetOnMenuCloseEventHandler rSellClose 1 1008
+	if eval (IsFormValid rSellClose)
+		SetOnMenuCloseEventHandler rSellClose 1 1008
+	endif
 	; the Mojave Express catalogue closing: what you took is your order
 	let ref rCatClose := CompileScript "WastelandBank/CatClose.txt"
-	SetOnMenuCloseEventHandler rCatClose 1 1008
+	if eval (IsFormValid rCatClose)
+		SetOnMenuCloseEventHandler rCatClose 1 1008
+	endif
 	; paying by bank card at merchants: your balance counts as spendable caps while you barter
 	; (CardPay.txt when the barter menu opens, CardPaid.txt when it closes)
 	player.AuxVarSetFlt "*_wbCardB" 0
 	let ref rCardPay := CompileScript "WastelandBank/CardPay.txt"
-	SetOnMenuOpenEventHandler rCardPay 1 1053
+	if eval (IsFormValid rCardPay)
+		SetOnMenuOpenEventHandler rCardPay 1 1053
+	endif
 	let ref rCardPaid := CompileScript "WastelandBank/CardPaid.txt"
-	SetOnMenuCloseEventHandler rCardPaid 1 1053
+	if eval (IsFormValid rCardPaid)
+		SetOnMenuCloseEventHandler rCardPaid 1 1053
+	endif
 	; opening a Mojave Express dropbox opens the bank's Mojave Express menu (MEAct.txt): handlers
 	; filtered to each of the game's five dropboxes (FalloutNV.esm vMEGoodSpringsRef 1438253,
 	; vMEPrimmREF1 1530499, vMENovacRef 1438254, vMEFreesideRef 1438256, vMEVegasRef 1438257),
@@ -758,10 +795,18 @@ else
 		let iMEId := aMEBox[iMEK]
 		let rMEBox := BuildRef 0 iMEId
 		if eval IsFormValid rMEBox
-			RemoveEventHandler "OnActivate" rMEAct "first"::rMEBox
-			RemoveEventHandler "OnActivate" rMEAct "second"::rMEBox
-			SetEventHandler "OnActivate" rMEAct "first"::rMEBox
-			SetEventHandler "OnActivate" rMEAct "second"::rMEBox
+			if eval (IsFormValid rMEAct)
+				RemoveEventHandler "OnActivate" rMEAct "first"::rMEBox
+			endif
+			if eval (IsFormValid rMEAct)
+				RemoveEventHandler "OnActivate" rMEAct "second"::rMEBox
+			endif
+			if eval (IsFormValid rMEAct)
+				SetEventHandler "OnActivate" rMEAct "first"::rMEBox
+			endif
+			if eval (IsFormValid rMEAct)
+				SetEventHandler "OnActivate" rMEAct "second"::rMEBox
+			endif
 		endif
 		let iMEK += 1
 	loop

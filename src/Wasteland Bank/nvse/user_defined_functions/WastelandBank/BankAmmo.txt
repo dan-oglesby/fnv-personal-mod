@@ -39,7 +39,7 @@ float fBox
 float fGross
 float fCut
 ref rVault
-ref rW
+ref rWpn
 ref rItem
 ref rList
 ref rAmmo
@@ -67,12 +67,12 @@ begin Function {iMode}
 		let iArr := player.AuxVarGetFlt "_wbArrAmmo"
 	endif
 	; this ammo: the kind loaded in the weapon in your hands
-	let rW := player.GetEquippedObject 5
+	let rWpn := player.GetEquippedObject 5
 	let rCur := 0
 	let rList := 0
-	if eval IsFormValid rW
-		if eval (GetType rW) == 40
-			let rList := GetWeaponAmmo rW
+	if eval IsFormValid rWpn
+		if eval (GetType rWpn) == 40
+			let rList := GetWeaponAmmo rWpn
 			if eval IsFormValid rList
 				let rCur := GetPlayerCurrentAmmo
 				if eval (IsFormValid rCur) == 0 && (GetType rList) == 41
@@ -169,7 +169,7 @@ begin Function {iMode}
 	if iMode == 2 || (iMode == 8 && iArr >= 1)
 		foreach aEntry <- aWeap
 			let rItem := aEntry["value"]
-			if eval rItem == rW
+			if eval rItem == rWpn
 				continue
 			endif
 			let rList := GetWeaponAmmo rItem

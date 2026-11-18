@@ -16,7 +16,7 @@ int iWant
 int iGot
 int iN
 int iK
-ref rW
+ref rWpn
 ref rAmmo
 ref rList
 ref rSuit
@@ -42,12 +42,12 @@ begin Function {}
 	endif
 	player.AuxVarSetFlt "*_twFeedT" iFeedT
 
-	let rW := player.GetEquippedObject 5
-	if eval IsFormValid rW
-		if eval (GetType rW) == 40
-			let rList := GetWeaponAmmo rW	; one ammo form, or a form list of them (85)
+	let rWpn := player.GetEquippedObject 5
+	if eval IsFormValid rWpn
+		if eval (GetType rWpn) == 40
+			let rList := GetWeaponAmmo rWpn	; one ammo form, or a form list of them (85)
 			if eval IsFormValid rList
-				let iClip := GetWeaponClipRounds rW
+				let iClip := GetWeaponClipRounds rWpn
 				let iLow := iClip * 2
 				if iLow < 20
 					let iLow := 20

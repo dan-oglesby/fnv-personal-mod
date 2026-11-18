@@ -15,7 +15,7 @@ float fFull
 float fBal
 float fSp
 float fPct
-string_var sSp
+string_var sSpares
 ref rItem
 ref rVault
 ref rCb
@@ -42,10 +42,10 @@ begin Function {}
 		let iSpare := rVault.GetItemCount rItem
 	endif
 	let fSp := player.AuxVarGetFlt "_wbFixSpare"
-	let sSp := ""
+	let sSpares := ""
 	if iSpare > 0
-		let sSp := sv_Construct "%rSpares in your vault: %.0f, each worth %.0f percent of condition, used first and free (the price below is before them)." iSpare fSp
+		let sSpares := sv_Construct "%rSpares in your vault: %.0f, each worth %.0f percent of condition, used first and free (the price below is before them)." iSpare fSp
 	endif
 	let rCb := CompileScript "WastelandBank/FixItemBtn.txt"
-	MessageBoxExAlt rCb "^Repairs^%n: %.0f percent. A full repair costs %.0f caps. Balance: %.0f caps.%z%rHow much do you spend?|100 caps|250 caps|500 caps|1,000 caps|2,500 caps|Full repair|Spares only|Back" rItem fPct fFull fBal sSp
+	MessageBoxExAlt rCb "^Repairs^%n: %.0f percent. A full repair costs %.0f caps. Balance: %.0f caps.%z%rHow much do you spend?|100 caps|250 caps|500 caps|1,000 caps|2,500 caps|Full repair|Spares only|Back" rItem fPct fFull fBal sSpares
 end

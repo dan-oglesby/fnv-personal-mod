@@ -29,7 +29,7 @@ float fU
 ref rItem
 ref rDrain
 ref rCur
-ref rW
+ref rWpn
 array_var aIds
 array_var aUnits
 array_var aDrain
@@ -45,11 +45,11 @@ begin Function {fNeed, iDo}
 	; the reserve: two magazines of the ammo in your weapon
 	let rCur := 0
 	let iKeep := 0
-	let rW := player.GetEquippedObject 5
-	if eval IsFormValid rW
-		if eval (GetType rW) == 40
+	let rWpn := player.GetEquippedObject 5
+	if eval IsFormValid rWpn
+		if eval (GetType rWpn) == 40
 			let rCur := GetPlayerCurrentAmmo
-			let iKeep := GetWeaponClipRounds rW
+			let iKeep := GetWeaponClipRounds rWpn
 			let iKeep *= 2
 		endif
 	endif

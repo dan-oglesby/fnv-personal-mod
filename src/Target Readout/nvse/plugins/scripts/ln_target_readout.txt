@@ -24,43 +24,53 @@ let int iBad := 0
 let ref rChk := CompileScript "TargetReadout/Always.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Target Readout: TargetReadout/Always.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "TargetReadout/Faction.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Target Readout: TargetReadout/Faction.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "TargetReadout/Hide.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Target Readout: TargetReadout/Hide.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "TargetReadout/Init.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Target Readout: TargetReadout/Init.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "TargetReadout/Readout.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Target Readout: TargetReadout/Readout.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "TargetReadout/Status.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Target Readout: TargetReadout/Status.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "TargetReadout/Tick.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Target Readout: TargetReadout/Tick.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "TargetReadout/Valid.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Target Readout: TargetReadout/Valid.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "TargetReadout/Weapon.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Target Readout: TargetReadout/Weapon.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 if iBad > 0
-	print "Target Readout: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
-	MessageEx "Target Readout is switched off: a script failed to compile"
-else
+	print "Target Readout: " + $iBad + " script function(s) failed to compile (named above). Everything else in it is running."
+	MessageEx "Target Readout: part of it is off, a script failed to compile (see the console)"
+endif
+if iBad >= 0	; always (2026-11-17): each part below is registered only if its own function compiled
 	if eval (IsComponentLoaded "HUDMainMenu/TargetReadout") == 0
 		print "Target Readout: the HUD file was not injected (is UI Organizer installed and Data/uio/public/TargetReadout.txt deployed?)"
 	endif
@@ -99,14 +109,20 @@ else
 		player.AuxVarSetFlt "*_trHo" 1
 	endif
 	let ref rInit := CompileScript "TargetReadout/Init.txt"
-	call rInit
+	if eval (IsFormValid rInit)
+		call rInit
+	endif
 	player.AuxVarSetFlt "*_trMiss" 99
 	SetUIFloat "HUDMainMenu/_TRVis" 0
 	; the VATS menu opening hides the readout (Tick.txt doesn't run in menus)
 	let ref rHide := CompileScript "TargetReadout/Hide.txt"
-	SetOnMenuOpenEventHandler rHide 1 1056
+	if eval (IsFormValid rHide)
+		SetOnMenuOpenEventHandler rHide 1 1056
+	endif
 	let ref rTick := CompileScript "TargetReadout/Tick.txt"
 	let ref rTrue := CompileScript "TargetReadout/Always.txt"
 	; four times a second of play: flags 4 + 16 = not in menus, not while paused
-	CallWhilePerSeconds 0.25 rTick rTrue 20
+	if eval (IsFormValid rTick) && (IsFormValid rTrue)
+		CallWhilePerSeconds 0.25 rTick rTrue 20
+	endif
 endif

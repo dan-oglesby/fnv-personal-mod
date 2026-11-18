@@ -11,29 +11,40 @@ let ref rChk := 0
 let rChk := CompileScript "PerkBank/InMenu.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Perk Bank: PerkBank/InMenu.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "PerkBank/OnClose.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Perk Bank: PerkBank/OnClose.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "PerkBank/OnOpen.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Perk Bank: PerkBank/OnOpen.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "PerkBank/Spend.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Perk Bank: PerkBank/Spend.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "PerkBank/Watch.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "Perk Bank: PerkBank/Watch.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 if iBad > 0
-	print "Perk Bank: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
-else
+	print "Perk Bank: " + $iBad + " script function(s) failed to compile (named above). Everything else in it is running."
+	MessageEx "Perk Bank: part of it is off, a script failed to compile (see the console)"
+endif
+if iBad >= 0	; always (2026-11-17): each part below is registered only if its own function compiled
 	player.AuxVarSetFlt "*_pbSpending" 0
 	let ref rOpen := CompileScript "PerkBank/OnOpen.txt"
 	let ref rClose := CompileScript "PerkBank/OnClose.txt"
-	SetOnMenuOpenEventHandler rOpen 1 1027
-	SetOnMenuCloseEventHandler rClose 1 1027
+	if eval (IsFormValid rOpen)
+		SetOnMenuOpenEventHandler rOpen 1 1027
+	endif
+	if eval (IsFormValid rClose)
+		SetOnMenuCloseEventHandler rClose 1 1027
+	endif
 endif

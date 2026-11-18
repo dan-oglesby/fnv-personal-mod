@@ -37,6 +37,12 @@ def command_names():
     core = ROOT / "tools" / "xnvse_commands.txt"
     if core.exists():
         names |= {n.strip().lower() for n in core.read_text().split() if n.strip()}
+    # every command the game itself defines, long names and short aliases, read from FalloutNV.exe
+    # by tools/gen_fnv_commands.py (2026-11-17: rw = RevertWorld and SSP = SetSkyParam were missing
+    # from the short list above, and six files failed to compile in game)
+    game = ROOT / "tools" / "fnv_commands.txt"
+    if game.exists():
+        names |= {n.strip().lower() for n in game.read_text().split() if n.strip()}
     if NVSE_LOG.exists():
         log = NVSE_LOG.read_text(encoding="latin1", errors="replace")
         for m in re.finditer(r"Reg\w*Command\s+\[\w+\]\s+(\w+)(?:\s+\((\w+)\))?", log):

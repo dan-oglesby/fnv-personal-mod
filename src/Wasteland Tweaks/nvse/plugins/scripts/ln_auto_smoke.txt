@@ -24,66 +24,82 @@ if eval IsModLoaded "LightUpAndSmokeThoseCigarettes_edisleado.esp"
 	let ref rChk := CompileScript "AutoSmoke/Always.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/Always.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/Init.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/Init.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/IsLit.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/IsLit.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/LightUp.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/LightUp.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/OnEquip.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/OnEquip.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/OnKey.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/OnKey.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/Open.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/Open.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/OpenBtn.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/OpenBtn.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/Tick.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/Tick.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/UseCase.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/UseCase.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/Litter.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/Litter.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/LitKind.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/LitKind.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/NicCount.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/NicCount.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/NicSmoke.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/NicSmoke.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/NicTick.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/NicTick.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "AutoSmoke/NicMenu.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
+		print "Wasteland Tweaks: AutoSmoke/NicMenu.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	; NicSleep is the only script that names the sleep-deprivation actor value. It is optional: if it
 	; failed to compile, only nicotine alertness switches off (_asNicOk 0), not Auto Smoke.
@@ -95,11 +111,14 @@ if eval IsModLoaded "LightUpAndSmokeThoseCigarettes_edisleado.esp"
 		player.AuxVarSetFlt "_asNicOk" 1
 	endif
 	if iBad > 0
-		print "Auto Smoke: " + $iBad + " of its script functions failed to compile, so it is switched off. Details: nvse.log"
-		MessageEx "Auto Smoke is switched off: a script failed to compile"
-	else
+		print "Wasteland Tweaks: " + $iBad + " script function(s) failed to compile (named above). Everything else in it is running."
+		MessageEx "Wasteland Tweaks: part of it is off, a script failed to compile (see the console)"
+	endif
+	if iBad >= 0	; always (2026-11-17): each part below is registered only if its own function compiled
 		let ref rInit := CompileScript "AutoSmoke/Init.txt"
-		call rInit
+		if eval (IsFormValid rInit)
+			call rInit
+		endif
 		if eval IsModLoaded "AutoSmoke.esp"
 			let int iAS := GetModIndex "AutoSmoke.esp"
 			let ref rCase := BuildRef iAS 2048	; ASCigaretteCase 0x000800
@@ -107,12 +126,16 @@ if eval IsModLoaded "LightUpAndSmokeThoseCigarettes_edisleado.esp"
 				player.AddItem rCase 1
 			endif
 			let ref rOnEquip := CompileScript "AutoSmoke/OnEquip.txt"
-			RemoveEventHandler "OnActorEquip" rOnEquip
+			if eval (IsFormValid rOnEquip)
+				RemoveEventHandler "OnActorEquip" rOnEquip
+			endif
 			; Filtered to the cigarette case ("second" = the equipped item): xNVSE queues equip events that fire on a
 			; background thread onto an unlocked list the main thread clears every frame, and an unfiltered
 			; handler sends every NPC equip during cell loads there. That race corrupted memory and crashed
 			; the game's loaders (2026-11-14). A filtered handler never sees other items.
-			SetEventHandler "OnActorEquip" rOnEquip "second"::rCase
+			if eval (IsFormValid rOnEquip)
+				SetEventHandler "OnActorEquip" rOnEquip "second"::rCase
+			endif
 		else
 			print "Auto Smoke: AutoSmoke.esp is not enabled, so there is no cigarette case to open the settings with"
 		endif
@@ -123,13 +146,17 @@ if eval IsModLoaded "LightUpAndSmokeThoseCigarettes_edisleado.esp"
 		; handlers in a set, so re-adding on every load doesn't stack), and record what is already lit
 		; so a smoke carried over a load isn't counted as a new one
 		let ref rMenu := CompileScript "AutoSmoke/NicMenu.txt"
-		SetOnMenuOpenEventHandler rMenu 1 1012
+		if eval (IsFormValid rMenu)
+			SetOnMenuOpenEventHandler rMenu 1 1012
+		endif
 		let ref rKind := CompileScript "AutoSmoke/LitKind.txt"
 		let int iKindNow := call rKind
 		player.AuxVarSetFlt "_asWasLit" iKindNow
 		; check every 5 s of play: flags 4 + 16 = not in menus, not while paused
 		let ref rTick := CompileScript "AutoSmoke/Tick.txt"
 		let ref rTrue := CompileScript "AutoSmoke/Always.txt"
-		CallWhilePerSeconds 5 rTick rTrue 20
+		if eval (IsFormValid rTick) && (IsFormValid rTrue)
+			CallWhilePerSeconds 5 rTick rTrue 20
+		endif
 	endif
 endif

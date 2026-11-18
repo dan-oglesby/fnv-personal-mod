@@ -27,7 +27,7 @@ int iHave
 int iBox
 int iId
 ref rItem
-ref rW
+ref rWpn
 ref rList
 ref rAmmo
 ref rCur
@@ -57,11 +57,11 @@ begin Function {}
 
 	; 1. working amount of each kind of ammo (kept on the ammo form as *_twKeep, valid for this pass)
 	let rCur := 0
-	let rW := player.GetEquippedObject 5
-	if eval IsFormValid rW
+	let rWpn := player.GetEquippedObject 5
+	if eval IsFormValid rWpn
 		let rCur := GetPlayerCurrentAmmo
 		if eval (IsFormValid rCur) == 0
-			let rList := GetWeaponAmmo rW
+			let rList := GetWeaponAmmo rWpn
 			if eval IsFormValid rList
 				if eval (GetType rList) == 41
 					let rCur := rList
@@ -85,7 +85,7 @@ begin Function {}
 		if eval (IsFormValid rList) == 0
 			continue
 		endif
-		if eval rItem != rW
+		if eval rItem != rWpn
 			Ar_Append aWeap rItem
 		endif
 		let iClip := GetWeaponClipRounds rItem
@@ -107,7 +107,7 @@ begin Function {}
 				continue
 			endif
 			let iKeep := iClip
-			if eval rAmmo == rCur && rItem == rW
+			if eval rAmmo == rCur && rItem == rWpn
 				let iKeep := iClip * 4
 				if iKeep < 40
 					let iKeep := 40

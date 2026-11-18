@@ -10,20 +10,27 @@ let int iBad := 0
 let ref rChk := CompileScript "AfterDam/Always.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "After the Dam: AfterDam/Always.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "AfterDam/Tick.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "After the Dam: AfterDam/Tick.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 let rChk := CompileScript "AfterDam/Resume.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
+	print "After the Dam: AfterDam/Resume.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
 if iBad > 0
-	print "After the Dam: a script failed to compile (see nvse.log), so the ending will play as normal"
-else
+	print "After the Dam: " + $iBad + " script function(s) failed to compile (named above). Everything else in it is running."
+	MessageEx "After the Dam: part of it is off, a script failed to compile (see the console)"
+endif
+if iBad >= 0	; always (2026-11-17): each part below is registered only if its own function compiled
 	; twice a second: flags 4 + 16, not in menus, not while paused (the slides are gameplay)
 	let ref rTick := CompileScript "AfterDam/Tick.txt"
 	let ref rTrue := CompileScript "AfterDam/Always.txt"
-	CallWhilePerSeconds 0.5 rTick rTrue 20
+	if eval (IsFormValid rTick) && (IsFormValid rTrue)
+		CallWhilePerSeconds 0.5 rTick rTrue 20
+	endif
 endif
