@@ -32,6 +32,7 @@ import collections
 import csv
 import ctypes
 import ctypes.wintypes as wt
+import faulthandler
 import datetime as dt
 import json
 import os
@@ -39,6 +40,7 @@ import re
 import struct
 import sys
 import time
+import traceback
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -76,6 +78,7 @@ psapi = ctypes.WinDLL("psapi", use_last_error=True)
 SYNCHRONIZE, VM_READ, QUERY_INFO, QUERY_LIMITED = 0x00100000, 0x0010, 0x0400, 0x1000
 k32.OpenProcess.restype = wt.HANDLE
 k32.CreateToolhelp32Snapshot.restype = wt.HANDLE
+k32.CreateMutexW.restype = wt.HANDLE
 k32.VirtualQueryEx.restype = ctypes.c_size_t
 k32.ReadProcessMemory.argtypes = [wt.HANDLE, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t,
                                   ctypes.POINTER(ctypes.c_size_t)]
@@ -316,9 +319,23 @@ def live(pid=None, wait=True, summary_wait=120):
         pid = find_pid()
         if pid is None:
             sys.exit("the game is not running")
+    # one recorder per game process (fnv_watch.ps1 starts one; a second, started by hand, leaves)
+    mutex = k32.CreateMutexW(None, False, "Local\\FNVEngineWatch_%d" % pid)
+    if ctypes.get_last_error() == 183:             # ERROR_ALREADY_EXISTS
+        return
     proc = Proc(pid)
     out = session_dir(proc.started)
     out.mkdir(parents=True, exist_ok=True)
+    log = open(out / "recorder.log", "a", encoding="utf-8")
+    faulthandler.enable(log)                   # even a hard crash of the recorder leaves a trace
+    seen_errors = set()
+
+    def note(text):
+        key = text.strip().splitlines()[-1] if text.strip() else text
+        if key not in seen_errors:             # each distinct error once
+            seen_errors.add(key)
+            log.write("%s %s\n" % (dt.datetime.now().strftime("%H:%M:%S"), text))
+            log.flush()
     marker = out / "live.json"
     meta = {"pid": pid, "started": proc.started.isoformat(timespec="seconds"), "recorder": "engine_watch live"}
     marker.write_text(json.dumps(meta, indent=1))
@@ -342,59 +359,61 @@ def live(pid=None, wait=True, summary_wait=120):
     last_cell, hung_since, n, next_sample, va = None, None, 0, 0.0, {}
     probing = True
     while not proc.exited():
-        now = time.time()
-        stamp = dt.datetime.now().strftime("%H:%M:%S")
-        for name, t in tails.items():
-            groups = collections.OrderedDict()
-            for line in t.lines():
-                kind, detail = classify(name, line)
-                key = (kind, signature(line))
-                if key in groups:
-                    groups[key]["n"] += 1
-                else:
-                    groups[key] = {"t": stamp, "src": name, "kind": kind, "msg": line[:400], "n": 1}
-            for ev in groups.values():
-                emit(ev)
-        if crash_dir.exists():
-            for p in crash_dir.glob("*.log"):
-                if p.name not in seen_crashes:
-                    seen_crashes.add(p.name)
-                    emit({"t": stamp, "src": "Crash Logs", "kind": "crash", "msg": p.name, "n": 1})
-        if now >= next_sample:
-            next_sample = now + SAMPLE_S
-            row = {"t": stamp, **proc.counters()}
-            if n % VA_EVERY == 0:
-                va = proc.address_space()
-                row["threads"] = proc.threads()
-            row.update(va)
-            h = proc.hung()
-            row["hung"] = int(bool(h))
-            if h and hung_since is None:
-                hung_since = now
-                emit({"t": stamp, "src": "watch", "kind": "hang", "msg": "window stopped responding", "n": 1})
-            elif not h and hung_since is not None:
-                emit({"t": stamp, "src": "watch", "kind": "hang end",
-                      "msg": "responding again after %d s" % (now - hung_since), "n": 1})
-                hung_since = None
-            row["havok_lines"] = sum(len(t.lines()) for t in counted.values())
-            if probing:
-                try:
-                    p = probe(proc)
-                except Exception:              # never let a probe stop the recording
-                    p, probing = {}, False
-                if p:
-                    row.update({"cell": p.get("cell", ""), "cell_id": p.get("cell_id", "")})
-                    if "pos" in p:
-                        row["x"], row["y"], row["z"] = p["pos"]
-                    if p.get("cell_id") and p.get("cell_id") != last_cell:
-                        last_cell = p["cell_id"]
-                        emit({"t": stamp, "src": "game", "kind": "cell",
-                              "msg": "%s [%s]" % (p.get("cell") or "exterior", p["cell_id"]), "n": 1})
-            writer.writerow(row)
-            n += 1
-            if n % 15 == 0:
-                timeline.flush()
-                samples.flush()
+        try:
+            now = time.time()
+            stamp = dt.datetime.now().strftime("%H:%M:%S")
+            for name, t in tails.items():
+                groups = collections.OrderedDict()
+                for line in t.lines():
+                    kind, detail = classify(name, line)
+                    key = (kind, signature(line))
+                    if key in groups:
+                        groups[key]["n"] += 1
+                    else:
+                        groups[key] = {"t": stamp, "src": name, "kind": kind, "msg": line[:400], "n": 1}
+                for ev in groups.values():
+                    emit(ev)
+            if crash_dir.exists():
+                for p in crash_dir.glob("*.log"):
+                    if p.name not in seen_crashes:
+                        seen_crashes.add(p.name)
+                        emit({"t": stamp, "src": "Crash Logs", "kind": "crash", "msg": p.name, "n": 1})
+            if now >= next_sample:
+                next_sample = now + SAMPLE_S
+                row = {"t": stamp, **proc.counters()}
+                if n % VA_EVERY == 0:
+                    va = proc.address_space()
+                    row["threads"] = proc.threads()
+                row.update(va)
+                h = proc.hung()
+                row["hung"] = int(bool(h))
+                if h and hung_since is None:
+                    hung_since = now
+                    emit({"t": stamp, "src": "watch", "kind": "hang", "msg": "window stopped responding", "n": 1})
+                elif not h and hung_since is not None:
+                    emit({"t": stamp, "src": "watch", "kind": "hang end",
+                          "msg": "responding again after %d s" % (now - hung_since), "n": 1})
+                    hung_since = None
+                row["havok_lines"] = sum(len(t.lines()) for t in counted.values())
+                if probing:
+                    try:
+                        p = probe(proc)
+                    except Exception:              # never let a probe stop the recording
+                        p, probing = {}, False
+                    if p:
+                        row.update({"cell": p.get("cell", ""), "cell_id": p.get("cell_id", "")})
+                        if "pos" in p:
+                            row["x"], row["y"], row["z"] = p["pos"]
+                        if p.get("cell_id") and p.get("cell_id") != last_cell:
+                            last_cell = p["cell_id"]
+                            emit({"t": stamp, "src": "game", "kind": "cell",
+                                  "msg": "%s [%s]" % (p.get("cell") or "exterior", p["cell_id"]), "n": 1})
+                writer.writerow(row)
+                n += 1
+                timeline.flush()               # every sample: if the recorder is killed, the
+                samples.flush()                # record is complete up to that moment
+        except Exception:                      # log it and keep recording: one bad sample
+            note(traceback.format_exc())       # must not cost the whole session
         time.sleep(TAIL_S)
     code = proc.exit_code()
     ended = dt.datetime.now()
@@ -682,7 +701,13 @@ def main():
     if getattr(a, "out", None):
         SESSIONS = Path(a.out)
     if a.cmd == "live":
-        live(a.pid, summary_wait=a.summary_wait)
+        try:
+            live(a.pid, summary_wait=a.summary_wait)
+        except BaseException:                  # pythonw has no console: keep the reason somewhere
+            SESSIONS.mkdir(parents=True, exist_ok=True)
+            with open(SESSIONS / "_engine_watch_errors.log", "a", encoding="utf-8") as f:
+                f.write("%s\n%s\n" % (dt.datetime.now().isoformat(timespec="seconds"), traceback.format_exc()))
+            raise
     elif a.cmd == "report":
         dirs = sorted(p for p in SESSIONS.iterdir() if p.is_dir() and not p.name.startswith("_")) if a.all else [Path(a.session)]
         for d in dirs:
