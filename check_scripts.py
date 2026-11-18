@@ -199,6 +199,10 @@ def udf_problems(text, names, udf_keys, is_udf):
         m = re.match(r"begin\s+function\s*\{([^}]*)\}", code, re.I)
         if m:
             params |= {x.strip().lower() for x in m.group(1).split(",") if x.strip()}
+    # a function's parameters must be declared as variables too, or xNVSE won't compile the file
+    # (2026-11-18: Mulch.txt's fRoom wasn't, and the suit's mulching was off for a session)
+    for p in sorted(params - declared):
+        out.append("function parameter %s is not declared as a variable" % p)
     for n, line in enumerate(text.splitlines(), 1):
         code = _strip_comment(line)
         if not code:
