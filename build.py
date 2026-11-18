@@ -32,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent / "tools"))
 import exchange_sim  # noqa: E402
 import gen_exchange  # noqa: E402
 import gen_needs_meters  # noqa: E402
+import gen_load_order_patch  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent
 STAGING = Path(os.environ.get("APPDATA", "")) / "Vortex" / "falloutnv" / "mods"
@@ -135,6 +136,7 @@ def main(argv):
     if check_scripts.main():        # a script that would not compile in game stops the build
         sys.exit("build stopped: fix the script problems above")
     make_plugins.main()             # the small item plugins some mods use as their menu item
+    gen_load_order_patch.main()     # local only: forwards fixes later plugins undo (not committed)
     (ROOT / "dist").mkdir(exist_ok=True)
     do_stage = "--no-stage" not in argv
     if do_stage and game_running():
