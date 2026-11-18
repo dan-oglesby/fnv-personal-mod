@@ -457,7 +457,17 @@ MAX_INCIDENTS = 30
 HIST_STEP = 0.5          # frame-time histogram bins (ms), to 500 ms
 
 
-def stop_trace_sessions(only=None):
+def process_alive(pid):
+    h = k32.OpenProcess(QUERY_LIMITED, False, pid)
+    if not h:
+        return False
+    code = wt.DWORD()
+    alive = bool(k32.GetExitCodeProcess(h, ctypes.byref(code))) and code.value == 259   # STILL_ACTIVE
+    k32.CloseHandle(h)
+    return alive
+
+
+def stop_trace_sessions(only=None, keep=None):
     """Stop Windows trace sessions this recorder started (named FNVEngineWatch...). Ending PresentMon
     forcibly leaves its session running with nobody reading it, which keeps the graphics event
     providers on for every frame of every program and starves new sessions (2026-11-18: three such
@@ -470,8 +480,15 @@ def stop_trace_sessions(only=None):
     names = [l.split()[0] for l in q.splitlines() if l.strip().startswith("FNVEngineWatch")]
     stopped = []
     for n in names:
-        if only and n != only:
+        if (only and n != only) or (keep and n == keep):
             continue
+        # a sweep (no `only`) stops a session only when the game it records is gone: a session named
+        # after a process that is still running belongs to a live recorder (2026-11-18: a test
+        # recorder's sweep stopped the real game's session)
+        if not only:
+            tail = n.rsplit("_", 1)[-1]
+            if tail.isdigit() and process_alive(int(tail)):
+                continue
         try:
             subprocess.run(["logman", "stop", n, "-ets"], capture_output=True, timeout=20, creationflags=0x08000000)
             stopped.append(n)
@@ -485,9 +502,11 @@ class FrameFeed:
     last RING_S seconds, a frame-time histogram, per-second stats and a list of hitches. PresentMon
     needs admin rights or "Performance Log Users" membership (from the next sign-in)."""
 
-    def __init__(self, pid, note):
+    def __init__(self, pid, note, out=None):
         import threading
         self.lock = threading.Lock()
+        self.last_frame = time.time()            # wall time of the newest frame (for the watchdog)
+        self.lost = 0                            # ETW events PresentMon reported lost
         self.ring = collections.deque()          # (epoch, ms, cpu busy, gpu busy)
         self.hist = collections.Counter()
         self.secs = {}                           # epoch second -> [n, sum, max, >25, >50]
@@ -499,7 +518,7 @@ class FrameFeed:
         if not exes:
             note("frames: PresentMon not found in %s, so no frame times this session" % PRESENTMON_DIR)
             return
-        stale = stop_trace_sessions()           # leftovers from an earlier recorder that was cut short
+        stale = stop_trace_sessions(keep="FNVEngineWatch_%d" % pid)   # leftovers from a recorder cut short
         if stale:
             note("frames: stopped leftover trace session(s) %s" % ", ".join(stale))
         self.session = "FNVEngineWatch_%d" % pid
@@ -515,6 +534,22 @@ class FrameFeed:
             return
         self.ok = True
         threading.Thread(target=self.read, daemon=True).start()
+        # PresentMon's warnings go to stderr. Nobody read it before 2026-11-18: its few-KB pipe filled
+        # with "N ETW events were lost" lines and PresentMon blocked on the next one, so frames
+        # stopped 45 s into a session. Now it is drained into presentmon.log.
+        threading.Thread(target=self.drain, args=(out,), daemon=True).start()
+
+    def drain(self, out):
+        log = open(out / "presentmon.log", "a", encoding="utf-8") if out else None
+        written = 0
+        for line in self.pm.stderr:
+            m = re.search(r"(\d+) ETW events were lost", line)
+            if m:
+                self.lost += int(m.group(1))
+            if log and written < 200:            # the first 200 lines, then only the count
+                log.write(dt.datetime.now().strftime("%H:%M:%S ") + line)
+                log.flush()
+                written += 1
 
     def read(self):
         cols = None
@@ -536,6 +571,7 @@ class FrameFeed:
             if self.offset is None:              # PresentMon's clock isn't local time: align it once
                 self.offset = round((time.time() - t) / 1800) * 1800
             t += self.offset
+            self.last_frame = time.time()
             with self.lock:
                 self.frames += 1
                 self.ring.append((t, ms, cpu, gpu))
@@ -620,7 +656,9 @@ def live(pid=None, wait=True, summary_wait=120):
         note("could not enter background mode (error %d); recording at normal priority" % ctypes.get_last_error())
     marker = out / "live.json"
     meta = {"pid": pid, "started": proc.started.isoformat(timespec="seconds"), "recorder": "engine_watch flight recorder"}
-    feed = FrameFeed(pid, note)
+    feed = FrameFeed(pid, note, out)
+    restarts = 0
+    next_sweep = time.time() + 120
     meta["frames"] = "recording" if feed.ok else "unavailable (recorder.log)"
     marker.write_text(json.dumps(meta, indent=1))
     since = proc.started.timestamp() - 5
@@ -871,6 +909,27 @@ def live(pid=None, wait=True, summary_wait=120):
             minute["m"] = int(now // 60)
             if incident and now >= incident["close"]:
                 write_incident(now)
+            # the frame feed's watchdog: the game has the focus but no frame came for 30 s
+            if feed.ok and hung_since is None and now - feed.last_frame > 30 \
+                    and not ({int(now) - k for k in range(30)} & unfocused) \
+                    and restarts < 5:
+                restarts += 1
+                emit({"t": stamp, "src": "watch", "kind": "frames", "n": 1,
+                      "msg": "no frames for 30 s with the game in focus: PresentMon restarted (%d)" % restarts})
+                note("frames: stalled for 30 s; restarting PresentMon (%d, %d events lost so far)" % (restarts, feed.lost))
+                lost = feed.lost
+                feed.stop(wait=0)
+                with feed.lock:
+                    keep = (feed.ring, feed.hist, feed.secs, feed.hitches, feed.frames)
+                feed = FrameFeed(pid, note, out)
+                feed.ring, feed.hist, feed.secs, feed.hitches, feed.frames = keep
+                feed.lost += lost
+            # leftover trace sessions of earlier recorders starve PresentMon: sweep them
+            if now >= next_sweep:
+                next_sweep = now + 120
+                swept = stop_trace_sessions(keep="FNVEngineWatch_%d" % pid)
+                if swept:
+                    note("frames: stopped leftover trace session(s) %s" % ", ".join(swept))
             if now >= next_flush:
                 next_flush = now + FLUSH_S
                 flush()
@@ -902,7 +961,7 @@ def live(pid=None, wait=True, summary_wait=120):
     write_incident(time.time())
     flush()
     meta.update({"ended": ended.isoformat(timespec="seconds"), "exit_code": code, "incidents": incidents_written,
-                 "repeat_triggers": dict(repeats),
+                 "repeat_triggers": dict(repeats), "frame_feed_restarts": restarts, "etw_events_lost": feed.lost,
                  "routine_lines": dict(counts), "frames_total": feed.frames,
                  "frame_stats": histogram_stats(feed.hist),
                  "frame_hist": {str(k): v for k, v in sorted(feed.hist.items())},
