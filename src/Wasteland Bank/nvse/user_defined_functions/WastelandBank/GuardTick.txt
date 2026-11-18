@@ -1,5 +1,5 @@
 ; Wasteland Bank: hired guards, once a second of play (2026-11-17).
-; - Once a game session: their activation handlers (GuardAct.txt) and waiting guards' packages are
+; - After every load (the loader clears "*_wgSes"): their activation handlers (GuardAct.txt) and waiting guards' packages are
 ;   set again (neither is kept in a save), and the temporary catch-up counters ("*_wgFar" 0-2).
 ; - A guard who dies stays as a body you can loot ("_wgOn" 3). A leaving guard (2) is removed once
 ;   you're away from them.
@@ -34,6 +34,8 @@ begin Function {}
 			if iOn > 0
 				let rRef := player.AuxVarGetRef "_wgRef" iK
 				if eval IsFormValid rRef
+					RemoveEventHandler "OnActivate" rFn "first"::rRef
+					RemoveEventHandler "OnActivate" rFn "second"::rRef
 					SetEventHandler "OnActivate" rFn "first"::rRef
 					SetEventHandler "OnActivate" rFn "second"::rRef
 					if eval iOn == 2 || (iOn == 1 && (player.AuxVarGetFlt "_wgWait" iK) == 1)

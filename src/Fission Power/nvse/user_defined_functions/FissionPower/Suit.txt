@@ -78,6 +78,9 @@ begin Function {}
 			if eval (GetType rItem) != 47
 				continue
 			endif
+			if eval IsQuestItem rItem	; never a quest item (review 2026-11-18)
+				continue
+			endif
 			let fMag := call rFn rItem
 			if fMag <= 0 || fMag > fMax - fRes
 				continue

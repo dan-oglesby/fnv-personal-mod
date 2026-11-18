@@ -34,6 +34,23 @@ begin Function {}
 		return
 	endif
 	let rLead := player.AuxVarGetRef "_wbColRef" 0
+	; collectors already here after a load: set their activation handlers again (the loader clears
+	; "*_wbColH" on every load; review 2026-11-18)
+	if eval iState >= 2 && (player.AuxVarGetFlt "*_wbColH") == 0
+		player.AuxVarSetFlt "*_wbColH" 1
+		let rFn := CompileScript "WastelandBank/ColAct.txt"
+		let iIdx := 0
+		while iIdx < 3
+			let rRef := player.AuxVarGetRef "_wbColRef" iIdx
+			let iIdx += 1
+			if eval IsFormValid rRef
+				RemoveEventHandler "OnActivate" rFn "first"::rRef
+				RemoveEventHandler "OnActivate" rFn "second"::rRef
+				SetEventHandler "OnActivate" rFn "first"::rRef
+				SetEventHandler "OnActivate" rFn "second"::rRef
+			endif
+		loop
+	endif
 
 	if iState == 1
 		let fNow := GameDaysPassed
@@ -68,6 +85,7 @@ begin Function {}
 			player.AuxVarSetRef "_wbColRef" rRef iIdx
 			SetEventHandler "OnActivate" rFn "first"::rRef
 			SetEventHandler "OnActivate" rFn "second"::rRef
+			player.AuxVarSetFlt "*_wbColH" 1
 			let iIdx += 1
 		loop
 		player.AuxVarSetFlt "*_wbColComeT" 0

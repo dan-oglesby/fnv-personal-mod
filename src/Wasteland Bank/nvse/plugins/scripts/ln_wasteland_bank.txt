@@ -680,6 +680,14 @@ if iBad > 0
 	MessageEx "Wasteland Bank: part of it is off, a script failed to compile (see the console)"
 endif
 if iBad >= 0	; always (2026-11-17): each part below is registered only if its own function compiled
+	; activation handlers are set again after every load (RepTick, GuardTick, SqTick, ColTick): a
+	; different save's representatives, guards, couriers or collectors are different references,
+	; and a game restarted with them standing there has none (review 2026-11-18)
+	player.AuxVarSetFlt "*_wbRepHCv" 0
+	player.AuxVarSetFlt "*_wbRepHLg" 0
+	player.AuxVarSetFlt "*_wgSes" 0
+	player.AuxVarSetFlt "*_wbSqH" 0
+	player.AuxVarSetFlt "*_wbColH" 0
 	let ref rInit := CompileScript "WastelandBank/Init.txt"
 	if eval (IsFormValid rInit)
 		call rInit

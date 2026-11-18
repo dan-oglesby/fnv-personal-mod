@@ -57,6 +57,23 @@ begin Function {}
 	endif
 	let fNow := GameDaysPassed
 	let rLead := player.AuxVarGetRef "_wbSqRef" 0
+	; a squad already here after a load: set their activation handlers again (the loader clears
+	; "*_wbSqH" on every load; review 2026-11-18)
+	if eval iState == 2 && (player.AuxVarGetFlt "*_wbSqH") == 0
+		player.AuxVarSetFlt "*_wbSqH" 1
+		let rFn := CompileScript "WastelandBank/CourierAct.txt"
+		let iIdx := 0
+		while iIdx < 3
+			let rRef := player.AuxVarGetRef "_wbSqRef" iIdx
+			let iIdx += 1
+			if eval IsFormValid rRef
+				RemoveEventHandler "OnActivate" rFn "first"::rRef
+				RemoveEventHandler "OnActivate" rFn "second"::rRef
+				SetEventHandler "OnActivate" rFn "first"::rRef
+				SetEventHandler "OnActivate" rFn "second"::rRef
+			endif
+		loop
+	endif
 
 	; leaving: gone once they're out of sight, or after 45 seconds
 	if iState == 3
@@ -107,6 +124,7 @@ begin Function {}
 			SetEventHandler "OnActivate" rFn "first"::rRef
 			SetEventHandler "OnActivate" rFn "second"::rRef
 			let iIdx += 1
+			player.AuxVarSetFlt "*_wbSqH" 1
 		loop
 		player.AuxVarSetFlt "_wbSqArr" fNow
 		player.AuxVarSetFlt "_wbSqMet" 0
