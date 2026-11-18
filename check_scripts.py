@@ -172,15 +172,70 @@ def xml_problems(text):
     return []
 
 
+def _strip_comment(line):
+    out, quoted = [], False
+    for ch in line:
+        if ch == '"':
+            quoted = not quoted
+        elif ch == ";" and not quoted:
+            break
+        out.append(ch)
+    return "".join(out).strip()
+
+
+def udf_problems(text, names, udf_keys, is_udf):
+    """Checks added by the 2026-11-18 review (each found or would have found a real bug):
+    - a variable used but never declared (the whole file fails to compile);
+    - CompileScript "Folder/File.txt" naming a file that doesn't exist in any mod;
+    - a literal string passed for %z (format arguments must be string variables);
+    - a message box with more than the game's 10 buttons."""
+    out = []
+    declared, params = set(), set()
+    for line in text.splitlines():
+        code = _strip_comment(line)
+        m = DECL.match(code)
+        if m:
+            declared.add(m.group(1).lower())
+        m = re.match(r"begin\s+function\s*\{([^}]*)\}", code, re.I)
+        if m:
+            params |= {x.strip().lower() for x in m.group(1).split(",") if x.strip()}
+    for n, line in enumerate(text.splitlines(), 1):
+        code = _strip_comment(line)
+        if not code:
+            continue
+        for target in re.findall(r'CompileScript\s+"([^"]+)"', code):
+            if target.lower() not in udf_keys:
+                out.append("line %d: CompileScript names %s, which doesn't exist" % (n, target))
+        if is_udf:
+            bare = re.sub(r'"[^"]*"', '""', code)
+            for var in re.findall(r"\b([ifrsa][A-Z]\w*)\b", bare):
+                low = var.lower()
+                if low not in declared and low not in params and low not in names:
+                    out.append("line %d: variable %s is used but not declared" % (n, var))
+        m = re.match(r'(SetUIStringEx|MessageEx|MessageBoxEx|sv_Construct)\b.*"[^"]*%z[^"]*"\s+(.*)$', code)
+        if m and '"' in m.group(2):
+            out.append("line %d: a literal string passed for %%z (use a string variable)" % n)
+        m = re.search(r'MessageBox(?:Ex|ExAlt)?\b[^"]*"([^"]*)"', code)
+        if m and m.group(1).count("|") > 10:
+            out.append("line %d: more than 10 message box buttons" % n)
+    return out
+
+
 def main():
     names = command_names()
     problems = []
     for f in sorted((ROOT / "src").rglob("*.xml")):
         for p in xml_problems(f.read_text(encoding="utf-8-sig", errors="replace")):
             problems.append("%s: %s" % (f.relative_to(ROOT), p))
+    udf_keys = {"/".join(f.parts[-2:]).lower()
+                for f in (ROOT / "src").glob("*/nvse/user_defined_functions/*/*.txt")}
     for f in sorted((ROOT / "src").rglob("*.txt")):
         text = f.read_text(encoding="utf-8", errors="replace")
         rel = f.relative_to(ROOT)
+        if "nvse" in f.parts:
+            is_udf = "user_defined_functions" in f.parts
+            for p in udf_problems(text, names, udf_keys, is_udf):
+                problems.append("%s: %s" % (rel, p))
         for var in DECL.findall(text):
             if var.lower() in names:
                 problems.append("%s: variable %s has the same name as a command" % (rel, var))
