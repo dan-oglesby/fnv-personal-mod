@@ -96,6 +96,72 @@ in the probe throws, probing switches off for the rest of the session and the re
   - `NQlvlSCRIPT` with a missing local variable, 386 times;
   - UPNVSEP's `UPNVSEPEvOnProcessLevelChange` calling SetPersistent on a null actor.
 
+## The flight recorder (2026-11-18)
+
+The live recorder works in tiers, so it is detailed when something is happening and nearly free
+the rest of the time.
+
+**Tiers**
+- **Active:** the first 10 minutes of a launch, and 2 minutes after any load, save, interior
+  change, hang or hitch burst. It samples every second and walks the address space every 10 s.
+- **Passive:** otherwise. It samples every 10 s, walks the address space every 60 s, reads the
+  logs every 5 s, and folds frame stats into 10-second rows.
+
+**Memory first.** The last 3 minutes of raw frames, samples and events stay in a ring buffer in
+the recorder's memory. Raw data reaches disk only as an **incident**, in `incidents.jsonl.gz` (one
+gzip member each): the 3 minutes before a trigger and 30 s after it.
+- Triggers: a hitch burst (3 frames over 50 ms within 10 s, game in focus), a hang, an error flood
+  (the error log growing 20 KB in 10 s), a new crash log, and the exit (always: the black box).
+- A trigger of the same cause within 3 minutes of the last incident is counted
+  (`repeat_triggers`), not saved again.
+- There are at most 30 incidents a session, plus the exit.
+
+**Batched writes.** Session files are appended once a minute, and on incidents and the exit:
+- `timeline.jsonl`: events only; nvse.log's routine registration lines are just counted;
+- `samples.csv`;
+- `seconds.jsonl`: per-second frame stats, or per 10 s while passive.
+
+A rolling monthly log, `SessionLogs/engine_watch_YYYY-MM.jsonl`, gets one line per minute across
+all sessions: fps, worst frame, hitches, memory, disk reads, the main thread's peak, and the cell.
+
+**Background priority.** The recorder runs in Windows' background mode, so its CPU, disk and memory
+use always yield to the game. PresentMon runs below normal priority.
+
+**What each sample holds:**
+- memory, address space and its largest free block;
+- **disk reads and writes per second and page faults per second**: streaming stalls show here;
+- process CPU, the **main thread's load** (% of one core, from QueryThreadCycleTime), and the
+  three busiest threads, named by where they started (module+offset, e.g. the texture loader);
+- whether the game has the **focus**: alt-tab gaps don't count as hitches;
+- hangs, error-log growth, cell and position.
+
+**Saves:** each save's size and its growth are logged, since save bloat slows saves and loads.
+The report shows load times (loading → loaded) and save sizes.
+
+**Frames (PresentMon 2.6.0).** It lives in `%LOCALAPPDATA%\fnv-tools\presentmon`, outside the
+repo. It is signed by Intel and was downloaded with the user's approval.
+- It runs with `--output_stdout`, piped into the recorder, so there is no 40 MB/hour CSV. It needs
+  admin rights or "Performance Log Users" membership (from the next sign-in).
+- Its events arrive about 2 s late, so a second's stats close 3 s after it ends.
+- **Trace sessions:** without full admin rights `--terminate_on_proc_exit` doesn't fire, and
+  ending PresentMon forcibly leaves its Windows trace session running with no reader. Such
+  orphans keep the graphics event providers on for every frame of every program and starve new
+  sessions: three of them made captures return nothing. So the recorder stops its own
+  `FNVEngineWatch_<pid>` session at the end, and any leftover `FNVEngineWatch*` sessions at the
+  start.
+- The report's Frames section has median and 1%-low frame times, hitches per minute of focused
+  play, the worst hitches with time and cell, and the share of gaps between hitches that are
+  whole seconds (high means a timed script; see docs/performance.md).
+- Each incident gets a likely cause from the raw minutes around its trigger: loading, saving,
+  cell change, disk streaming, main thread at full load, error flood, hang.
+
+**Tests:**
+- The tiers, the batching, the incidents and their cooldown, and the report were run end to end:
+  the full loop on a short-lived 32-bit process, with the frame feed reading a window that was
+  presenting.
+- A WPF window is no stand-in for a game, because PresentMon doesn't see WPF frames.
+- `live --test-tiers` shrinks the tiers to seconds.
+
 ## Layer 3: in-game breadcrumbs (designed)
 
 A small UDF set registers event handlers and `print`s one tagged line per event to the console log
