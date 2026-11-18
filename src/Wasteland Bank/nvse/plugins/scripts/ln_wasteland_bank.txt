@@ -688,6 +688,7 @@ if iBad >= 0	; always (2026-11-17): each part below is registered only if its ow
 	player.AuxVarSetFlt "*_wgSes" 0
 	player.AuxVarSetFlt "*_wbSqH" 0
 	player.AuxVarSetFlt "*_wbColH" 0
+	player.AuxVarSetFlt "*_wbColAsked" 0	; collectors already here step up to you again
 	let ref rInit := CompileScript "WastelandBank/Init.txt"
 	if eval (IsFormValid rInit)
 		call rInit
