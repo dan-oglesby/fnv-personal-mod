@@ -13,6 +13,8 @@ ref rRef
 ref rFn
 ref rPkg
 
+ref rKill
+
 begin Function {}
 	if eval (player.AuxVarGetFlt "_wgInit") == 0
 		return
@@ -56,6 +58,14 @@ begin Function {}
 				player.AuxVarSetFlt "_wgOn" 0 iK
 			elseif eval rRef.GetDead
 				player.AuxVarSetFlt "_wgOn" 3 iK
+				; killed by you: the company takes its gear back, so hiring guards to shoot them for
+				; their kit is no way to make money (JIP GetKiller; review 2026-11-18)
+				let rKill := rRef.GetKiller
+				if eval IsFormValid rKill
+					if eval rKill == player
+						rRef.RemoveAllItems
+					endif
+				endif
 				if iOn == 1
 					MessageEx "One of your hired guards is dead."
 				endif
