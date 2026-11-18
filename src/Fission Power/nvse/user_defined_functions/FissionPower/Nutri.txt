@@ -3,6 +3,12 @@
 ; it can't be mulched. Mulched: food (the food flag), not medicine, nothing addictive, no quest
 ; items, nothing irradiated (any DamageRadiationLevel effect, 0x020516), not drinks (more thirst
 ; than hunger, RestoreDehydrationLevel 0x161F36), and not the paste itself.
+; No return inside the effects loop (2026-11-18): xNVSE's loop stack is shared by every script on
+; the thread and a return doesn't take its loop off it, so the caller's next loop (Mulch.txt, and
+; Suit.txt before it, call this from inside theirs) jumped to this script's loop condition inside
+; its own code: "Too few operands for operator ||" in Mulch.txt and, earlier, "Unable to find
+; function definition for command -27904" in Suit.txt, on every irradiated food item. break does.
+int iRad
 int iK
 int iN
 float fHunger
@@ -37,11 +43,13 @@ begin Function {rItem}
 	let fThirst := 0
 	let iN := GetNumEffects rItem
 	let iK := 0
+	let iRad := 0
 	while iK < iN
 		let rEff := GetNthEffectBase rItem iK
 		let fMag := GetNthEffectTraitNumeric rItem iK 0
 		if eval rEff == rRad
-			return
+			let iRad := 1
+			break
 		elseif eval rEff == rHunger
 			if fMag > fHunger
 				let fHunger := fMag
@@ -53,6 +61,9 @@ begin Function {rItem}
 		endif
 		let iK += 1
 	loop
+	if iRad == 1
+		return		; irradiated: not mulched (the function value is still 0)
+	endif
 	if fThirst > fHunger
 		return
 	endif

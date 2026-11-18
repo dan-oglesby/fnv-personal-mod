@@ -17,8 +17,7 @@ begin Function {}
 		if eval IsFormValid rBox
 			if eval (player.GetDistance rBox) <= 400
 				SetFunctionValue iK
-				let aIds := Ar_Null
-				return
+				break	; not return: a return inside a loop leaves it on xNVSE's loop stack (2026-11-18)
 			endif
 		endif
 		let iK += 1

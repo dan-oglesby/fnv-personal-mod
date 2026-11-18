@@ -8,6 +8,9 @@
 ; "Enemy" is the game's own test, GetPCEnemyOfFaction (what the Lucky 38 scripts use). An owner that
 ; is a person counts as an enemy if any faction they belong to is your enemy.
 ; Corpses are not checked: looting the dead is never a crime.
+; No return inside a loop (2026-11-18): xNVSE's loop stack is shared by every script on the thread
+; and a return doesn't take its loop off it, so the caller's next loop/continue (Tick.txt calls this
+; from inside its loops) jumped to this script's loop instead. Leaving with iStop and break does.
 ref rRef
 ref rOwner
 ref rFac
@@ -15,6 +18,7 @@ int iStep
 int iHostile
 int iNum
 int iK
+int iStop
 
 begin Function {rRef}
 	SetFunctionValue 1
@@ -22,6 +26,7 @@ begin Function {rRef}
 		return
 	endif
 	let iHostile := 0
+	let iStop := 0
 	let iStep := 0
 	while iStep < 2
 		if iStep == 0
@@ -35,11 +40,13 @@ begin Function {rRef}
 		endif
 		; someone owns this: it can only be taken if they're your enemy
 		if eval (player.AuxVarGetFlt "_slEnemy") == 0
-			return
+			let iStop := 1
+			break
 		endif
 		if eval (GetType rOwner) == 8
 			if eval (GetPCEnemyOfFaction rOwner) == 0
-				return
+				let iStop := 1
+				break
 			endif
 		elseif eval (GetType rOwner) == 42
 			let iNum := GetBaseNumFactions rOwner
@@ -56,13 +63,18 @@ begin Function {rRef}
 				let iK += 1
 			loop
 			if iHostile == 0
-				return
+				let iStop := 1
+				break
 			endif
 		else
-			return
+			let iStop := 1
+			break
 		endif
 		let iHostile := 1
 	loop
+	if iStop == 1
+		return		; leave it (the function value is still 1)
+	endif
 	if iHostile == 1
 		SetFunctionValue 2
 	else

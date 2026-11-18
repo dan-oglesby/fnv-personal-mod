@@ -9,6 +9,7 @@ int iPlugin
 int iK
 int iGot
 int iId
+int iLit
 ref rCig
 ref rMouth
 ref rStash
@@ -45,6 +46,7 @@ begin Function {}
 	endif
 	; cheat terminal storage: a cigarette, cigarillo or cigar, then (if on) a pack or carton
 	let rStash := CompileScript "WastelandTweaks/Stash.txt"
+	let iLit := 0
 	if eval IsFormValid rStash
 		let iK := 0
 		while iK < 5
@@ -74,9 +76,12 @@ begin Function {}
 				else
 					SetFunctionValue 0
 				endif
-				return
+				let iLit := 1
+				break	; not return: a return inside a loop leaves it on xNVSE's loop stack (2026-11-18)
 			endif
 		loop
 	endif
-	SetFunctionValue 3
+	if iLit == 0
+		SetFunctionValue 3
+	endif
 end

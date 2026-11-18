@@ -203,6 +203,20 @@ def udf_problems(text, names, udf_keys, is_udf):
     # (2026-11-18: Mulch.txt's fRoom wasn't, and the suit's mulching was off for a session)
     for p in sorted(params - declared):
         out.append("function parameter %s is not declared as a variable" % p)
+    # no return inside a while/foreach (2026-11-18): xNVSE keeps one loop stack per thread for every
+    # script, return doesn't take its loop off it (only break and the loop ending do), and loop and
+    # continue act on the top entry, so the caller's next loop jumped into this script's loop: the
+    # suit's "command -27904" errors and Mulch.txt's "Too few operands for operator ||". Use break.
+    depth = 0
+    for n, line in enumerate(text.splitlines(), 1):
+        words = _strip_comment(line).split()
+        w = words[0].lower() if words else ""
+        if w in ("while", "foreach"):
+            depth += 1
+        elif w == "loop":
+            depth = max(0, depth - 1)
+        elif w == "return" and depth:
+            out.append("line %d: return inside a loop (leave the loop with break; see check_scripts.py)" % n)
     for n, line in enumerate(text.splitlines(), 1):
         code = _strip_comment(line)
         if not code:

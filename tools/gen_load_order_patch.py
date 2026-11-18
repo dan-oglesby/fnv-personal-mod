@@ -222,7 +222,10 @@ def main():
     if not audit.PLUGINS_TXT.exists() or not (audit.DATA / YUP).exists():
         print("gen_load_order_patch: no plugins.txt or no YUP; nothing to do")
         return
-    order = [n for n in audit.load_order() if (audit.DATA / n).exists()]
+    # the patch itself is never part of the analysis: once enabled, its own records would count as
+    # the winners, so the fixes it forwards would look undone by nobody and drop out, and it would
+    # flip between full and empty on alternate builds (2026-11-18)
+    order = [n for n in audit.load_order() if (audit.DATA / n).exists() and n.lower() != OUT.name.lower()]
     if YUP not in order:
         return
     plugins = {n: audit.read_plugin(audit.DATA / n) for n in order}

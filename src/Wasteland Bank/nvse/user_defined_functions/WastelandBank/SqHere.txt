@@ -15,7 +15,7 @@ begin Function {}
 		if eval IsFormValid rRef
 			if eval (player.GetDistance rRef) <= 1000
 				SetFunctionValue 1
-				return
+				break	; not return: a return inside a loop leaves it on xNVSE's loop stack (2026-11-18)
 			endif
 		endif
 	loop
