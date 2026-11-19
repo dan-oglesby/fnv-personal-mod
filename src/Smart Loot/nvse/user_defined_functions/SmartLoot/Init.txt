@@ -4,27 +4,32 @@
 ref rSurv
 
 begin Function {}
-	if eval (player.AuxVarGetFlt "_slInit") >= 8
+	if eval (player.AuxVarGetFlt "_slInit") >= 9
+		return
+	endif
+	; version 9 (2026-11-18): the debug trace on again (SmartLoot.log in the game folder) while the
+	; Legion hit squads' corpses are reported unlooted; turn it off with player.AuxVarSetFlt "_slDebug" 0
+	player.AuxVarSetFlt "_slDebug" 1
+	if eval (player.AuxVarGetFlt "_slInit") == 8
+		player.AuxVarSetFlt "_slInit" 9
 		return
 	endif
 	player.AuxVarSetFlt "_slCells" 200	; added in version 8: energy ammo kept as suit fuel, per kind
 	if eval (player.AuxVarGetFlt "_slInit") == 7
-		player.AuxVarSetFlt "_slInit" 8
+		player.AuxVarSetFlt "_slInit" 9
 		return
 	endif
 	; version 7: the debug trace off again, looting confirmed working (2026-11-16)
 	if eval (player.AuxVarGetFlt "_slInit") == 6
-		player.AuxVarSetFlt "_slDebug" 0
-		player.AuxVarSetFlt "_slInit" 8
+		player.AuxVarSetFlt "_slInit" 9
 		return
 	endif
 	player.AuxVarSetFlt "_slAjar" 1	; added in settings version 6: searched containers stay slightly open
 	if eval (player.AuxVarGetFlt "_slInit") == 5
-		player.AuxVarSetFlt "_slInit" 8
+		player.AuxVarSetFlt "_slInit" 9
 		return
 	endif
-	; the debug trace (version 5 turned it on while corpse currency was being missed; off since 7)
-	player.AuxVarSetFlt "_slDebug" 0
+	; the debug trace: version 5 turned it on while corpse currency was being missed, 7 off, 9 on
 	if eval (player.AuxVarGetFlt "_slInit") >= 1
 		if eval (player.AuxVarGetFlt "_slInit") < 4
 			player.AuxVarSetFlt "_slBatt" 4
@@ -36,11 +41,11 @@ begin Function {}
 		if eval (player.AuxVarGetFlt "_slInit") < 2
 			player.AuxVarSetFlt "_slEnemy" 1
 		endif
-		player.AuxVarSetFlt "_slInit" 8
+		player.AuxVarSetFlt "_slInit" 9
 		return
 	endif
 	; a new save: every setting at its default
-	player.AuxVarSetFlt "_slInit" 8
+	player.AuxVarSetFlt "_slInit" 9
 	player.AuxVarSetFlt "_slBatt" 4		; fission batteries kept while you own power armor (Fission Power)
 	let rSurv := CompileScript "SmartLoot/InitSurvival.txt"
 	call rSurv
