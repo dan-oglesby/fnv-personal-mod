@@ -107,38 +107,52 @@ begin Function {}
 			endif
 		endif
 
-		; 2. feeding you: whatever thirst and hunger have built up, exactly, once it's a point or more
+		; 2. feeding you, every second: whatever thirst and hunger have built up, exactly, once it's a
+		; point or more. A need is held in its base value (the game's own thirst and hunger raise it,
+		; and Dead Money's Auto-Doc clears sleep with SetAV), so that's what comes down; if the base
+		; somehow holds less than the need, RestoreAV does it (as Bottle That Water's canteen and the
+		; cheat terminal do). The reservoir pays only for what actually came off.
 		if eval (player.AuxVarGetFlt "_fpFeed") != 0
 			let fNeed := player.GetAV Dehydration
 			if fNeed >= 1 && fWat > 0
-				let fBase := player.GetBaseAV Dehydration
 				let fGive := fNeed
-				if fGive > fBase
-					let fGive := fBase
-				endif
 				if fGive > fWat
 					let fGive := fWat
 				endif
-				if fGive > 0
+				let fBase := player.GetBaseAV Dehydration
+				if fBase >= fGive
 					let fBase -= fGive
 					player.SetAV Dehydration fBase
+				else
+					player.RestoreAV Dehydration fGive
+				endif
+				let fGive := fNeed - (player.GetAV Dehydration)
+				if fGive > 0
 					let fWat -= fGive
+					if fWat < 0
+						let fWat := 0
+					endif
 				endif
 			endif
 			let fNeed := player.GetAV Hunger
 			if fNeed >= 1 && fFod > 0
-				let fBase := player.GetBaseAV Hunger
 				let fGive := fNeed
-				if fGive > fBase
-					let fGive := fBase
-				endif
 				if fGive > fFod
 					let fGive := fFod
 				endif
-				if fGive > 0
+				let fBase := player.GetBaseAV Hunger
+				if fBase >= fGive
 					let fBase -= fGive
 					player.SetAV Hunger fBase
+				else
+					player.RestoreAV Hunger fGive
+				endif
+				let fGive := fNeed - (player.GetAV Hunger)
+				if fGive > 0
 					let fFod -= fGive
+					if fFod < 0
+						let fFod := 0
+					endif
 				endif
 			endif
 			player.AuxVarSetFlt "_fpWater" fWat
