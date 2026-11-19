@@ -1,0 +1,218 @@
+; Ammo Boxing: your pack, every 5 s of play (Tick.txt).
+; 1. Working amounts, the rounds kept loose ("*_abKeep" on each ammo form, valid for this pass
+;    "*_abKeepN"): "_abOther" magazines (default 1) of every kind a weapon you carry takes;
+;    "_abHand" magazines (default 2, at least 20 rounds) of the ammo loaded in the weapon in your
+;    hands; and, with Fission Power while you own power armor, Smart Loot's "_slCells" (default 200)
+;    of each kind the suit burns (marked "*_slFuel" by Smart Loot), so it has fuel.
+; 2. A kind you carry boxes of whose loose rounds are under its working amount: boxes are opened
+;    at once (Open.txt).
+; 3. Every loose round over the working amount gets boxed, slowly, by hand: out of combat,
+;    "_abRate" rounds a second (default 2). One kind at a time ("*_abCur": the one being boxed,
+;    else the one with the most to box); once a box's worth is done ("*_abProg"), those rounds
+;    leave your pack and a box arrives. Kinds no weapon you carry takes keep nothing loose.
+; Moves are listed first and made after, since changing the inventory while walking it shifts it.
+int iPass
+int iNum
+int iIdx
+int iK
+int iN
+int iClip
+int iKeep
+int iLoose
+int iOver
+int iBest
+int iFuel
+int iCap
+int iBoxN
+int iType
+float fProg
+float fRate
+float fMul
+ref rItem
+ref rWpn
+ref rList
+ref rAm
+ref rCur
+ref rBx
+ref rBest
+ref rSuit
+ref rFn
+array_var aOpen
+array_var aOpenK
+array_var aEntry
+
+begin Function {}
+	let iPass := player.AuxVarGetFlt "*_abPass"
+	let iPass += 1
+	player.AuxVarSetFlt "*_abPass" iPass
+	; Fission Power's fuel stays loose while you own power armor
+	let iFuel := 0
+	if eval IsModLoaded "FissionPower.esp"
+		if eval (player.AuxVarGetFlt "*_slPA") == 1
+			let iFuel := 1
+		else
+			let rSuit := player.GetEquippedObject 2
+			if eval IsFormValid rSuit
+				if eval IsPowerArmor rSuit
+					let iFuel := 1
+				endif
+			endif
+		endif
+	endif
+	let iCap := player.AuxVarGetFlt "_slCells"
+	if iCap < 1
+		let iCap := 200
+	endif
+
+	; 1. working amounts, from the weapons you carry
+	let rCur := 0
+	let rWpn := player.GetEquippedObject 5
+	if eval IsFormValid rWpn
+		let rCur := GetPlayerCurrentAmmo
+	endif
+	let iNum := player.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := player.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		if eval (GetType rItem) != 40
+			continue
+		endif
+		let rList := GetWeaponAmmo rItem
+		if eval (IsFormValid rList) == 0
+			continue
+		endif
+		let iClip := GetWeaponClipRounds rItem
+		if iClip < 1
+			let iClip := 1
+		endif
+		let iN := 1
+		if eval (GetType rList) == 85
+			let iN := ListGetCount rList
+		endif
+		let iK := 0
+		while iK < iN
+			let rAm := rList
+			if eval (GetType rList) == 85
+				let rAm := ListGetNthForm rList iK
+			endif
+			let iK += 1
+			if eval (IsFormValid rAm) == 0
+				continue
+			endif
+			let fMul := player.AuxVarGetFlt "_abOther"
+			let iKeep := iClip * fMul
+			if eval rAm == rCur && rItem == rWpn
+				let fMul := player.AuxVarGetFlt "_abHand"
+				let iKeep := iClip * fMul
+				if iKeep < 20
+					let iKeep := 20
+				endif
+			endif
+			if eval (AuxVarGetFlt "*_abKeepN" 0 rAm) != iPass
+				AuxVarSetFlt "*_abKeepN" iPass 0 rAm
+				AuxVarSetFlt "*_abKeep" 0 0 rAm
+			endif
+			if eval iKeep > (AuxVarGetFlt "*_abKeep" 0 rAm)
+				AuxVarSetFlt "*_abKeep" iKeep 0 rAm
+			endif
+		loop
+	loop
+
+	; 2 and 3. boxes to open, and the kind to box
+	let aOpen := Ar_Construct "array"
+	let aOpenK := Ar_Construct "array"
+	let rBest := 0
+	let iBest := 0
+	let iNum := player.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := player.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		let iType := GetType rItem
+		let rAm := 0
+		if iType == 31
+			let rAm := AuxVarGetRef "*_abAmmo" 0 rItem
+		elseif iType == 41
+			let rAm := rItem
+		endif
+		if eval (IsFormValid rAm) == 0
+			continue
+		endif
+		let rBx := AuxVarGetRef "*_abBox" 0 rAm
+		if eval (IsFormValid rBx) == 0
+			continue
+		endif
+		let iKeep := 0
+		if eval (AuxVarGetFlt "*_abKeepN" 0 rAm) == iPass
+			let iKeep := AuxVarGetFlt "*_abKeep" 0 rAm
+		endif
+		if eval iFuel == 1 && (AuxVarGetFlt "*_slFuel" 0 rAm) == 1 && iKeep < iCap
+			let iKeep := iCap
+		endif
+		let iLoose := player.GetItemCount rAm
+		if iType == 31
+			if iLoose < iKeep
+				Ar_Append aOpen rAm
+				Ar_Append aOpenK iKeep
+			endif
+		else
+			let iBoxN := AuxVarGetFlt "*_abN" 0 rAm
+			let iOver := iLoose - iKeep
+			if iBoxN > 0 && iOver >= iBoxN
+				if eval rAm == (player.AuxVarGetRef "*_abCur")
+					let iOver += 1000000	; the kind being boxed carries on
+				endif
+				if iOver > iBest
+					let iBest := iOver
+					let rBest := rAm
+				endif
+			endif
+		endif
+	loop
+	let iN := Ar_Size aOpen
+	if iN > 0
+		let rFn := CompileScript "AmmoBoxing/Open.txt"
+		let iK := 0
+		while iK < iN
+			let rAm := aOpen[iK]
+			let iKeep := aOpenK[iK]
+			let iK += 1
+			call rFn rAm iKeep
+		loop
+	endif
+	let aOpen := Ar_Null
+	let aOpenK := Ar_Null
+
+	; 3. boxing by hand, out of combat
+	if eval (IsFormValid rBest) == 0
+		return
+	endif
+	if player.IsInCombat
+		return
+	endif
+	if eval rBest != (player.AuxVarGetRef "*_abCur")
+		player.AuxVarSetRef "*_abCur" rBest
+		player.AuxVarSetFlt "*_abProg" 0
+	endif
+	let fRate := player.AuxVarGetFlt "_abRate"
+	let fProg := player.AuxVarGetFlt "*_abProg"
+	let fProg += fRate * 5
+	let iBoxN := AuxVarGetFlt "*_abN" 0 rBest
+	if fProg >= iBoxN
+		let fProg -= iBoxN
+		let rBx := AuxVarGetRef "*_abBox" 0 rBest
+		player.RemoveItem rBest iBoxN 1
+		player.AddItem rBx 1 1
+		if eval (player.AuxVarGetFlt "_abMsg") >= 2
+			MessageEx "Boxed by hand: %n." rBx
+		endif
+	endif
+	player.AuxVarSetFlt "*_abProg" fProg
+end

@@ -4,3 +4,6 @@ native/*/obj/
 reports/
 # generated locally from the user's own plugins (third-party record data): never committed
 src/Load Order Patch/LoadOrderPatch.esp
+src/Ammo Boxing/AmmoBoxing.esp
+src/Ammo Boxing/nvse/user_defined_functions/AmmoBoxing/Table.txt
+local/

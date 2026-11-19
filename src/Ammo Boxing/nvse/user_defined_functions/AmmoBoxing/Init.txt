@@ -1,0 +1,12 @@
+; Ammo Boxing: default settings, set once per save (JIP auxiliary variables on the player).
+; Change them from the console, e.g. player.AuxVarSetFlt "_abRate" 4
+begin Function {}
+	if eval (player.AuxVarGetFlt "_abInit") < 1
+		player.AuxVarSetFlt "_abInit" 1
+		player.AuxVarSetFlt "_abOn" 1		; 0 = off: nothing boxed or opened
+		player.AuxVarSetFlt "_abRate" 2		; rounds boxed by hand a second, out of combat
+		player.AuxVarSetFlt "_abHand" 2		; magazines kept loose of the ammo in your hands (at least 20 rounds)
+		player.AuxVarSetFlt "_abOther" 1	; magazines kept loose for each other weapon you carry
+		player.AuxVarSetFlt "_abMsg" 1		; messages: 0 none, 1 when boxes are opened, 2 also each box filled
+	endif
+end

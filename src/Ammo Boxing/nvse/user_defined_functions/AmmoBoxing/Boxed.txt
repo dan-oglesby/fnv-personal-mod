@@ -1,0 +1,21 @@
+; Ammo Boxing: how many rounds of an ammo type (rAm) you carry in boxes. Smart Loot's ammo cap and
+; the bank's ammo top-ups count these with the loose rounds (they call this if it compiled).
+ref rAm
+ref rBx
+int iN
+int iBoxes
+
+begin Function {rAm}
+	SetFunctionValue 0
+	if eval (IsFormValid rAm) == 0
+		return
+	endif
+	let rBx := AuxVarGetRef "*_abBox" 0 rAm
+	if eval (IsFormValid rBx) == 0
+		return
+	endif
+	let iBoxes := player.GetItemCount rBx
+	let iN := AuxVarGetFlt "*_abN" 0 rAm
+	let iN *= iBoxes
+	SetFunctionValue iN
+end

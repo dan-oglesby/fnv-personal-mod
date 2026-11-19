@@ -1,0 +1,16 @@
+; Ammo Boxing: registers one box and the ammo it holds (called on every load by the generated
+; Table.txt, one call per ammo type). Temporary JIP auxiliary variables on the base forms:
+; "*_abBox" on the ammo (its box), "*_abAmmo" on the box (its ammo), "*_abN" on both (rounds a box).
+ref rBx
+ref rAm
+int iN
+
+begin Function {rBx, rAm, iN}
+	if eval (IsFormValid rBx) == 0 || (IsFormValid rAm) == 0 || iN < 1
+		return
+	endif
+	AuxVarSetRef "*_abBox" rBx 0 rAm
+	AuxVarSetFlt "*_abN" iN 0 rAm
+	AuxVarSetRef "*_abAmmo" rAm 0 rBx
+	AuxVarSetFlt "*_abN" iN 0 rBx
+end

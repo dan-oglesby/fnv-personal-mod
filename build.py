@@ -33,6 +33,7 @@ import exchange_sim  # noqa: E402
 import gen_exchange  # noqa: E402
 import gen_needs_meters  # noqa: E402
 import gen_load_order_patch  # noqa: E402
+import gen_ammo_boxes  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent
 STAGING = Path(os.environ.get("APPDATA", "")) / "Vortex" / "falloutnv" / "mods"
@@ -137,6 +138,7 @@ def main(argv):
         sys.exit("build stopped: fix the script problems above")
     make_plugins.main()             # the small item plugins some mods use as their menu item
     gen_load_order_patch.main()     # local only: forwards fixes later plugins undo (not committed)
+    gen_ammo_boxes.main()           # local only: Ammo Boxing's boxes and table, from the load order
     (ROOT / "dist").mkdir(exist_ok=True)
     do_stage = "--no-stage" not in argv
     if do_stage and game_running():

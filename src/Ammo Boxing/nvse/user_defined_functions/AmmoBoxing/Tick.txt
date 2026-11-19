@@ -1,0 +1,57 @@
+; Ammo Boxing: twice a second of play (registered by ln_ammo_boxing.txt; not in menus or paused, but
+; in combat). The ammo loaded in the weapon in your hands is never left short: when its loose rounds
+; drop under the working amount ("_abHand" magazines, at least 20 rounds), boxes of it are opened at
+; once (Open.txt). Every tenth run (every 5 s) the rest of your pack is seen to (Pack.txt).
+; slot weight: light (tools/timer_slots.py): two item counts, unless a box has to be opened; the
+; inventory pass is every 5 s, at its own tenth of a second.
+int iT
+int iClip
+int iKeep
+float fHand
+ref rWpn
+ref rCur
+ref rBx
+ref rFn
+
+begin Function {}
+	if eval (player.AuxVarGetFlt "_abOn") == 0
+		return
+	endif
+	if player.GetDead
+		return
+	endif
+	if IsInKillCam
+		return
+	endif
+	let rWpn := player.GetEquippedObject 5
+	if eval IsFormValid rWpn
+		if eval (GetType rWpn) == 40
+			let rCur := GetPlayerCurrentAmmo
+			if eval IsFormValid rCur
+				let rBx := AuxVarGetRef "*_abBox" 0 rCur
+				if eval IsFormValid rBx
+					if eval (player.GetItemCount rBx) > 0
+						let iClip := GetWeaponClipRounds rWpn
+						let fHand := player.AuxVarGetFlt "_abHand"
+						let iKeep := iClip * fHand
+						if iKeep < 20
+							let iKeep := 20
+						endif
+						if eval (player.GetItemCount rCur) < iKeep
+							let rFn := CompileScript "AmmoBoxing/Open.txt"
+							call rFn rCur iKeep
+						endif
+					endif
+				endif
+			endif
+		endif
+	endif
+	let iT := player.AuxVarGetFlt "*_abT"
+	let iT += 1
+	if iT >= 10
+		let iT := 0
+		let rFn := CompileScript "AmmoBoxing/Pack.txt"
+		call rFn
+	endif
+	player.AuxVarSetFlt "*_abT" iT
+end

@@ -46,6 +46,8 @@ ref rAmmo
 ref rCur
 ref rFn
 ref rOne
+ref rBoxed
+int iBx
 array_var aMove
 array_var aCnt
 array_var aWeap
@@ -56,6 +58,8 @@ begin Function {iMode}
 	SetFunctionValue 0
 	let iPlug := GetModIndex "WastelandBank.esp"
 	let rVault := BuildRef iPlug 2054	; WBVaultRef
+	; rounds carried in boxes count as carried (Ammo Boxing, 2026-11-19; nothing if it isn't installed)
+	let rBoxed := CompileScript "AmmoBoxing/Boxed.txt"
 	if eval (IsFormValid rVault) == 0
 		return
 	endif
@@ -99,6 +103,10 @@ begin Function {iMode}
 				let iWant := 300
 			endif
 			let iHave := player.GetItemCount rCur
+			if eval IsFormValid rBoxed
+				let iBx := call rBoxed rCur
+				let iHave += iBx
+			endif
 			let iGot := iWant - iHave
 			if iGot > 0
 				let iN := rVault.GetItemCount rCur
@@ -191,6 +199,10 @@ begin Function {iMode}
 				let iK += 1
 				if eval IsFormValid rAmmo
 					let iHave += player.GetItemCount rAmmo
+					if eval IsFormValid rBoxed
+						let iBx := call rBoxed rAmmo
+						let iHave += iBx
+					endif
 				endif
 			loop
 			let iK := 0
@@ -307,6 +319,10 @@ begin Function {iMode}
 		if eval IsFormValid rCur
 			let iHave := player.GetItemCount rCur
 			let iHave += rVault.GetItemCount rCur
+			if eval IsFormValid rBoxed
+				let iBx := call rBoxed rCur
+				let iHave += iBx
+			endif
 			let iGot := 500 - iHave
 			if iGot > 0
 				let fV := GetValue rCur

@@ -1,0 +1,12 @@
+; Ammo Boxing: starts the mod's repeating timer at its slot. The loader calls
+;   CallAfterSeconds <offset> rStart 1 rFn rCond fEvery iFlags
+; so the timer begins at its own offset within the second (tools/timer_slots.py picks the offsets;
+; check_scripts.py checks them).
+ref rFn
+ref rCond
+float fEvery
+int iFlags
+
+begin Function {rFn, rCond, fEvery, iFlags}
+	CallWhilePerSeconds fEvery rFn rCond iFlags
+end

@@ -7,7 +7,7 @@
 ;   keys and notes: all.
 ;   aid with no weight (chems, stimpaks...): all, even if worth nothing.
 ;   no weight but some value (caps, money, magazines...): all.
-;   ammo: only types a carried weapon fires, up to the cap per calibre.
+;   ammo: only types a carried weapon fires, up to the cap per calibre (boxed rounds count).
 ;   weapons: a copy of your worn-down equipped weapon (repair setting), or one whose DPS beats your
 ;     best of the same skill (or your best overall if you carry none of that skill) by the margin.
 ;   weapon mods: ones that fit a carried weapon, if you don't have one already.
@@ -32,7 +32,9 @@ float fBest
 float fRoom
 ref rList
 ref rItem
+ref rAbBox
 int iHave
+int iBoxed
 
 begin Function {rItem, iHave}
 	SetFunctionValue 0
@@ -79,6 +81,14 @@ begin Function {rItem, iHave}
 	let iOwn := player.GetItemCount rItem
 	let iPlug := GetModIndex "SmartLoot.esp"
 	if iType == 41
+		; rounds you carry in boxes count too (Ammo Boxing, 2026-11-19: "*_abBox" on the ammo, "*_abN"
+		; rounds a box)
+		let rAbBox := AuxVarGetRef "*_abBox" 0 rItem
+		if eval IsFormValid rAbBox
+			let iBoxed := player.GetItemCount rAbBox
+			let iBoxed *= AuxVarGetFlt "*_abN" 0 rItem
+			let iOwn += iBoxed
+		endif
 		let rList := BuildRef iPlug 2049
 		if eval (ListGetFormIndex rList rItem) >= 0
 			let iCap := player.AuxVarGetFlt "_slAmmo"

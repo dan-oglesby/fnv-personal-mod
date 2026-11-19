@@ -1,0 +1,41 @@
+; Ammo Boxing: opens boxes of an ammo type (rAm) until you carry at least iKeep loose rounds of it,
+; or run out of boxes. Instant, in combat too. Returns how many boxes were opened.
+ref rAm
+int iKeep
+ref rBx
+int iN
+int iLoose
+int iBoxes
+int iOpened
+
+begin Function {rAm, iKeep}
+	SetFunctionValue 0
+	if eval (IsFormValid rAm) == 0
+		return
+	endif
+	let rBx := AuxVarGetRef "*_abBox" 0 rAm
+	if eval (IsFormValid rBx) == 0
+		return
+	endif
+	let iN := AuxVarGetFlt "*_abN" 0 rAm
+	if iN < 1
+		return
+	endif
+	let iLoose := player.GetItemCount rAm
+	let iBoxes := player.GetItemCount rBx
+	let iOpened := 0
+	while iLoose < iKeep && iBoxes > 0
+		let iBoxes -= 1
+		let iLoose += iN
+		let iOpened += 1
+	loop
+	if iOpened > 0
+		player.RemoveItem rBx iOpened 1
+		let iN *= iOpened
+		player.AddItem rAm iN 1
+		if eval (player.AuxVarGetFlt "_abMsg") >= 1
+			MessageEx "Opened %.0f box(es) of %n." iOpened rAm
+		endif
+	endif
+	SetFunctionValue iOpened
+end

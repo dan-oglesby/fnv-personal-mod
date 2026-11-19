@@ -1,0 +1,72 @@
+; Ammo Boxing (2026-11-19): your loose ammo goes into neat boxes, slowly, by hand, and boxes are
+; opened again as your weapons need rounds. Run by JIP LN NVSE's script runner (ln_: new game and
+; every load). Needs xNVSE, JIP LN NVSE, and AmmoBoxing.esp, which tools/gen_ammo_boxes.py makes
+; from your own load order at build time: one box item for every playable ammo type (except the
+; single-shot kinds Ammo Boxes sells singly), "<ammo> Box [N]", N rounds as Ammo Boxes counts a
+; box (pistol 50, rifle 20, assault 100, shell 12, anti-materiel 10, else a clip), worth N rounds
+; at the ammo's own value and weighing their weight plus 5 percent and 0.1 lb.
+;
+; - Kept loose (the working amounts): two magazines (at least 20 rounds) of the ammo in your hands,
+;   one magazine of each kind your other weapons take, and Fission Power's fuel while you own power
+;   armor. Under that, boxes are opened at once, in combat too (Tick.txt, Pack.txt).
+; - Everything over it is boxed by hand, out of combat, about 2 rounds a second, one kind at a time.
+;   Kinds no weapon you carry takes are all boxed.
+; - Boxes sell whole, at the full value of their rounds. Ammo Boxes values loose rounds at a
+;   quarter, so a box sells for four times its rounds loose. Merchants keep them as ordinary items,
+;   and Ammo Boxes leaves them alone (it only unpacks its own boxes).
+; - Smart Loot's ammo cap and the bank's ammo top-ups count boxed rounds with the loose ones.
+;
+; Settings (console, then play on):
+;   player.AuxVarSetFlt "_abOn" 0        off: nothing boxed or opened
+;   player.AuxVarSetFlt "_abRate" 4      rounds boxed a second (default 2)
+;   player.AuxVarSetFlt "_abHand" 3      magazines kept loose of the ammo in your hands (default 2)
+;   player.AuxVarSetFlt "_abOther" 2     magazines kept loose for your other weapons (default 1)
+;   player.AuxVarSetFlt "_abMsg" 2       messages: 0 none, 1 when boxes are opened, 2 also each box
+
+let int iBad := 0
+let ref rChk := CompileScript "AmmoBoxing/Reg.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "AmmoBoxing/Open.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "AmmoBoxing/Pack.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "AmmoBoxing/Boxed.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+if iBad > 0
+	print "Ammo Boxing: " + $iBad + " script function(s) failed to compile (see nvse.log)."
+endif
+
+if eval (IsModLoaded "AmmoBoxing.esp") == 0
+	print "Ammo Boxing: AmmoBoxing.esp is not enabled, so there are no boxes: enable it in Vortex"
+else
+	let ref rAbInit := CompileScript "AmmoBoxing/Init.txt"
+	if eval IsFormValid rAbInit
+		call rAbInit
+	endif
+	let ref rAbTable := CompileScript "AmmoBoxing/Table.txt"
+	let int iAbN := 0
+	if eval IsFormValid rAbTable
+		let iAbN := call rAbTable
+	endif
+	if iAbN < 1
+		print "Ammo Boxing: no boxes registered (AmmoBoxing/Table.txt is missing or failed to compile: rebuild)"
+	else
+		; twice a second, outside menus and not while paused (flags 4 + 16); combat included
+		let ref rAbTick := CompileScript "AmmoBoxing/Tick.txt"
+		let ref rAbTrue := CompileScript "AmmoBoxing/Always.txt"
+		let ref rAbStart := CompileScript "AmmoBoxing/Start.txt"
+		if eval (IsFormValid rAbTick) && (IsFormValid rAbTrue) && (IsFormValid rAbStart)
+			CallAfterSeconds 0.475 rAbStart 1 rAbTick rAbTrue 0.5 20	; timer slot 0.475 s (tools/timer_slots.py)
+		else
+			print "Ammo Boxing: its timer scripts failed to compile, so it is off (see nvse.log)"
+		endif
+	endif
+endif
