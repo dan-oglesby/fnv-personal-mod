@@ -29,14 +29,19 @@
 ;    catches whatever they print, and falloutnv_error.log already records their script errors.
 ;
 ; 4. Cheat terminal storage (only with FalloutNVCheatTerminal.esp): its "personal storage" boxes
-;    count as your inventory, and work as a feed: ammo and food over a working amount go into
-;    them (four magazines for the ammo in your hands, one for each kind your other weapons take,
-;    one of each food and drink) and come back out as you use them. A fission battery comes out
-;    when you wear power armor with no spare (Fission Power), Smart Loot's auto-consume uses aid
-;    from them when you carry none, and Auto Smoke lights smokes from them. Nothing is in those
-;    boxes unless you put it there. To turn it all off, or just the feed into storage:
+;    count as your inventory for aid, smokes and fission batteries, and work as a food feed: food
+;    and drink past one of each go into them and come back out as you use them. A fission battery
+;    comes out when you wear power armor with no spare (Fission Power), Smart Loot's auto-consume
+;    uses aid from them when you carry none, and Auto Smoke lights smokes from them. Ammo is never
+;    moved (2026-11-18): topping up your weapon from storage and filing spare ammo away made ammo
+;    unlimited and weightless. Nothing is in those boxes unless you put it there. To turn it all
+;    off, or just the food feed:
 ;      player.AuxVarSetFlt "_twNoStash" 1
 ;      player.AuxVarSetFlt "_twNoFeed" 1
+;
+; 5. Stewie Tweaks settings, in NVSE/Plugins/Tweaks/INIs/WastelandTweaks.ini (read at launch): Bloody
+;    Mess bursts only the limb your killing shot hit (2026-11-18), instead of sometimes taking off
+;    limbs you never hit.
 
 if eval (player.AuxVarGetFlt "_twInit") < 1
 	player.AuxVarSetFlt "_twInit" 1

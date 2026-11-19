@@ -1,14 +1,10 @@
-; Wasteland Tweaks: the cheat terminal's personal storage as a feed (2026-11-16). Every 5 s of play,
-; from StashTick.txt (so only with FalloutNVCheatTerminal.esp loaded). New ammo and food stack up in
-; storage; you carry a working amount, and it comes back out as you use it.
-; - Ammo. Working amount: one magazine of each kind a weapon you carry takes, and for the ammo loaded
-;   in the weapon in your hands, four magazines (at least 40 rounds; StashTick.txt refills that each
-;   second once it falls under two). Anything over goes into Ammo Storage; ammo no weapon you carry
-;   takes all goes. A carried weapon you have no ammo for at all gets a magazine of the first kind it
-;   takes that storage has.
-; - Food and drink (not medicine, nothing addictive, no quest items): one of each kind stays with
-;   you, the rest goes into Aid Storage. When you run out of a kind, one comes back from Aid Storage
-;   or General Items 1-3, so Smart Loot's auto-consume and the Pip-Boy always have it.
+; Wasteland Tweaks: the cheat terminal's personal storage as a food feed (2026-11-16). Every 5 s of
+; play, from StashTick.txt (so only with FalloutNVCheatTerminal.esp loaded). Food and drink (not
+; medicine, nothing addictive, no quest items): one of each kind stays with you, the rest goes into
+; Aid Storage. When you run out of a kind, one comes back from Aid Storage or General Items 1-3, so
+; Smart Loot's auto-consume and the Pip-Boy always have it.
+; No ammo (2026-11-18): this used to file spare ammo into Ammo Storage and hand it back as you shot,
+; which made ammo unlimited and weightless. Ammo filed before then stays in Ammo Storage.
 ; Ownership travels with items (stolen stays stolen). Moves are listed first and made after, since
 ; moving while walking an inventory shifts it.
 ; Off: player.AuxVarSetFlt "_twNoFeed" 1 (the draws from storage in StashTick, Smart Loot and Auto
@@ -17,29 +13,16 @@ int iPlug
 int iPass
 int iNum
 int iIdx
-int iType
-int iClip
 int iK
 int iN
 int iM
-int iKeep
 int iHave
 int iBox
 int iId
-int iFuel
-int iCap
-ref rSuit
-array_var aIds
 ref rItem
-ref rWpn
-ref rList
-ref rAmmo
-ref rCur
 ref rBox
-ref rAmmoBox
 ref rAidBox
 ref rStash
-array_var aWeap
 array_var aMove
 array_var aCnt
 array_var aEntry
@@ -50,8 +33,7 @@ begin Function {}
 	endif
 	let iPlug := GetModIndex "FalloutNVCheatTerminal.esp"
 	let rAidBox := BuildRef iPlug 18444	; Aid Storage 0x00480C
-	let rAmmoBox := BuildRef iPlug 18445	; Ammo Storage 0x00480D
-	if eval (IsFormValid rAmmoBox) == 0 || (IsFormValid rAidBox) == 0
+	if eval (IsFormValid rAidBox) == 0
 		return
 	endif
 	let rStash := CompileScript "WastelandTweaks/Stash.txt"
@@ -59,107 +41,7 @@ begin Function {}
 	let iPass += 1
 	player.AuxVarSetFlt "*_twFeedN" iPass
 
-	; 1. working amount of each kind of ammo (kept on the ammo form as *_twKeep, valid for this pass)
-	; Fission Power's fuel (review 2026-11-18): energy weapon ammo burned by a power armor suit, the
-	; same 12 kinds Smart Loot keeps (AlwaysTake.txt) and Fission Power burns (Cells.txt). While you
-	; wear or carry power armor, up to "_slCells" (200) of each stays in your pack: moving them to
-	; storage left the suit with no fuel while the storage was full of cells.
-	let iFuel := 0
-	let iCap := 0
-	if eval IsModLoaded "FissionPower.esp"
-		let rSuit := player.GetEquippedObject 2
-		if eval (player.AuxVarGetFlt "*_slPA") == 1
-			let iFuel := 1
-		elseif eval IsFormValid rSuit
-			if eval IsPowerArmor rSuit
-				let iFuel := 1
-			endif
-		endif
-	endif
-	if iFuel == 1
-		let iCap := player.AuxVarGetFlt "_slCells"
-		if iCap < 1
-			let iCap := 200
-		endif
-		let aIds := Ar_List 132978, 1409811, 1409759, 1409760, 17541, 1409810, 1409803, 1409804, 439614, 1409809, 1409805, 1409806
-		foreach aEntry <- aIds
-			let iId := aEntry["value"]
-			let rItem := BuildRef 0 iId
-			if eval IsFormValid rItem
-				AuxVarSetFlt "*_twFuel" iPass 0 rItem
-			endif
-		loop
-		let aIds := Ar_Null
-	endif
-
-	let rCur := 0
-	let rWpn := player.GetEquippedObject 5
-	if eval IsFormValid rWpn
-		let rCur := GetPlayerCurrentAmmo
-		if eval (IsFormValid rCur) == 0
-			let rList := GetWeaponAmmo rWpn
-			if eval IsFormValid rList
-				if eval (GetType rList) == 41
-					let rCur := rList
-				endif
-			endif
-		endif
-	endif
-	let aWeap := Ar_Construct "array"
-	let iNum := player.GetNumItems
-	let iIdx := 0
-	while iIdx < iNum
-		let rItem := player.GetInventoryObject iIdx
-		let iIdx += 1
-		if eval (IsFormValid rItem) == 0
-			continue
-		endif
-		if eval (GetType rItem) != 40
-			continue
-		endif
-		let rList := GetWeaponAmmo rItem
-		if eval (IsFormValid rList) == 0
-			continue
-		endif
-		if eval rItem != rWpn
-			Ar_Append aWeap rItem
-		endif
-		let iClip := GetWeaponClipRounds rItem
-		if iClip < 1
-			let iClip := 1
-		endif
-		let iN := 1
-		if eval (GetType rList) == 85
-			let iN := ListGetCount rList
-		endif
-		let iK := 0
-		while iK < iN
-			let rAmmo := rList
-			if eval (GetType rList) == 85
-				let rAmmo := ListGetNthForm rList iK
-			endif
-			let iK += 1
-			if eval (IsFormValid rAmmo) == 0
-				continue
-			endif
-			let iKeep := iClip
-			if eval rAmmo == rCur && rItem == rWpn
-				let iKeep := iClip * 4
-				if iKeep < 40
-					let iKeep := 40
-				endif
-			endif
-			if eval (AuxVarGetFlt "*_twKeepN" 0 rAmmo) != iPass
-				AuxVarSetFlt "*_twKeepN" iPass 0 rAmmo
-				AuxVarSetFlt "*_twKeep" 0 0 rAmmo
-			endif
-			if eval iKeep > (AuxVarGetFlt "*_twKeep" 0 rAmmo)
-				AuxVarSetFlt "*_twKeep" iKeep 0 rAmmo
-			endif
-		loop
-	loop
-
-	; 2. into storage: ammo over its working amount, food and drink past one of each
+	; 1. into storage: food and drink past one of each
 	let aMove := Ar_Construct "array"
 	let aCnt := Ar_Construct "array"
 	let iNum := player.GetNumItems
@@ -170,30 +52,18 @@ begin Function {}
 		if eval (IsFormValid rItem) == 0
 			continue
 		endif
-		let iType := GetType rItem
-		if iType != 41 && iType != 47
+		if eval (GetType rItem) != 47
 			continue
 		endif
 		if eval IsQuestItem rItem
 			continue
 		endif
-		if iType == 41
-			let iKeep := 0
-			if eval (AuxVarGetFlt "*_twKeepN" 0 rItem) == iPass
-				let iKeep := AuxVarGetFlt "*_twKeep" 0 rItem
-			endif
-			if eval iFuel == 1 && (AuxVarGetFlt "*_twFuel" 0 rItem) == iPass && iKeep < iCap
-				let iKeep := iCap
-			endif
-		else
-			if eval (GetIngestibleFlag rItem 2) == 0 || (GetIngestibleFlag rItem 4) || (GetAddictionChance rItem) > 0
-				continue
-			endif
-			let iKeep := 1
+		if eval (GetIngestibleFlag rItem 2) == 0 || (GetIngestibleFlag rItem 4) || (GetAddictionChance rItem) > 0
+			continue
 		endif
 		let iHave := player.GetItemCount rItem
-		if iHave > iKeep
-			let iM := iHave - iKeep
+		if iHave > 1
+			let iM := iHave - 1
 			Ar_Append aMove rItem
 			Ar_Append aCnt iM
 		endif
@@ -204,50 +74,10 @@ begin Function {}
 		let rItem := aMove[iK]
 		let iM := aCnt[iK]
 		let iK += 1
-		if eval (GetType rItem) == 41
-			player.RemoveItemTarget rItem rAmmoBox iM 0
-		else
-			player.RemoveItemTarget rItem rAidBox iM 0
-		endif
+		player.RemoveItemTarget rItem rAidBox iM 0
 	loop
 
-	; 3. back from storage: a magazine for a carried weapon you have no ammo for at all (the weapon in
-	;    your hands is StashTick's), then one of each food or drink you've run out of
-	foreach aEntry <- aWeap
-		let rItem := aEntry["value"]
-		let rList := GetWeaponAmmo rItem
-		let iClip := GetWeaponClipRounds rItem
-		if iClip < 1
-			let iClip := 1
-		endif
-		let iN := 1
-		if eval (GetType rList) == 85
-			let iN := ListGetCount rList
-		endif
-		let iHave := 0
-		let iK := 0
-		while iK < iN
-			let rAmmo := rList
-			if eval (GetType rList) == 85
-				let rAmmo := ListGetNthForm rList iK
-			endif
-			let iK += 1
-			if eval IsFormValid rAmmo
-				let iHave += player.GetItemCount rAmmo
-			endif
-		loop
-		let iK := 0
-		while iK < iN && iHave == 0
-			let rAmmo := rList
-			if eval (GetType rList) == 85
-				let rAmmo := ListGetNthForm rList iK
-			endif
-			let iK += 1
-			if eval IsFormValid rAmmo
-				let iHave := call rStash rAmmo iClip
-			endif
-		loop
-	loop
+	; 2. back from storage: one of each food or drink you've run out of
 	let aMove := Ar_Construct "array"
 	let iBox := 0
 	while iBox < 4
@@ -288,7 +118,6 @@ begin Function {}
 		let rItem := aEntry["value"]
 		call rStash rItem 1
 	loop
-	let aWeap := Ar_Null
 	let aMove := Ar_Null
 	let aCnt := Ar_Null
 	let aEntry := Ar_Null

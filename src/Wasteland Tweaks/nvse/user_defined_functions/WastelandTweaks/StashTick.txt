@@ -1,28 +1,19 @@
-; Wasteland Tweaks: keeps you supplied from the cheat terminal's personal storage (Stash.txt), once a
-; second of play, in combat too (registered by ln_wasteland_tweaks.txt only when
-; FalloutNVCheatTerminal.esp is loaded; never in menus, paused or during VATS playback).
-; - Ammo: when you carry fewer than two magazines' worth (at least 20 rounds) of the ammo your weapon
-;   is loaded with, enough comes out of storage to make four magazines (at least 40 rounds). If you
-;   carry none of any ammo the weapon takes and storage has none of the loaded kind, it fetches
-;   another kind the weapon takes.
+; Wasteland Tweaks: draws on the cheat terminal's personal storage (Stash.txt), once a second of
+; play, in combat too (registered by ln_wasteland_tweaks.txt only when FalloutNVCheatTerminal.esp is
+; loaded; never in menus, paused or during VATS playback).
 ; - Fission batteries (with Fission Power): wearing power armor with no spare, one comes out.
-; - Every 5th second, the feed (Feed.txt): ammo and food over a working amount go into storage,
+; - Every 5th second, the food feed (Feed.txt): food and drink past one of each go into storage,
 ;   and come back out as you use them.
+; Ammo is never moved, either way (2026-11-18). This used to top up the ammo in your weapon from
+; storage whenever you fell under two magazines, and the feed filed spare ammo away: together that
+; was ammo without limit or weight. Ammo filed before then stays in Ammo Storage; take it out at the
+; terminal if you want it.
 ; Off: player.AuxVarSetFlt "_twNoStash" 1
-int iClip
-int iHave
-int iLow
-int iWant
-int iGot
-int iN
-int iK
-ref rWpn
-ref rAmmo
-ref rList
+int iFeedT
+ref rBatt
 ref rSuit
 ref rStash
 ref rFeed
-int iFeedT
 
 begin Function {}
 	if player.GetDead
@@ -42,69 +33,18 @@ begin Function {}
 	endif
 	player.AuxVarSetFlt "*_twFeedT" iFeedT
 
-	let rWpn := player.GetEquippedObject 5
-	if eval IsFormValid rWpn
-		if eval (GetType rWpn) == 40
-			let rList := GetWeaponAmmo rWpn	; one ammo form, or a form list of them (85)
-			if eval IsFormValid rList
-				let iClip := GetWeaponClipRounds rWpn
-				let iLow := iClip * 2
-				if iLow < 20
-					let iLow := 20
-				endif
-				let iWant := iClip * 4
-				if iWant < 40
-					let iWant := 40
-				endif
-				let rAmmo := GetPlayerCurrentAmmo
-				if eval (IsFormValid rAmmo) == 0 && (GetType rList) == 41
-					let rAmmo := rList
-				endif
-				let iHave := 0
-				if eval IsFormValid rAmmo
-					let iHave := player.GetItemCount rAmmo
-					if iHave < iLow
-						let iN := iWant - iHave
-						let iGot := call rStash rAmmo iN
-						let iHave += iGot
-					endif
-				endif
-				if eval iHave == 0 && (GetType rList) == 85
-					let iN := ListGetCount rList
-					let iK := 0
-					while iK < iN
-						let rAmmo := ListGetNthForm rList iK
-						let iK += 1
-						if eval IsFormValid rAmmo
-							let iHave += player.GetItemCount rAmmo
-						endif
-					loop
-					let iK := 0
-					while iK < iN && iHave == 0
-						let rAmmo := ListGetNthForm rList iK
-						let iK += 1
-						if eval IsFormValid rAmmo
-							let iHave := call rStash rAmmo iWant
-						endif
-					loop
-				endif
-			endif
-		endif
-	endif
-
 	if eval IsModLoaded "FissionPower.esp"
 		let rSuit := player.GetEquippedObject 2
 		if eval IsFormValid rSuit
 			if eval IsPowerArmor rSuit
-				let rAmmo := BuildRef 0 211910	; Fission Battery (FalloutNV.esm 0x033BC6)
-				if eval (player.GetItemCount rAmmo) == 0
-					call rStash rAmmo 1
+				let rBatt := BuildRef 0 211910	; Fission Battery (FalloutNV.esm 0x033BC6)
+				if eval (player.GetItemCount rBatt) == 0
+					call rStash rBatt 1
 				endif
 			endif
 		endif
 	endif
 
-	; the feed runs after this second's top-up, so the working amounts it keeps match
 	if iFeedT == 0
 		let rFeed := CompileScript "WastelandTweaks/Feed.txt"
 		if eval IsFormValid rFeed
