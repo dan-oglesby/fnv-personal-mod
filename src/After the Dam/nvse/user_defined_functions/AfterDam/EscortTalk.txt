@@ -1,0 +1,24 @@
+; After the Dam: activates the Securitron escort the ordinary way (2026-11-19): its dialogue, or its
+; remains to search if it's destroyed, with its empty OnActivate block skipped. "*_adLook" tells
+; EscortAct.txt to let that activation through; it's cleared again a moment later (iMode 1) in case
+; that activation doesn't reach the handler, so the next one opens the orders as it should.
+int iMode
+ref rEsc
+ref rSelf
+
+begin Function {iMode}
+	let rEsc := BuildRef 0 1397979	; VHDSecuritronEscort01REF
+	if eval (IsFormValid rEsc) == 0
+		return
+	endif
+	if iMode == 1
+		rEsc.AuxVarSetFlt "*_adLook" 0
+		return
+	endif
+	rEsc.AuxVarSetFlt "*_adLook" 1
+	rEsc.Activate player 0
+	let rSelf := CompileScript "AfterDam/EscortTalk.txt"
+	if eval IsFormValid rSelf
+		CallAfterSeconds 0.5 rSelf 1 1
+	endif
+end

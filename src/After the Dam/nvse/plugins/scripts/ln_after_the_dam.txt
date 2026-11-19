@@ -4,6 +4,11 @@
 ; post-game start. Nothing else about the world changes. Scripts only, no plugin; don't use it with
 ; another post-ending mod.
 ;
+; After the ending (2026-11-19) fast travel works again (the battle switched it off), and the
+; Securitron escort is a companion: activate it to have it follow you, wait, or go home to its post
+; (EscortAct.txt). That needs LoadOrderPatch.esp, built locally from your load order, which holds back
+; its own activation; without it, activating it talks to it as before.
+;
 ; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE and JIP LN.
 
 let int iBad := 0
@@ -22,6 +27,39 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 	print "After the Dam: AfterDam/Resume.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
+; the escort's orders: each of its functions has to compile, or none of it is registered
+let int iEscBad := 0
+let rChk := CompileScript "AfterDam/EscortAct.txt"
+if eval (IsFormValid rChk) == 0
+	let iEscBad += 1
+	print "After the Dam: AfterDam/EscortAct.txt failed to compile, so the Securitron's orders are off (details: nvse.log)"
+endif
+let rChk := CompileScript "AfterDam/Escort.txt"
+if eval (IsFormValid rChk) == 0
+	let iEscBad += 1
+	print "After the Dam: AfterDam/Escort.txt failed to compile, so the Securitron's orders are off (details: nvse.log)"
+endif
+let rChk := CompileScript "AfterDam/EscortBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iEscBad += 1
+	print "After the Dam: AfterDam/EscortBtn.txt failed to compile, so the Securitron's orders are off (details: nvse.log)"
+endif
+let rChk := CompileScript "AfterDam/EscortSet.txt"
+if eval (IsFormValid rChk) == 0
+	let iEscBad += 1
+	print "After the Dam: AfterDam/EscortSet.txt failed to compile, so the Securitron's orders are off (details: nvse.log)"
+endif
+let rChk := CompileScript "AfterDam/EscortTalk.txt"
+if eval (IsFormValid rChk) == 0
+	let iEscBad += 1
+	print "After the Dam: AfterDam/EscortTalk.txt failed to compile, so the Securitron's orders are off (details: nvse.log)"
+endif
+let rChk := CompileScript "AfterDam/EscortUp.txt"
+if eval (IsFormValid rChk) == 0
+	let iEscBad += 1
+	print "After the Dam: AfterDam/EscortUp.txt failed to compile, so the Securitron's orders are off (details: nvse.log)"
+endif
+let iBad += iEscBad
 if iBad > 0
 	print "After the Dam: " + $iBad + " script function(s) failed to compile (named above). Everything else in it is running."
 	MessageEx "After the Dam: part of it is off, a script failed to compile (see the console)"
@@ -33,5 +71,15 @@ if iBad >= 0	; always (2026-11-17): each part below is registered only if its ow
 	let ref rStart := CompileScript "AfterDam/Start.txt"
 	if eval (IsFormValid rTick) && (IsFormValid rTrue) && (IsFormValid rStart)
 		CallAfterSeconds 0.05 rStart 1 rTick rTrue 0.5 20	; timer slot 0.050 s (tools/timer_slots.py)
+	endif
+	; the Securitron escort (VHDSecuritronEscort01REF 1397979): activating it runs EscortAct.txt, the
+	; escort as either argument. Removed first, so a reload doesn't add a second.
+	let ref rEscAct := CompileScript "AfterDam/EscortAct.txt"
+	let ref rEscRef := BuildRef 0 1397979
+	if eval iEscBad == 0 && (IsFormValid rEscAct) && (IsFormValid rEscRef)
+		RemoveEventHandler "OnActivate" rEscAct "first"::rEscRef
+		RemoveEventHandler "OnActivate" rEscAct "second"::rEscRef
+		SetEventHandler "OnActivate" rEscAct "first"::rEscRef
+		SetEventHandler "OnActivate" rEscAct "second"::rEscRef
 	endif
 endif

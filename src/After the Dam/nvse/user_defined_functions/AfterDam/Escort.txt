@@ -1,0 +1,22 @@
+; After the Dam: the Securitron escort's orders (2026-11-19), opened by activating it after the
+; ending (EscortAct.txt). A companion you can send away like any other:
+;   Follow me: it follows you (its own package, DefaultFollowPlayerFar) and fights beside you.
+;   Wait here: it stays around this spot until told to follow.
+;   Go home: it leaves your side and goes back to its post, where the game placed it before the
+;     battle, on the way between Boulder City and Hoover Dam. Find it there to take it along again.
+;   Talk: its own activation, whatever it has to say.
+; The order is "_adEsc": 0 or 1 follow, 2 wait, 3 home. EscortSet.txt puts it into effect.
+int iState
+ref rCb
+
+begin Function {}
+	let iState := player.AuxVarGetFlt "_adEsc"
+	let rCb := CompileScript "AfterDam/EscortBtn.txt"
+	if iState == 2
+		MessageBoxExAlt rCb "^Securitron Mk II^Orders: waiting here.|Follow me|Wait here|Go home (dismiss)|Talk|Close"
+	elseif iState == 3
+		MessageBoxExAlt rCb "^Securitron Mk II^Orders: dismissed, back to its post.|Follow me|Wait here|Go home (dismiss)|Talk|Close"
+	else
+		MessageBoxExAlt rCb "^Securitron Mk II^Orders: following you.|Follow me|Wait here|Go home (dismiss)|Talk|Close"
+	endif
+end

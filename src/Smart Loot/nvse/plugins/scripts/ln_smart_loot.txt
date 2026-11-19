@@ -169,6 +169,11 @@ if eval IsModLoaded "SmartLoot.esp"
 		let iSurvBad += 1
 		print "Smart Loot: Pick.txt failed to compile (see nvse.log)"
 	endif
+	let rChk := CompileScript "SmartLoot/Fits.txt"
+	if eval (IsFormValid rChk) == 0
+		let iSurvBad += 1
+		print "Smart Loot: Fits.txt failed to compile (see nvse.log)"
+	endif
 	let rChk := CompileScript "SmartLoot/Ate.txt"
 	if eval (IsFormValid rChk) == 0
 		let iSurvBad += 1

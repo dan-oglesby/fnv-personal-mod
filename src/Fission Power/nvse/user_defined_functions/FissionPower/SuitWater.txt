@@ -1,17 +1,24 @@
-; Fission Power: the suit's water reservoir (2026-11-17), once a second while you wear powered
-; armor (Tick.txt). It holds "_fpWater" points of thirst, up to "_fpWaterMax" (default 400).
-; 1. Every 10 seconds, if there's room for a whole bottle (Thirst.txt: water only), the suit takes
-;    one in: clean water first, the heaviest for what it gives. Pumping clean water costs "_fpPump"
+; Fission Power: the suit's water reservoir (2026-11-17), once a second while you wear power armor
+; (Tick.txt), powered or not. It holds "_fpWater" points of thirst, up to "_fpWaterMax" (default 400).
+; 2026-11-18: drinking needs no power, only pumping water in does; the suit leaves you
+; "_fpWaterKeep" bottles (default 2) to drink yourself; and when it comes off, SuitDrain.txt gives
+; back what the reservoir holds as bottles of Purified Water.
+; 1. Every 10 seconds, while powered, if there's room for a whole bottle (Thirst.txt: water only) and
+;    you carry more than "_fpWaterKeep" bottles, the suit takes one in: clean water first, the
+;    heaviest for what it gives. Pumping clean water costs "_fpPump"
 ;    battery steps per point (default 0.25); irradiated water is filtered clean for "_fpFilter" a
 ;    point (default 2).
 ; 2. In Hardcore, out of combat, when thirst comes within the margin of its first penalty stage
-;    (Smart Loot's "_seEarly", or 50), the suit gives you 50 points of it as a Purified Water
-;    (FalloutNV.esm 86435). Off with "_fpFeed" 0, like the paste.
+;    (Smart Loot's "_seEarly", or 50), and never before thirst is at least 50 so none of it is
+;    wasted, the suit gives you 50 points of it as a Purified Water (FalloutNV.esm 86435), with a
+;    message ("_fpFeedMsg" 0 for none). Off with "_fpFeed" 0, like the paste.
 int iT
 int iNum
 int iIdx
 int iDirty
 int iBestDirty
+int iCarry
+int iKeep
 float fWat
 float fMax
 float fMag
@@ -28,6 +35,8 @@ ref rBest
 ref rFn
 ref rStage
 ref rWater
+ref rFits
+int iFit
 
 begin Function {}
 	let fWat := player.AuxVarGetFlt "_fpWater"
@@ -39,8 +48,9 @@ begin Function {}
 	; 1. taking water in, every 10 seconds (five seconds after the food, so they take turns)
 	let iT := player.AuxVarGetFlt "*_fpWaterT"
 	let iT += 1
-	if iT >= 10
+	if eval iT >= 10 && (player.AuxVarGetFlt "_fpLeft") > 0
 		let iT := 0
+		let iCarry := 0
 		let rFn := CompileScript "FissionPower/Thirst.txt"
 		let rBest := 0
 		let fBest := -1
@@ -61,7 +71,11 @@ begin Function {}
 				continue
 			endif
 			let fMag := call rFn rItem
-			if fMag <= 0 || fMag > fMax - fWat
+			if fMag <= 0
+				continue
+			endif
+			let iCarry += player.GetItemCount rItem
+			if fMag > fMax - fWat
 				continue
 			endif
 			let iDirty := player.AuxVarGetFlt "*_fpDirty"
@@ -75,6 +89,10 @@ begin Function {}
 				let rBest := rItem
 			endif
 		loop
+		let iKeep := player.AuxVarGetFlt "_fpWaterKeep"
+		if iCarry <= iKeep
+			let rBest := 0	; leave you your own bottles
+		endif
 		if eval IsFormValid rBest
 			player.RemoveItem rBest 1 1
 			let fWat += fBestMag
@@ -106,11 +124,26 @@ begin Function {}
 				if fNeed <= 0
 					let fNeed := 50
 				endif
-				if eval (player.GetAV Dehydration) >= fAt - fNeed
-					let rWater := BuildRef 0 86435	; Purified Water
+				let rWater := BuildRef 0 86435	; Purified Water
+				let iFit := 0
+				if eval (player.GetAV Dehydration) >= fAt - fNeed && (player.GetAV Dehydration) >= 50
+					let iFit := 1
+				endif
+				; with Smart Loot, its rule for every automatic use: never for less than the item gives
+				; (SmartLoot/Fits.txt counts a perk's bonus too)
+				if eval iFit && (IsModLoaded "SmartLoot.esp")
+					let rFits := CompileScript "SmartLoot/Fits.txt"
+					if eval IsFormValid rFits
+						let iFit := call rFits rWater
+					endif
+				endif
+				if iFit
 					player.AddItem rWater 1 1
 					player.EquipItem rWater 0 1
 					let fWat -= 50
+					if eval (player.AuxVarGetFlt "_fpFeedMsg") != 0
+						MessageEx "The suit gives you water: thirst -50 (%.0f left in it)." fWat
+					endif
 				endif
 			endif
 		endif

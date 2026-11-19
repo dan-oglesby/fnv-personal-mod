@@ -10,7 +10,11 @@
 ;   Rex 1104095, ED-E 1520337 / 1520336 / 1520335, the Securitron escort 1397979);
 ; - you wake at the developers' own post-game start, VPostGameStartMarker (1441648), on the road
 ;   by Boulder City (their unused VEndingBinksSCRIPT moved the player there: "we'll continue
-;   playing").
+;   playing");
+; - fast travel comes back (2026-11-19): the battle's quests turn it off when it starts
+;   (VHDHouseBattle, VHDIndependentBattle, VHDLegionBattle, vHDBattleController: EnableFastTravel 0),
+;   and the game never needed it again. "_adFT" marks it done; Tick.txt does it once for a game
+;   that was past the ending before this.
 int iN
 int iK
 ref rQ
@@ -28,6 +32,8 @@ begin Function {}
 	RemoveImageSpaceModifier rRef
 	SetInCharGen 0
 	EnablePlayerControls
+	EnableFastTravel 1
+	player.AuxVarSetFlt "_adFT" 1
 	let rQ := BuildRef 0 1315240	; DisguiseFactionPulseQuest
 	StartQuest rQ
 	let aIds := Ar_List 617422, 1104107, 942341, 930473, 1300528, 1269529, 1104095, 1520337, 1520336, 1520335, 1397979

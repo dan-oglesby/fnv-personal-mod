@@ -1,0 +1,46 @@
+; After the Dam: puts the Securitron escort's order into effect (2026-11-19): from its menu
+; (EscortBtn.txt, iSay 1, with a message), or quietly to keep it after a load or if its own follow
+; package took over again (EscortUp.txt, iSay 0). The order ("_adEsc"):
+;   1 (or 0) follow: no script package, so its own DefaultFollowPlayerFar runs; a teammate, so it
+;     fights beside you.
+;   2 wait: DefaultSandboxCurrentLocation256NoSleepNoWander (FalloutNV.esm 0x129114), staying within
+;     256 units of where it was told to wait; still a teammate.
+;   3 home: DefaultSandboxEditorLocation256NoSleep (0x122BD4): back to where the game placed it, on the
+;     way between Boulder City and Hoover Dam, and it stays there; no longer a teammate.
+int iState
+int iSay
+ref rEsc
+ref rPack
+
+begin Function {iState, iSay}
+	let rEsc := BuildRef 0 1397979	; VHDSecuritronEscort01REF
+	if eval (IsFormValid rEsc) == 0
+		return
+	endif
+	player.AuxVarSetFlt "_adEsc" iState
+	if eval (rEsc.GetDead) || (rEsc.GetDisabled)
+		return
+	endif
+	if iState == 2
+		let rPack := BuildRef 0 1216788	; DefaultSandboxCurrentLocation256NoSleepNoWander
+		rEsc.AddScriptPackage rPack
+		rEsc.SetPlayerTeammate 1
+		if iSay
+			MessageEx "The Securitron will wait here."
+		endif
+	elseif iState == 3
+		let rPack := BuildRef 0 1190868	; DefaultSandboxEditorLocation256NoSleep
+		rEsc.SetPlayerTeammate 0
+		rEsc.AddScriptPackage rPack
+		if iSay
+			MessageEx "The Securitron heads back to its post, on the way between Boulder City and Hoover Dam."
+		endif
+	else
+		rEsc.RemoveScriptPackage
+		rEsc.SetPlayerTeammate 1
+		rEsc.EvaluatePackage
+		if iSay
+			MessageEx "The Securitron falls in behind you."
+		endif
+	endif
+end

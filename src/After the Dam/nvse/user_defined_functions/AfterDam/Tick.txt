@@ -5,6 +5,9 @@
 ; - When the slides hand over to the game's fade to the credits (the FadeToCreditsTimer quest
 ;   1548668 starts; its script fades to black for about 8 seconds, then quits to the main menu),
 ;   the game goes on instead (Resume.txt). Once per game ("_adDone").
+; - After that (2026-11-19): fast travel back on, once ("_adFT"), for a game that was past the ending
+;   before Resume.txt did it itself; and the Securitron escort's order kept (EscortUp.txt), every
+;   5 seconds and right after each load ("*_adUp", not saved).
 int iN
 int iK
 ref rQ
@@ -14,6 +17,21 @@ array_var aEntry
 
 begin Function {}
 	if eval (player.AuxVarGetFlt "_adDone") == 1
+		if eval (player.AuxVarGetFlt "_adFT") == 0
+			player.AuxVarSetFlt "_adFT" 1
+			EnableFastTravel 1
+			MessageEx "After the Dam: fast travel is back (the battle had switched it off)."
+		endif
+		let iN := player.AuxVarGetFlt "*_adT"
+		let iN += 1
+		if eval iN >= 10 || (player.AuxVarGetFlt "*_adUp") == 0
+			let iN := 0
+			let rQ := CompileScript "AfterDam/EscortUp.txt"
+			if eval IsFormValid rQ
+				call rQ
+			endif
+		endif
+		player.AuxVarSetFlt "*_adT" iN
 		return
 	endif
 	let rQ := BuildRef 0 1548668	; FadeToCreditsTimer

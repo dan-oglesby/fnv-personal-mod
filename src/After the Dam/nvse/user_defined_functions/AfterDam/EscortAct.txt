@@ -1,0 +1,38 @@
+; After the Dam: xNVSE OnActivate handler for the Securitron escort (2026-11-19), the Mk II that
+; walks with you into the battle for Hoover Dam (FalloutNV.esm VHDSecuritronEscort01REF 1397979).
+; Registered on every load by ln_after_the_dam.txt with the escort as either argument. After the
+; ending it's a companion: activating it opens its orders (Escort.txt). Its own activation (talk) is
+; held back by LoadOrderPatch.esp, which gives it an empty OnActivate script (built locally,
+; tools/gen_load_order_patch.py); without that patch this handler never runs and it talks as before.
+; Before the ending, or destroyed, it's activated the ordinary way a moment later (EscortTalk.txt,
+; which marks it "*_adLook" so that activation is let through here).
+ref rFirst
+ref rSecond
+ref rEsc
+ref rNext
+
+begin Function {rFirst, rSecond}
+	if eval rFirst == player
+		let rEsc := rSecond
+	elseif eval rSecond == player
+		let rEsc := rFirst
+	else
+		return
+	endif
+	if eval (IsFormValid rEsc) == 0
+		return
+	endif
+	if eval (rEsc.AuxVarGetFlt "*_adLook") == 1
+		rEsc.AuxVarSetFlt "*_adLook" 0
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_adDone") == 1 && (rEsc.GetDead) == 0
+		let rNext := CompileScript "AfterDam/Escort.txt"
+		call rNext
+	else
+		let rNext := CompileScript "AfterDam/EscortTalk.txt"
+		if eval IsFormValid rNext
+			CallAfterSeconds 0.01 rNext 0 0
+		endif
+	endif
+end

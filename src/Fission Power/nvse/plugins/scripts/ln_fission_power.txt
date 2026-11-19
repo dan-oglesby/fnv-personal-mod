@@ -29,8 +29,14 @@
 ; has room (clean first; irradiated water filtered at more power) and in Hardcore gives you a
 ; Purified Water as thirst nears its first stage. The worn suit weighs more by its processor
 ; ("_fpProc", 5 lb) and what its reservoirs hold (SuitWeight.txt).
+; Since 2026-11-18 feeding and drinking from the reservoirs need no power (only mulching and taking
+; water in do), never before a whole serving is needed (with Smart Loot, its rule that nothing is
+; used for less than it gives), and the suit leaves you bottles of your own. Taking the suit off
+; gives back what its reservoirs hold, as Purified Water and Nutrient Paste (SuitDrain.txt).
 ;   player.AuxVarSetFlt "_fpWaterMax" 600   water reservoir size, thirst points (default 400)
 ;   player.AuxVarSetFlt "_fpFilter" 4       steps per point to filter irradiated water (default 2)
+;   player.AuxVarSetFlt "_fpWaterKeep" 4    bottles the suit leaves in your pack (default 2)
+;   player.AuxVarSetFlt "_fpFeedMsg" 0      no message when the suit feeds you or gives you water
 ;
 ; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.4+ and JIP LN.
 
@@ -92,6 +98,11 @@ if eval IsModLoaded "FissionPower.esp"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
 		print "Fission Power: FissionPower/SuitWater.txt failed to compile, so the part that uses it is off (details: nvse.log)"
+	endif
+	let rChk := CompileScript "FissionPower/SuitDrain.txt"
+	if eval (IsFormValid rChk) == 0
+		let iBad += 1
+		print "Fission Power: FissionPower/SuitDrain.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/SuitWeight.txt"
 	if eval (IsFormValid rChk) == 0

@@ -7,6 +7,9 @@
 ;   a doctor's bag when a limb is crippled; in Hardcore, water and food (and, if on, sleep items)
 ;   once a need is within the set margin of its first penalty stage; RadAway when radiation is
 ;   within the margin of radiation sickness; Rad-X while you are taking radiation.
+; Nothing is ever used for less than it gives (2026-11-19): an item is only used when every need it
+; restores is at least what it restores (Fits.txt, through Pick.txt); if none fits, nothing is used
+; until one does.
 ; Thresholds are the game's own stage forms (FalloutNV.esm Water1 0x161901, hunger1 0x161906,
 ; sleep1 0x16190B, Rad1 0x0335A2), so a mod that moves them is followed.
 int iT

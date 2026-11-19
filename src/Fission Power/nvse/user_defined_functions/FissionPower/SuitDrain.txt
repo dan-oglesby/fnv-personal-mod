@@ -1,0 +1,34 @@
+; Fission Power: when the power armor comes off (Tick.txt, 2026-11-18), what its reservoirs hold
+; comes back out: the water as bottles of Purified Water (50 points each, FalloutNV.esm 86435) and
+; the paste as servings of Nutrient Paste (40 each, FissionPower.esp 0x801). A remainder too small
+; for a whole one stays for next time. Before, it stayed in the suit, out of reach until you wore one
+; again, and with the suit off (or flat) nothing fed you from it.
+int iN
+int iPlug
+float fWat
+float fRes
+ref rItem
+
+begin Function {}
+	let fWat := player.AuxVarGetFlt "_fpWater"
+	let iN := Floor (fWat / 50)
+	if iN > 0
+		let rItem := BuildRef 0 86435	; Purified Water
+		player.AddItem rItem iN 1
+		let fWat -= iN * 50
+		player.AuxVarSetFlt "_fpWater" fWat
+		MessageEx "You drain the suit's water reservoir: %.0f bottle(s) of Purified Water." iN
+	endif
+	let fRes := player.AuxVarGetFlt "_fpPaste"
+	let iN := Floor (fRes / 40)
+	if iN > 0
+		let iPlug := GetModIndex "FissionPower.esp"
+		let rItem := BuildRef iPlug 2049	; FPNutrientPaste
+		if eval IsFormValid rItem
+			player.AddItem rItem iN 1
+			let fRes -= iN * 40
+			player.AuxVarSetFlt "_fpPaste" fRes
+			MessageEx "You empty the suit's paste reservoir: %.0f serving(s) of Nutrient Paste." iN
+		endif
+	endif
+end

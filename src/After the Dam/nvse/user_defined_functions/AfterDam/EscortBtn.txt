@@ -1,0 +1,19 @@
+; After the Dam: the escort's order buttons (Escort.txt): 0 follow me, 1 wait here, 2 go home, 3 talk,
+; 4 close.
+int iBtn
+int iState
+ref rNext
+
+begin Function {iBtn}
+	if iBtn <= 2
+		let iState := iBtn + 1
+		let rNext := CompileScript "AfterDam/EscortSet.txt"
+		call rNext iState 1
+	elseif iBtn == 3
+		; a moment later, once this box has closed (dialogue doesn't open over a menu)
+		let rNext := CompileScript "AfterDam/EscortTalk.txt"
+		if eval IsFormValid rNext
+			CallAfterSeconds 0.01 rNext 0 0
+		endif
+	endif
+end

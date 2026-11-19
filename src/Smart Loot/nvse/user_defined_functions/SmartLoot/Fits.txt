@@ -1,0 +1,68 @@
+; Smart Loot: whether one of an item, used now, would be used in full (2026-11-19). Nothing is ever
+; used automatically for less than it gives: every need it restores has to be at least as high as what
+; it restores, or the item is left for later, whatever else calls for it. So a food that also quenches
+; thirst isn't eaten for its water while you aren't hungry enough for its food, and the other way round.
+; The needs: thirst, hunger and sleep (in Hardcore; outside it those effects do nothing) and radiation.
+; What an item gives is counted at the most it can give: all its entries for an effect added up (the
+; base amount and a perk's bonus both count; an entry that works over time counts magnitude times
+; seconds), so an item may wait a little longer than it strictly has to, but none of it is wasted.
+; Returns 1 when it fits, 0 when part of it would be wasted. Used by Pick.txt for every automatic use,
+; and by Fission Power's suit when it feeds you or gives you water.
+int iEff
+int iK
+int iDur
+float fMag
+float fSmW
+float fSmF
+float fSmS
+float fSmR
+ref rItem
+ref rBase
+ref rEfW
+ref rEfF
+ref rEfS
+ref rEfR
+
+begin Function {rItem}
+	SetFunctionValue 1
+	if eval (IsFormValid rItem) == 0
+		return
+	endif
+	let rEfW := BuildRef 0 1449782	; RestoreDehydrationLevel (0x161F36)
+	let rEfF := BuildRef 0 1453004	; RestoreStarvationLevel (0x162BCC)
+	let rEfS := BuildRef 0 1453198	; RestoreSleepDeprivationLevel (0x162C8E)
+	let rEfR := BuildRef 0 86394	; RestoreRadiationLevel (0x01517A), RadAway
+	let fSmW := 0
+	let fSmF := 0
+	let fSmS := 0
+	let fSmR := 0
+	let iEff := GetNumEffects rItem
+	let iK := 0
+	while iK < iEff
+		let rBase := GetNthEffectBase rItem iK
+		let fMag := GetNthEffectTraitNumeric rItem iK 0
+		let iDur := GetNthEffectTraitNumeric rItem iK 2
+		if iDur > 1
+			let fMag *= iDur
+		endif
+		if eval rBase == rEfW
+			let fSmW += fMag
+		elseif eval rBase == rEfF
+			let fSmF += fMag
+		elseif eval rBase == rEfS
+			let fSmS += fMag
+		elseif eval rBase == rEfR
+			let fSmR += fMag
+		endif
+		let iK += 1
+	loop
+	if eval fSmR > (player.GetAV RadiationRads)
+		SetFunctionValue 0
+		return
+	endif
+	if eval player.IsHardcore
+		if eval fSmW > (player.GetAV Dehydration) || fSmF > (player.GetAV Hunger) || fSmS > (player.GetAV SleepDeprevation)
+			SetFunctionValue 0
+		endif
+	endif
+end

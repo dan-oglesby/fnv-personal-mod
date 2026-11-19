@@ -6,6 +6,9 @@
 ;     pack. Weightless items go last, and among equals the cheaper goes first.
 ;   iMode 1 (stimpaks, doctor's bags, RadAway, Rad-X): the cheapest that works, so aid is used
 ;     sparingly.
+; Never for less than it gives (Fits.txt, 2026-11-19): an item is skipped when any need it restores
+; (thirst, hunger, sleep, radiation) is lower than what it restores, so a food that also gives water
+; is only used when you need both in full.
 ; Never quest items. Addictive items (chems, alcohol) only if allowed. Irradiated items (any
 ; radiation damage) are used only when nothing clean will do, or never, or freely, per the setting.
 ; With the FNV Cheat Terminal installed, its "personal storage" boxes count as your inventory: when
@@ -23,6 +26,7 @@ int iSrcMax
 int iPlug
 int iId
 int iRadSet
+int iFit
 float fAmt
 float fMag
 float fWt
@@ -41,11 +45,13 @@ ref rEff
 ref rSrc
 ref rPickSrc
 ref rCleanSrc
+ref rFits
 int iMode
 
 begin Function {rEff, iMode}
 	SetFunctionValue 0
 	let rRadEff := BuildRef 0 132374	; DamageRadiationLevel (FalloutNV.esm 0x020516)
+	let rFits := CompileScript "SmartLoot/Fits.txt"
 	let rPick := 0
 	let rClean := 0
 	let fBest := -1
@@ -121,6 +127,13 @@ begin Function {rEff, iMode}
 			loop
 			if fAmt <= 0
 				continue
+			endif
+			; never for less than it gives: left for later if part of it would be wasted (Fits.txt)
+			if eval IsFormValid rFits
+				let iFit := call rFits rItem
+				if iFit == 0
+					continue
+				endif
 			endif
 			let fWt := GetWeight rItem
 			let fVal := GetValue rItem

@@ -34,6 +34,12 @@ the counter's menu, so the mailbox's own opening has to stay shut: each mailbox 
 (0x148137), the one WastelandBank.esp gives the Mojave Express dropbox. The bank's "look inside"
 opens it with Activate and the script skipped. Only records the base game, a DLC or YUP win, and
 that have no script of their own, are touched; anything else is left as the load order has it.
+
+Fourth job (2026-11-19), only while After the Dam is deployed (its scripts in the game's Data folder):
+the Securitron escort from the battle for Hoover Dam (VHDSecuritronEscort, a creature) gets the same
+empty OnActivate script, so that activating it after the ending opens After the Dam's orders for it
+(follow, wait, go home) instead of its dialogue; After the Dam hands the activation back to it
+before the ending, and from its menu's "Talk".
 """
 import struct
 import sys
@@ -213,47 +219,71 @@ MAILBOXES = ([0x019F3C, 0x017F2D, 0x017F2E, 0x070BA6, 0x070BA7] + list(range(0x1
 EMPTY_ACTIVATE = 0x148137   # vHDLegateCampExitDoorScript: an OnActivate block that does nothing
 
 
-def bank_mailboxes(order, plugins):
-    """[(record bytes, b"CONT", edid, source)] for the mailboxes, each with the empty script."""
-    if "WastelandBank.esp" not in order:
-        return []
+def with_empty_activate(order, plugins, tag, ids, before, what):
+    """[(record bytes, tag, edid, source)]: the winning FalloutNV.esm records of this type with these
+    object IDs, each given the empty OnActivate script, inserted before the first subrecord in
+    `before` (where SCRI belongs in that record type). Only records the base game, a DLC or YUP win
+    (numbered as ours), and that have no script of their own, are touched."""
     numbered = {"falloutnv.esm", YUP.lower()} | {m.lower() for m in plugins[YUP]["masters"]}
     win = {}
     for n in order:
         p = plugins[n]
-        for tag, fid, flags, off, size in p["recs"]:
-            if tag != b"CONT":
+        for t, fid, flags, off, size in p["recs"]:
+            if t != tag:
                 continue
             idx = fid >> 24
             owner = p["masters"][idx] if idx < len(p["masters"]) else n
-            if owner.lower() == "falloutnv.esm" and (fid & 0xFFFFFF) in MAILBOXES:
+            if owner.lower() == "falloutnv.esm" and (fid & 0xFFFFFF) in ids:
                 win[fid & 0xFFFFFF] = (n, fid, flags, off, size)
     out = []
-    for oid in MAILBOXES:
+    for oid in ids:
         if oid not in win:
             continue
         n, fid, flags, off, size = win[oid]
         if n.lower() not in numbered:          # its numbering may not match ours: leave it be
-            print("  mailbox %06X: won by %s, left as it is" % (oid, n))
+            print("  %s %06X: won by %s, left as it is" % (what, oid, n))
             continue
         d = data_of(plugins[n], off, size, flags)
         if d is None:
             continue
         subs = subs_of(d)
         if any(t == b"SCRI" for t, _ in subs):  # a mod gave it a script: leave it be
-            print("  mailbox %06X: has a script already (%s), left as it is" % (oid, n))
+            print("  %s %06X: has a script already (%s), left as it is" % (what, oid, n))
             continue
         body, done = b"", False
         for t, v in subs:
-            if not done and t in (b"CNTO", b"COED", b"DATA"):
+            if not done and t in before:
                 body += sub(b"SCRI", struct.pack("<I", EMPTY_ACTIVATE))
                 done = True
             body += sub(t, v)
         ed = next((v for t, v in subs if t == b"EDID"), b"").rstrip(b"\0").decode("latin1")
         # uncompressed now, so the compressed flag is cleared
-        rec = b"CONT" + struct.pack("<III", len(body), flags & ~0x40000, fid) + p_hdr_tail(plugins[n], off) + body
-        out.append((rec, b"CONT", ed, n))
+        rec = tag + struct.pack("<III", len(body), flags & ~0x40000, fid) + p_hdr_tail(plugins[n], off) + body
+        out.append((rec, tag, ed, n))
     return out
+
+
+def bank_mailboxes(order, plugins):
+    """[(record bytes, b"CONT", edid, source)] for the mailboxes, each with the empty script."""
+    if "WastelandBank.esp" not in order:
+        return []
+    return with_empty_activate(order, plugins, b"CONT", MAILBOXES, (b"CNTO", b"COED", b"DATA"), "mailbox")
+
+
+# After the Dam's Securitron escort: the Mk II that walks with you into the battle for Hoover Dam
+# (FalloutNV.esm VHDSecuritronEscort, a creature; its one reference is VHDSecuritronEscort01REF).
+ESCORT = 0x1554DA
+AFTER_DAM_MARK = Path("nvse") / "user_defined_functions" / "AfterDam" / "Resume.txt"
+
+
+def securitron_escort(order, plugins):
+    """The escort's creature record with the empty script, while After the Dam is deployed."""
+    if not (audit.DATA / AFTER_DAM_MARK).exists():
+        return []
+    # in a creature record SCRI comes after the template and destruction data, before the inventory
+    # and the AI data
+    return with_empty_activate(order, plugins, b"CREA", [ESCORT], (b"CNTO", b"COED", b"AIDT", b"PKID"),
+                               "Securitron escort")
 
 
 def p_hdr_tail(p, off):
@@ -296,6 +326,7 @@ def main():
     found = find(order, plugins)
     scripts = script_var_fixes(order, plugins)
     scripts += bank_mailboxes(order, plugins)
+    scripts += securitron_escort(order, plugins)
     if not found and not scripts:
         if OUT.exists():
             OUT.unlink()
@@ -320,7 +351,7 @@ def main():
     body = b"".join(b"GRUP" + struct.pack("<I", 24 + len(g)) + tag + struct.pack("<iHHHH", 0, 0, 0, 0, 0) + g
                     for tag, g in groups.items())
     hdr = sub(b"HEDR", struct.pack("<fiI", 1.34, len(found), 0x800)) + sub(b"CNAM", b"fnv-personal-mod\0")
-    hdr += sub(b"SNAM", b"Forwards fixes undone by vanilla copies; script variables for leveled spawns; mailboxes as bank counters (generated locally)\0")
+    hdr += sub(b"SNAM", b"Forwards fixes undone by vanilla copies; script variables for leveled spawns; mailboxes as bank counters; the Securitron escort takes orders (generated locally)\0")
     for m in masters:
         hdr += sub(b"MAST", m.encode("latin1") + b"\0") + sub(b"DATA", bytes(8))
     data = b"TES4" + struct.pack("<IIIIHH", len(hdr), 0, 0, 0, 15, 0) + hdr + body   # form version 15, as make_plugins
