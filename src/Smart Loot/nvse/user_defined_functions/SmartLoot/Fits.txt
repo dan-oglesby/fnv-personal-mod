@@ -6,8 +6,7 @@
 ; What an item gives is counted at the most it can give: all its entries for an effect added up (the
 ; base amount and a perk's bonus both count; an entry that works over time counts magnitude times
 ; seconds), so an item may wait a little longer than it strictly has to, but none of it is wasted.
-; Returns 1 when it fits, 0 when part of it would be wasted. Used by Pick.txt for every automatic use,
-; and by Fission Power's suit when it feeds you or gives you water.
+; Returns 1 when it fits, 0 when part of it would be wasted. Used by Pick.txt for every automatic use.
 int iEff
 int iK
 int iDur

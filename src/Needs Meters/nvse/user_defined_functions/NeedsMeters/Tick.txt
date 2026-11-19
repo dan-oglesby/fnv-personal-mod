@@ -4,6 +4,8 @@
 ; spelling of SleepDeprevation (checked against the game's name table, 2026-11-14).
 ; Also builds the number strings (raw values, as the Pip-Boy counts them), the clock line and, while
 ; Mojave Heat runs, the temperature line. Every command argument is a variable.
+; With Fission Power's suit on (2026-11-19), H2O and FOD also show what its reservoirs hold: "H2O 3
+; +180" is 3 points of thirst and 180 in the suit (it sets _NMSuitW / _NMSuitF, -1 with no suit).
 ; Settings (JIP auxiliary variables on the player, kept in JIP's co-save; defaults in Init.txt):
 ;   _nmOff 1 hides the meters; _nmX / _nmY move them (HUD units, + is right / down); _nmGap sets the
 ;   space between rows (default 10).
@@ -27,6 +29,8 @@ float fPow
 float fSpare
 float fLoad
 float fCap
+float fSuitW
+float fSuitF
 
 begin Function {}
 	let fWat := player.GetAV Dehydration
@@ -37,8 +41,20 @@ begin Function {}
 	SetUIFloat "HUDMainMenu/_NMFood" fFod
 	SetUIFloat "HUDMainMenu/_NMSleep" fSlp
 	SetUIFloat "HUDMainMenu/_NMRads" fRad
-	SetUIStringEx "HUDMainMenu/_NMWaterS" "%.0f" fWat
-	SetUIStringEx "HUDMainMenu/_NMFoodS" "%.0f" fFod
+	let fSuitW := GetUIFloat "HUDMainMenu/_NMSuitW"
+	let fSuitF := GetUIFloat "HUDMainMenu/_NMSuitF"
+	if fSuitW >= 0
+		SetUIStringEx "HUDMainMenu/_NMWaterS" "%.0f +%.0f" fWat fSuitW
+		SetUIStringEx "HUDMainMenu/_NMSuitWS" "+%.0f" fSuitW
+	else
+		SetUIStringEx "HUDMainMenu/_NMWaterS" "%.0f" fWat
+	endif
+	if fSuitF >= 0
+		SetUIStringEx "HUDMainMenu/_NMFoodS" "%.0f +%.0f" fFod fSuitF
+		SetUIStringEx "HUDMainMenu/_NMSuitFS" "+%.0f" fSuitF
+	else
+		SetUIStringEx "HUDMainMenu/_NMFoodS" "%.0f" fFod
+	endif
 	SetUIStringEx "HUDMainMenu/_NMSleepS" "%.0f" fSlp
 	SetUIStringEx "HUDMainMenu/_NMRadsS" "%.0f" fRad
 	; power armor (Fission Power sets _NMPower 0-1000, or -1 with no suit, and _NMBatt): "73 +2" is

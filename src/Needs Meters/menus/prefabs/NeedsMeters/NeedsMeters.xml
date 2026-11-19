@@ -9,12 +9,17 @@
 <_NMBlink> 0 </_NMBlink>
 <_NMPower> -1 </_NMPower>
 <_NMBatt> 0 </_NMBatt>
+<!-- Fission Power's suit reservoirs in need points (-1 with no suit), set by FissionPower/Suit.txt: -->
+<_NMSuitW> -1 </_NMSuitW>
+<_NMSuitF> -1 </_NMSuitF>
 <!-- Number strings, built by Tick.txt (SetUIStringEx): -->
 <_NMWaterS> 0 </_NMWaterS>
 <_NMFoodS> 0 </_NMFoodS>
 <_NMSleepS> 0 </_NMSleepS>
 <_NMRadsS> 0 </_NMRadsS>
 <_NMPowerS> 0 </_NMPowerS>
+<_NMSuitWS> 0 </_NMSuitWS>
+<_NMSuitFS> 0 </_NMSuitFS>
 <!-- Info lines: the clock, carried weight / capacity (_NMHeavy 1 while over it) and (with Mojave -->
 <!-- Heat) the temperature; _NMHot 1 while heat adds thirst: -->
 <_NMClock> 0 </_NMClock>
@@ -195,6 +200,10 @@
 			<copy src="me()" trait="_need"/>
 			<gte> 800 </gte>
 		</_crit>
+		<_resOn>
+			<copy src="io()" trait="_NMSuitW"/>
+			<gte> 0 </gte>
+		</_resOn>
 		<text name="lbl">
 			<x> 36 </x>
 			<y> 0 </y>
@@ -652,6 +661,18 @@
 				<and src="io()" trait="_NMNums"/>
 			</visible>
 		</text>
+		<text name="res">
+			<x> 172 </x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<string><copy src="io()" trait="_NMSuitWS"/></string>
+			<visible>
+				<copy src="io()" trait="_NMNums"/>
+				<lt> 1 </lt>
+				<and src="parent()" trait="_resOn"/>
+			</visible>
+		</text>
 	</rect>
 	<!-- FOD -->
 	<rect name="NMFood">
@@ -682,6 +703,10 @@
 			<copy src="me()" trait="_need"/>
 			<gte> 800 </gte>
 		</_crit>
+		<_resOn>
+			<copy src="io()" trait="_NMSuitF"/>
+			<gte> 0 </gte>
+		</_resOn>
 		<text name="lbl">
 			<x> 36 </x>
 			<y> 0 </y>
@@ -1137,6 +1162,18 @@
 				<copy src="parent()" trait="_warn"/>
 				<gte> 1 </gte>
 				<and src="io()" trait="_NMNums"/>
+			</visible>
+		</text>
+		<text name="res">
+			<x> 172 </x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<string><copy src="io()" trait="_NMSuitFS"/></string>
+			<visible>
+				<copy src="io()" trait="_NMNums"/>
+				<lt> 1 </lt>
+				<and src="parent()" trait="_resOn"/>
 			</visible>
 		</text>
 	</rect>

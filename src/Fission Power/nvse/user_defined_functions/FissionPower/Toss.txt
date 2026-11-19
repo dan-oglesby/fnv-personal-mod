@@ -1,10 +1,19 @@
 ; Fission Power: the toss of an ejected battery (Eject.txt). Waits for its model to load (a new
-; reference's 3D comes a few frames later; up to a second), then sets its velocity with JIP LN's
-; SetLinearVelocity and a tumble with SetAngularVelocity. The velocity is in Havok units, which in
-; New Vegas are 7 game units, 10 cm: metres per second times 10. Gameplay only (flag 0).
+; reference's 3D comes a few frames later; up to a second), then throws it with JIP LN's PushObject
+; and gives it a tumble (TossSpin.txt). Gameplay only (flag 0).
+; 2026-11-19: PushObject instead of SetLinearVelocity. The SetLinearVelocity / SetAngularVelocity
+; lines, which take the model's block name as a string (an empty one for the root), kept this file
+; from compiling at all ("Failed to precompile" in nvse.log, with "" and with a string variable
+; alike), so the battery only dropped from your shoulder. PushObject takes no string: from JIP's
+; source (bhkWorldObject::ApplyForce), "ref.PushObject x y z speed" adds to every rigid body of the
+; model a velocity of `speed` game units a second, directed away from the point (x, y, z) given
+; relative to the object. Here that point is far behind the direction of travel, so the direction
+; is exactly the throw's. A metre is 70 game units (7 units are 10 cm). The tumble is in a file of
+; its own, so if its string argument is what fails, only the tumble is lost (and nvse.log says so).
 ref rRef
 int iTry
 ref rToss
+ref rSpin
 float fAng
 float fEast
 float fNorth
@@ -14,7 +23,10 @@ float fUp
 float fVx
 float fVy
 float fVz
-string_var sRoot
+float fSpeed
+float fPx
+float fPy
+float fPz
 
 begin Function {rRef, iTry}
 	if eval (IsFormValid rRef) == 0
@@ -34,13 +46,23 @@ begin Function {rRef, iTry}
 	let fAng := player.GetAngle Z
 	let fEast := dSin fAng
 	let fNorth := dCos fAng
-	; forward is (sin, cos), your left is (-cos, sin)
-	let fVx := (fFwd * fEast - fLeft * fNorth) * 10
-	let fVy := (fFwd * fNorth + fLeft * fEast) * 10
-	let fVz := fUp * 10
-	; an empty block name is the model's root (JIP GetNiBlock2). It goes in through a string variable:
-	; a literal "" as a command argument doesn't compile, and that kept this file from loading.
-	let sRoot := ""
-	rRef.SetLinearVelocity $sRoot fVx fVy fVz
-	rRef.SetAngularVelocity $sRoot X 6
+	; the throw in metres per second: forward is (sin, cos), your left is (-cos, sin)
+	let fVx := fFwd * fEast - fLeft * fNorth
+	let fVy := fFwd * fNorth + fLeft * fEast
+	let fVz := fUp
+	let fSpeed := (fVx * fVx + fVy * fVy + fVz * fVz) ^ 0.5
+	if fSpeed <= 0
+		return
+	endif
+	let fSpeed *= 70
+	; the push point: 1,000 times the throw, behind it, so the body's own offset from the reference
+	; doesn't bend the direction
+	let fPx := 0 - fVx * 1000
+	let fPy := 0 - fVy * 1000
+	let fPz := 0 - fVz * 1000
+	rRef.PushObject fPx fPy fPz fSpeed
+	let rSpin := CompileScript "FissionPower/TossSpin.txt"
+	if eval IsFormValid rSpin
+		call rSpin rRef
+	endif
 end

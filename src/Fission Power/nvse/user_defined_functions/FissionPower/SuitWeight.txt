@@ -1,6 +1,8 @@
 ; Fission Power: the worn suit carries its processor and what's in its reservoirs (2026-11-17).
 ; While you wear powered armor, its weight is its own plus "_fpProc" pounds of processor (default
-; 5) plus the paste (a quarter pound a 40-point serving) and water (a pound per 50 points) it holds.
+; 5) plus what its reservoirs hold: water a pound per 50 points (a bottle's worth), food a quarter
+; pound per 40 points (processed; 2026-11-19, the food reservoir replaced the Nutrient Paste one at
+; the paste's weight).
 ; Set on the suit's base item (xNVSE SetWeight); the original weight is remembered and put back when
 ; you take it off (iOn 0), and the game resets base weights on every load anyway.
 ref rSuit
@@ -33,7 +35,7 @@ begin Function {rSuit, iOn}
 		AuxVarSetFlt "*_fpW0" fW0 0 rSuit
 	endif
 	let fWgt := fW0 + (player.AuxVarGetFlt "_fpProc")
-	let fWgt += (player.AuxVarGetFlt "_fpPaste") / 40 * 0.25
+	let fWgt += (player.AuxVarGetFlt "_fpFood") / 40 * 0.25
 	let fWgt += (player.AuxVarGetFlt "_fpWater") / 50
 	SetWeight fWgt rSuit
 	player.AuxVarSetRef "*_fpWSuit" rSuit

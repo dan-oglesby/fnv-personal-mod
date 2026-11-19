@@ -51,11 +51,9 @@ begin Function {}
 		let rCell := CompileScript "FissionPower/SuitWeight.txt"
 		call rCell rSuit 0	; a suit we made heavier gets its weight back
 		call rFn 0 rSuit
-		; what the suit's reservoirs hold comes back out as bottles and servings (SuitDrain.txt)
-		let rCell := CompileScript "FissionPower/SuitDrain.txt"
-		if eval IsFormValid rCell
-			call rCell
-		endif
+		; no suit: the HUD's reservoir numbers go (what the reservoirs hold waits there, Suit.txt)
+		SetUIFloat "HUDMainMenu/_NMSuitW" -1
+		SetUIFloat "HUDMainMenu/_NMSuitF" -1
 		return
 	endif
 
@@ -181,11 +179,9 @@ begin Function {}
 		endif
 	endif
 	player.AuxVarSetFlt "_fpLeft" fLeft
-	; the suit's food and water (Suit.txt, SuitWater.txt), powered or not (2026-11-18): feeding and
-	; drinking need no power, only mulching and pumping water in do (they check "_fpLeft" themselves)
+	; the suit's food and water reservoirs (Suit.txt), powered or not: only filtering irradiated food
+	; and water takes power (it checks "_fpLeft" itself)
 	let rSnd := CompileScript "FissionPower/Suit.txt"
-	call rSnd
-	let rSnd := CompileScript "FissionPower/SuitWater.txt"
 	call rSnd
 	; the worn suit carries its processor and reservoirs (SuitWeight.txt)
 	let rSnd := CompileScript "FissionPower/SuitWeight.txt"

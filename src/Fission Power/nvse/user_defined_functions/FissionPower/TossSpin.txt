@@ -1,0 +1,12 @@
+; Fission Power: the tumble of a tossed battery (Toss.txt, 2026-11-19): JIP LN's SetAngularVelocity,
+; 6 radians a second about the X axis, on the model's root (an empty block name, passed through a
+; string variable). In a file of its own: JIP's velocity commands take that block name as a string,
+; and a line like this kept the whole toss from compiling before. If this file fails to compile
+; (nvse.log: "Failed to precompile ... TossSpin.txt"), the battery still flies, just without a spin.
+ref rRef
+string_var sRoot
+
+begin Function {rRef}
+	let sRoot := ""
+	rRef.SetAngularVelocity $sRoot X 6
+end

@@ -19,6 +19,9 @@ uses) at the stage where penalties start, and blinks at the critical stage.
 
 - H2O, FOD and SLP drain as you get thirsty, hungry and tired. They are shown only in Hardcore mode.
 - RAD fills as radiation builds, and is shown only while you have any.
+- With Fission Power's suit on (2026-11-19), H2O and FOD also show what its food and water
+  reservoirs hold, after a plus: "H2O 3 +180" (numbers), or "+180" after the meter (meters only).
+  Fission Power sets _NMSuitW / _NMSuitF (-1 with no suit); Tick.txt builds the strings.
 
 Above the rows are up to three info lines, right-aligned with the block: the game clock (_nmClock: 1 =
 12-hour, 2 = 24-hour, 0 = hidden); the weight you carry against what you can carry, "182/250 lb"
@@ -66,6 +69,8 @@ ROWS = [
     ("NMRads", "RAD", "_NMRads", "fill", 200, 800, "_NMRadsS"),
     ("NMPower", "PWR", "_NMPower", "level", 200, 100, "_NMPowerS"),
 ]
+# rows that also show a reservoir of Fission Power's suit: (its points, -1 with no suit; its string)
+RES = {"NMWater": ("_NMSuitW", "_NMSuitWS"), "NMFood": ("_NMSuitF", "_NMSuitFS")}
 
 
 def segment(i, warn):
@@ -184,6 +189,7 @@ def info_row(n, name, strait, ontrait, hot=None):
 def row(n, name, label, trait, mode, warn_at, crit_at, strait):
     cmp = "lte" if mode == "level" else "gte"
     extra = ""
+    resdef = ""
     if mode == "level":
         fill = f"""<copy src="io()" trait="{trait}"/>"""
         shown = f"""<copy src="io()" trait="{trait}"/>
@@ -204,6 +210,26 @@ def row(n, name, label, trait, mode, warn_at, crit_at, strait):
         fill = f"""<copy> 1000 </copy>
 			<sub src="io()" trait="{trait}"/>"""
         shown = """<copy src="io()" trait="_NMHardcore"/>"""
+        if name in RES:
+            rf, rs = RES[name]
+            resdef = f"""		<_resOn>
+			<copy src="io()" trait="{rf}"/>
+			<gte> 0 </gte>
+		</_resOn>
+"""
+            extra = f"""		<text name="res">
+			<x> {BAR_X + BAR_W + 6} </x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &left; </justify>
+			<string><copy src="io()" trait="{rs}"/></string>
+			<visible>
+				<copy src="io()" trait="_NMNums"/>
+				<lt> 1 </lt>
+				<and src="parent()" trait="_resOn"/>
+			</visible>
+		</text>
+"""
     else:
         fill = f"""<copy src="io()" trait="{trait}"/>"""
         # 0.5 and up: the number would read at least 1, so a fraction of a rad shows no "RAD 0"
@@ -254,7 +280,7 @@ def row(n, name, label, trait, mode, warn_at, crit_at, strait):
 			<copy src="me()" trait="_need"/>
 			<{cmp}> {crit_at} </{cmp}>
 		</_crit>
-		<text name="lbl">
+{resdef}		<text name="lbl">
 			<x> 36 </x>
 			<y> 0 </y>
 			<font> 7 </font>
@@ -290,12 +316,17 @@ def main():
 <_NMBlink> 0 </_NMBlink>
 <_NMPower> -1 </_NMPower>
 <_NMBatt> 0 </_NMBatt>
+<!-- Fission Power's suit reservoirs in need points (-1 with no suit), set by FissionPower/Suit.txt: -->
+<_NMSuitW> -1 </_NMSuitW>
+<_NMSuitF> -1 </_NMSuitF>
 <!-- Number strings, built by Tick.txt (SetUIStringEx): -->
 <_NMWaterS> 0 </_NMWaterS>
 <_NMFoodS> 0 </_NMFoodS>
 <_NMSleepS> 0 </_NMSleepS>
 <_NMRadsS> 0 </_NMRadsS>
 <_NMPowerS> 0 </_NMPowerS>
+<_NMSuitWS> 0 </_NMSuitWS>
+<_NMSuitFS> 0 </_NMSuitFS>
 <!-- Info lines: the clock, carried weight / capacity (_NMHeavy 1 while over it) and (with Mojave -->
 <!-- Heat) the temperature; _NMHot 1 while heat adds thirst: -->
 <_NMClock> 0 </_NMClock>

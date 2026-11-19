@@ -1,133 +1,152 @@
-; Fission Power: the suit's food system (2026-11-17), once a second while you wear power armor
-; (Tick.txt), powered or not (2026-11-18: feeding needs no power, only mulching does; and when the suit
-; comes off, SuitDrain.txt gives back what the reservoir holds as servings of paste). The suit keeps a reservoir of Nutrient Paste ("_fpPaste", in hunger points; it holds
-; "_fpPasteMax", default 400; one serving, FissionPower.esp FPNutrientPaste 0x801, is 40).
-; 1. Paste you carry goes into the reservoir while there's room (no power).
-; 2. Every 10 seconds, if there's room for a whole food item's nutrition (Nutri.txt), the suit
-;    mulches one: the heaviest for what it gives first, so the most weight leaves your pack. Richer
-;    food makes more paste. It costs power: "_fpMulch" steps' worth of battery per hunger point
-;    (default 1: Cram, 50 hunger, about 50 seconds of standby).
-; 3. In Hardcore, out of combat, when hunger comes within the margin of its first penalty stage
-;    (Smart Loot's "_seEarly", or 50), the suit feeds you a serving from the reservoir, never before
-;    hunger is at least a whole serving (40), so none of it is wasted (2026-11-18). A message says so
-;    ("_fpFeedMsg" 0 for none). Off with
-;    player.AuxVarSetFlt "_fpFeed" 0 (and mulching with "_fpMulch" 0).
-int iPlug
-int iN
-int iRoom
+; Fission Power: the suit's food and water (2026-11-19; it replaces the Nutrient Paste of 2026-11-17).
+; Once a second while you wear power armor (Tick.txt), with or without power. The suit has two
+; reservoirs, counted in the game's own need points: water ("_fpWater", up to "_fpWaterMax", default
+; 400) and food ("_fpFood", up to "_fpFoodMax", default 400). Needs Meters shows them after the H2O
+; and FOD numbers: "H2O 3 +180" is 3 points of thirst and 180 in the suit.
+; In Hardcore only (outside it food and water do nothing for needs, so the suit leaves them be):
+; 1. Taking in, every 3 seconds: the food and drink you carry go into the reservoirs, one item at a
+;    time (SuitTake.txt picks it). An item that gives both fills both, and it is only taken when both
+;    have room for all of it, so none of it is wasted. Salty food's thirst comes out of the water
+;    reservoir. Irradiated items are filtered clean while the suit has power ("_fpFilter" battery
+;    steps per point, default 2) and stay in your pack while it has none. With Bottle That Water, a
+;    bottle of water leaves its empty bottle behind, as drinking it does. The suit keeps only water
+;    and food: an item's healing and short buffs don't carry over. Quest items, anything addictive,
+;    and items that also ease sleep or radiation or run a script (a Sunset Sarsaparilla's bottle cap)
+;    stay in your pack. Off: player.AuxVarSetFlt "_fpTake" 0.
+; 2. Feeding you, every second: when thirst or hunger has built up a point or more, the suit gives
+;    you exactly that much from its reservoir, so both stay at 0 while it holds any. It lowers the
+;    need's base value, which is what the game's own thirst and hunger raise (see Mojave Heat's
+;    Tick.txt). Off: player.AuxVarSetFlt "_fpFeed" 0.
+; The reservoirs stay as they are while you're out of power armor, and carry on when you put one on.
 int iT
-float fRes
-float fMax
-float fRoom
-float fBestMag
+int iPow
+int iPlug
+float fWat
+float fFod
+float fWMax
+float fFMax
+float fRoomW
+float fRoomF
+float fGotW
+float fGotF
+float fNeed
+float fBase
+float fGive
 float fCost
 float fLeft
-float fAt
-float fNeed
-ref rPaste
-ref rBest
+ref rItem
 ref rFn
-ref rStage
-ref rFits
-int iFit
+ref rBottle
 
 begin Function {}
-	let iPlug := GetModIndex "FissionPower.esp"
-	let rPaste := BuildRef iPlug 2049	; FPNutrientPaste
-	if eval (IsFormValid rPaste) == 0
-		return
+	let fWat := player.AuxVarGetFlt "_fpWater"
+	let fFod := player.AuxVarGetFlt "_fpFood"
+	let fWMax := player.AuxVarGetFlt "_fpWaterMax"
+	if fWMax <= 0
+		let fWMax := 400
 	endif
-	let fRes := player.AuxVarGetFlt "_fpPaste"
-	let fMax := player.AuxVarGetFlt "_fpPasteMax"
-	if fMax <= 0
-		let fMax := 400
-	endif
-
-	; 1. carried paste into the reservoir
-	let iN := player.GetItemCount rPaste
-	if iN > 0
-		let iRoom := Floor ((fMax - fRes) / 40)
-		if iN > iRoom
-			let iN := iRoom
-		endif
-		if iN > 0
-			player.RemoveItem rPaste iN 1
-			let fRes += iN * 40
-		endif
+	let fFMax := player.AuxVarGetFlt "_fpFoodMax"
+	if fFMax <= 0
+		let fFMax := 400
 	endif
 
-	; save what step 1 did before anything that could fail (2026-11-18: the mulching search used to
-	; fail on every run, which skipped the saves at the end, so paste moved in was lost)
-	player.AuxVarSetFlt "_fpPaste" fRes
-
-	; 2. mulching, every 10 seconds. The timer is saved before the search (Mulch.txt) runs, so a
-	; failing search can't make it run, and fail, every second.
-	let fCost := player.AuxVarGetFlt "_fpMulch"
-	let iT := player.AuxVarGetFlt "*_fpMulchT"
-	let iT += 1
-	if eval iT >= 10 && fCost > 0 && (player.AuxVarGetFlt "_fpLeft") > 0
-		let iT := 0
-		player.AuxVarSetFlt "*_fpMulchT" 0
-		let rBest := 0
-		let fBestMag := 0
-		let rFn := CompileScript "FissionPower/Mulch.txt"
-		if eval IsFormValid rFn
-			let fRoom := fMax - fRes
-			let rBest := call rFn fRoom
-			let fBestMag := player.AuxVarGetFlt "*_fpMulchMag"
+	if eval player.IsHardcore
+		; 1. taking in, every 3 seconds. The timer is saved before the search, so a search that fails
+		; can't make it run (and fail) every second (the paste's mulching search did, 2026-11-18).
+		let iT := player.AuxVarGetFlt "*_fpTakeT"
+		let iT += 1
+		if iT >= 3
+			let iT := 0
 		endif
-		if eval (IsFormValid rBest) && fBestMag > 0
-			player.RemoveItem rBest 1 1
-			let fRes += fBestMag
-			let fLeft := player.AuxVarGetFlt "_fpLeft"
-			let fLeft -= fBestMag * fCost
-			if fLeft < 1
-				let fLeft := 1
+		player.AuxVarSetFlt "*_fpTakeT" iT
+		if eval iT == 0 && (player.AuxVarGetFlt "_fpTake") != 0
+			let fRoomW := fWMax - fWat
+			let fRoomF := fFMax - fFod
+			let iPow := 0
+			if eval (player.AuxVarGetFlt "_fpLeft") > 0
+				let iPow := 1
 			endif
-			player.AuxVarSetFlt "_fpLeft" fLeft
-			if eval (player.AuxVarGetFlt "_fpMulchSeen") == 0
-				player.AuxVarSetFlt "_fpMulchSeen" 1
-				MessageBoxEx "Power armor%rThe suit's processor mulches the food you carry into Nutrient Paste whenever its reservoir has room, at a little power, and feeds you from it in Hardcore. Paste made at a campfire costs no power."
+			let rItem := 0
+			let rFn := CompileScript "FissionPower/SuitTake.txt"
+			if eval IsFormValid rFn
+				let rItem := call rFn fRoomW fRoomF fWat iPow
 			endif
-		endif
-	endif
-	player.AuxVarSetFlt "*_fpMulchT" iT
-
-	; 3. feeding
-	if eval fRes >= 40 && (player.AuxVarGetFlt "_fpFeed") == 1
-		if eval player.IsHardcore
-			if eval (player.IsInCombat) == 0
-				let rStage := BuildRef 0 1448198	; hunger1 (0x161906)
-				let fAt := GetHardcoreStageThreshold rStage
-				if fAt <= 0
-					let fAt := 200
+			if eval IsFormValid rItem
+				let fGotW := player.AuxVarGetFlt "*_fpTakeW"
+				let fGotF := player.AuxVarGetFlt "*_fpTakeF"
+				player.RemoveItem rItem 1 1
+				let fWat += fGotW
+				let fFod += fGotF
+				if fWat < 0
+					let fWat := 0
 				endif
-				let fNeed := player.AuxVarGetFlt "_seEarly"
-				if fNeed <= 0
-					let fNeed := 50
+				player.AuxVarSetFlt "_fpWater" fWat
+				player.AuxVarSetFlt "_fpFood" fFod
+				; filtering an irradiated item costs power
+				if eval (player.AuxVarGetFlt "*_fpTakeRad") == 1
+					let fCost := player.AuxVarGetFlt "_fpFilter"
+					let fLeft := player.AuxVarGetFlt "_fpLeft"
+					let fLeft -= (player.AuxVarGetFlt "*_fpTakeAll") * fCost
+					if fLeft < 1
+						let fLeft := 1
+					endif
+					player.AuxVarSetFlt "_fpLeft" fLeft
 				endif
-				let iFit := 0
-				if eval (player.GetAV Hunger) >= fAt - fNeed && (player.GetAV Hunger) >= 40
-					let iFit := 1
-				endif
-				; with Smart Loot, its rule for every automatic use: never for less than the item gives
-				; (SmartLoot/Fits.txt counts a perk's bonus too)
-				if eval iFit && (IsModLoaded "SmartLoot.esp")
-					let rFits := CompileScript "SmartLoot/Fits.txt"
-					if eval IsFormValid rFits
-						let iFit := call rFits rPaste
+				; Bottle That Water: the empty bottle stays with you (LFoxWaterBottleEmpty 0xADE)
+				if eval (player.AuxVarGetFlt "*_fpTakeBtl") == 1
+					let iPlug := GetModIndex "LFox Bottle That Water.esp"
+					let rBottle := BuildRef iPlug 2782
+					if eval IsFormValid rBottle
+						player.AddItem rBottle 1 1
 					endif
 				endif
-				if iFit
-					player.AddItem rPaste 1 1
-					player.EquipItem rPaste 0 1
-					let fRes -= 40
-					if eval (player.AuxVarGetFlt "_fpFeedMsg") != 0
-						MessageEx "The suit feeds you a serving of paste: hunger -40 (%.0f left in it)." fRes
-					endif
+				if eval (player.AuxVarGetFlt "_fpTakeSeen") == 0
+					player.AuxVarSetFlt "_fpTakeSeen" 1
+					MessageBoxEx "Power armor%rThe suit takes the food and water you carry into its reservoirs and feeds you from them, keeping thirst and hunger at 0. An item that gives both fills both, and nothing goes in that doesn't fit whole. Needs Meters shows what each reservoir holds after the H2O and FOD numbers."
 				endif
 			endif
 		endif
+
+		; 2. feeding you: whatever thirst and hunger have built up, exactly, once it's a point or more
+		if eval (player.AuxVarGetFlt "_fpFeed") != 0
+			let fNeed := player.GetAV Dehydration
+			if fNeed >= 1 && fWat > 0
+				let fBase := player.GetBaseAV Dehydration
+				let fGive := fNeed
+				if fGive > fBase
+					let fGive := fBase
+				endif
+				if fGive > fWat
+					let fGive := fWat
+				endif
+				if fGive > 0
+					let fBase -= fGive
+					player.SetAV Dehydration fBase
+					let fWat -= fGive
+				endif
+			endif
+			let fNeed := player.GetAV Hunger
+			if fNeed >= 1 && fFod > 0
+				let fBase := player.GetBaseAV Hunger
+				let fGive := fNeed
+				if fGive > fBase
+					let fGive := fBase
+				endif
+				if fGive > fFod
+					let fGive := fFod
+				endif
+				if fGive > 0
+					let fBase -= fGive
+					player.SetAV Hunger fBase
+					let fFod -= fGive
+				endif
+			endif
+			player.AuxVarSetFlt "_fpWater" fWat
+			player.AuxVarSetFlt "_fpFood" fFod
+		endif
 	endif
-	player.AuxVarSetFlt "_fpPaste" fRes
+
+	; the HUD (Needs Meters): what each reservoir holds
+	SetUIFloat "HUDMainMenu/_NMSuitW" fWat
+	SetUIFloat "HUDMainMenu/_NMSuitF" fFod
 end

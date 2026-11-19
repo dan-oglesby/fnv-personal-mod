@@ -10,14 +10,22 @@
 ;   player.AuxVarSetFlt "_fpSnd" 1         eject sound: battle rifle reload part 1, 2 or 3 (default 3)
 ;   player.AuxVarSetFlt "_fpFT" 0          fast travel is free (default 1: it drains by distance)
 ; Shows on the HUD through Needs Meters (PWR). Smart Loot keeps a few batteries while you own power
-; armor. FissionPower.esp holds the Depleted Fission Battery and Nutrient Paste.
+; armor. FissionPower.esp holds the Depleted Fission Battery (and the old Nutrient Paste, no longer made).
 ;
-; The suit's food system (2026-11-17, Suit.txt): powered armor mulches the food you carry into
-; Nutrient Paste whenever its reservoir has room for a whole item (richer food, more paste), at a
-; little battery, and in Hardcore feeds you a serving as hunger nears its first stage. At a
-; campfire, closing the recipe menu offers to turn all your food into paste for no power.
-;   player.AuxVarSetFlt "_fpPasteMax" 600   reservoir size in hunger points (default 400)
-;   player.AuxVarSetFlt "_fpMulch" 0        no mulching (default 1 battery step per hunger point)
+; The suit's food and water (2026-11-19, Suit.txt; it replaces 2026-11-17's Nutrient Paste): two
+; reservoirs in need points, shown by Needs Meters after the H2O and FOD numbers ("H2O 3 +180" is 3
+; thirst and 180 in the suit). In Hardcore the suit takes the food and drink you carry into them, an
+; item every 3 seconds (SuitTake.txt): an item that gives both fills both, and only when all of it
+; fits, so none is wasted; irradiated items are filtered clean while it has power and stay in your
+; pack while it has none. It feeds you from them, exactly as much as thirst and hunger build up, so
+; both stay at 0 while it holds any, with or without power. It keeps only water and food (healing
+; and short buffs don't carry over) and leaves you quest items, anything addictive, and items that
+; also ease sleep or radiation or run a script (a Sunset Sarsaparilla's cap). With Bottle That
+; Water, a bottle it takes leaves its empty bottle.
+;   player.AuxVarSetFlt "_fpWaterMax" 600   water reservoir size, thirst points (default 400)
+;   player.AuxVarSetFlt "_fpFoodMax" 600    food reservoir size, hunger points (default 400)
+;   player.AuxVarSetFlt "_fpFilter" 4       battery steps per point to filter irradiated food or water (default 2)
+;   player.AuxVarSetFlt "_fpTake" 0         the suit takes nothing in (default 1)
 ;   player.AuxVarSetFlt "_fpFeed" 0         the suit doesn't feed you (default 1)
 ; With no fission batteries left, energy weapon ammo powers the suit (2026-11-17, Cells.txt): each
 ; cell worth its vanilla value against a battery's 75 caps (an energy cell about 267 steps), least
@@ -25,18 +33,8 @@
 ; drained. player.AuxVarSetFlt "_fpAmmo" 0 = batteries only. By default each cell runs on its own,
 ; with a click and a count when it's spent; player.AuxVarSetFlt "_fpCellOne" 0 refuels a fifth of a
 ; battery at a time instead. Drained cells go into your pack. Smart Loot keeps energy ammo as fuel.
-; The suit also holds water (2026-11-17, SuitWater.txt): it takes in the water you carry while it
-; has room (clean first; irradiated water filtered at more power) and in Hardcore gives you a
-; Purified Water as thirst nears its first stage. The worn suit weighs more by its processor
-; ("_fpProc", 5 lb) and what its reservoirs hold (SuitWeight.txt).
-; Since 2026-11-18 feeding and drinking from the reservoirs need no power (only mulching and taking
-; water in do), never before a whole serving is needed (with Smart Loot, its rule that nothing is
-; used for less than it gives), and the suit leaves you bottles of your own. Taking the suit off
-; gives back what its reservoirs hold, as Purified Water and Nutrient Paste (SuitDrain.txt).
-;   player.AuxVarSetFlt "_fpWaterMax" 600   water reservoir size, thirst points (default 400)
-;   player.AuxVarSetFlt "_fpFilter" 4       steps per point to filter irradiated water (default 2)
-;   player.AuxVarSetFlt "_fpWaterKeep" 4    bottles the suit leaves in your pack (default 2)
-;   player.AuxVarSetFlt "_fpFeedMsg" 0      no message when the suit feeds you or gives you water
+; The worn suit weighs more by its processor ("_fpProc", 5 lb) and what its reservoirs hold
+; (SuitWeight.txt).
 ;
 ; Run by JIP LN NVSE's script runner (ln_: new game and every load). Needs xNVSE 6.4+ and JIP LN.
 
@@ -69,50 +67,20 @@ if eval IsModLoaded "FissionPower.esp"
 		let iBad += 1
 		print "Fission Power: FissionPower/Cells.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
-	let rChk := CompileScript "FissionPower/Camp.txt"
-	if eval (IsFormValid rChk) == 0
-		let iBad += 1
-		print "Fission Power: FissionPower/Camp.txt failed to compile, so the part that uses it is off (details: nvse.log)"
-	endif
-	let rChk := CompileScript "FissionPower/CampBtn.txt"
-	if eval (IsFormValid rChk) == 0
-		let iBad += 1
-		print "Fission Power: FissionPower/CampBtn.txt failed to compile, so the part that uses it is off (details: nvse.log)"
-	endif
-	let rChk := CompileScript "FissionPower/Nutri.txt"
-	if eval (IsFormValid rChk) == 0
-		let iBad += 1
-		print "Fission Power: FissionPower/Nutri.txt failed to compile, so the part that uses it is off (details: nvse.log)"
-	endif
 	let rChk := CompileScript "FissionPower/Suit.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
 		print "Fission Power: FissionPower/Suit.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
-	let rChk := CompileScript "FissionPower/Mulch.txt"
+	let rChk := CompileScript "FissionPower/SuitTake.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
-		print "Fission Power: FissionPower/Mulch.txt failed to compile, so the suit doesn't mulch food (details: nvse.log)"
-	endif
-	let rChk := CompileScript "FissionPower/SuitWater.txt"
-	if eval (IsFormValid rChk) == 0
-		let iBad += 1
-		print "Fission Power: FissionPower/SuitWater.txt failed to compile, so the part that uses it is off (details: nvse.log)"
-	endif
-	let rChk := CompileScript "FissionPower/SuitDrain.txt"
-	if eval (IsFormValid rChk) == 0
-		let iBad += 1
-		print "Fission Power: FissionPower/SuitDrain.txt failed to compile, so the part that uses it is off (details: nvse.log)"
+		print "Fission Power: FissionPower/SuitTake.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	let rChk := CompileScript "FissionPower/SuitWeight.txt"
 	if eval (IsFormValid rChk) == 0
 		let iBad += 1
 		print "Fission Power: FissionPower/SuitWeight.txt failed to compile, so the part that uses it is off (details: nvse.log)"
-	endif
-	let rChk := CompileScript "FissionPower/Thirst.txt"
-	if eval (IsFormValid rChk) == 0
-		let iBad += 1
-		print "Fission Power: FissionPower/Thirst.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 	endif
 	if iBad > 0
 		print "Fission Power: " + $iBad + " script function(s) failed to compile (named above). Everything else in it is running."
@@ -130,11 +98,6 @@ if eval IsModLoaded "FissionPower.esp"
 		let ref rStart := CompileScript "FissionPower/Start.txt"
 		if eval (IsFormValid rTick) && (IsFormValid rTrue) && (IsFormValid rStart)
 			CallAfterSeconds 0.075 rStart 1 rTick rTrue 1 20	; timer slot 0.075 s (tools/timer_slots.py)
-		endif
-		; a campfire's recipe menu closing: the offer to turn food into Nutrient Paste (Camp.txt)
-		let ref rCamp := CompileScript "FissionPower/Camp.txt"
-		if eval (IsFormValid rCamp)
-			SetOnMenuCloseEventHandler rCamp 1 1077
 		endif
 	endif
 endif

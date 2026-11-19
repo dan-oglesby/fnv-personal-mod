@@ -1,0 +1,171 @@
+; Fission Power: which carried item the suit takes into its reservoirs next (2026-11-19, Suit.txt).
+; fRoomW and fRoomF are the room left in the water and food reservoirs, fHaveW what the water
+; reservoir holds, iPow 1 while the suit has power. Returns the item, or nothing, and leaves what it
+; gives in "*_fpTakeW" (water: less than 0 for salty food, whose thirst comes out of the reservoir),
+; "*_fpTakeF" (food), "*_fpTakeAll" (both, for the filtering cost), "*_fpTakeRad" (1 if irradiated)
+; and "*_fpTakeBtl" (1 if it leaves Bottle That Water's empty bottle).
+; It considers food and drink (aid items that ease thirst or hunger), but never quest items, anything
+; addictive, or an item the suit would take less than everything useful from: one that also eases
+; sleep or radiation (that part would be wasted) or runs a script (a Sunset Sarsaparilla's bottle
+; cap, Bottle That Water's canteen). Bottle That Water's empty bottle is the exception: the suit hands
+; it back (Suit.txt).
+; What it gives: its water and food at their base amounts (an item's largest entry: a perk's bonus
+; entry is how drinking or eating it would come out, which the suit's processing isn't), salt
+; (DamageDehydrationLevel) at magnitude x seconds.
+; It goes in only if all of it fits: its water in the water room (or, salty, the reservoir holds the
+; water its salt costs) and its food in the food room. Irradiated items only while the suit has power
+; to filter them. Of those that fit: clean first, then the most weight per point, so the most weight
+; leaves your pack.
+; No return inside a loop (xNVSE's loop stack, 2026-11-18): the effect loop ends with break.
+int iNum
+int iIdx
+int iEff
+int iK
+int iRad
+int iBtl
+int iBad
+int iPow
+int iPlug
+int iBestRad
+int iBestBtl
+float fRoomW
+float fRoomF
+float fHaveW
+float fMag
+float fDur
+float fAmtW
+float fAmtF
+float fSalt
+float fNet
+float fWt
+float fScore
+float fBest
+float fBestW
+float fBestF
+float fBestAll
+ref rItem
+ref rBase
+ref rBest
+ref rEfW
+ref rEfF
+ref rEfSalt
+ref rEfRad
+ref rEfSlp
+ref rEfRadAway
+ref rEfBtl
+ref rScr
+
+begin Function {fRoomW, fRoomF, fHaveW, iPow}
+	SetFunctionValue 0
+	let rEfW := BuildRef 0 1449782	; RestoreDehydrationLevel (0x161F36)
+	let rEfF := BuildRef 0 1453004	; RestoreStarvationLevel (0x162BCC)
+	let rEfSalt := BuildRef 0 1453003	; DamageDehydrationLevel (0x162BCB): salty food
+	let rEfRad := BuildRef 0 132374	; DamageRadiationLevel (0x020516)
+	let rEfSlp := BuildRef 0 1453198	; RestoreSleepDeprivationLevel (0x162C8E)
+	let rEfRadAway := BuildRef 0 86394	; RestoreRadiationLevel (0x01517A)
+	let rEfBtl := 0
+	if eval IsModLoaded "LFox Bottle That Water.esp"
+		let iPlug := GetModIndex "LFox Bottle That Water.esp"
+		let rEfBtl := BuildRef iPlug 2783	; LFoxAddEmptyBottleEffect (0xADF)
+	endif
+	let rBest := 0
+	let fBest := -1
+	let iBestRad := 1
+	let iNum := player.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := player.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval (IsFormValid rItem) == 0
+			continue
+		endif
+		if eval (GetType rItem) != 47
+			continue
+		endif
+		if eval IsQuestItem rItem
+			continue
+		endif
+		if eval (GetAddictionChance rItem) > 0
+			continue
+		endif
+		let fAmtW := 0
+		let fAmtF := 0
+		let fSalt := 0
+		let iRad := 0
+		let iBtl := 0
+		let iBad := 0
+		let iEff := GetNumEffects rItem
+		let iK := 0
+		while iK < iEff
+			let rBase := GetNthEffectBase rItem iK
+			let fMag := GetNthEffectTraitNumeric rItem iK 0
+			if eval rBase == rEfW
+				if fMag > fAmtW
+					let fAmtW := fMag
+				endif
+			elseif eval rBase == rEfF
+				if fMag > fAmtF
+					let fAmtF := fMag
+				endif
+			elseif eval rBase == rEfSalt
+				let fDur := GetNthEffectTraitNumeric rItem iK 2
+				if fDur > 1
+					let fMag *= fDur
+				endif
+				if fMag > fSalt
+					let fSalt := fMag
+				endif
+			elseif eval rBase == rEfRad
+				let iRad := 1
+			elseif eval rBase == rEfSlp || rBase == rEfRadAway
+				let iBad := 1
+				break
+			elseif eval (IsFormValid rEfBtl) && rBase == rEfBtl
+				let iBtl := 1
+			else
+				let rScr := GetBaseEffectScript rBase
+				if eval IsFormValid rScr
+					let iBad := 1
+					break
+				endif
+			endif
+			let iK += 1
+		loop
+		if iBad == 1
+			continue
+		endif
+		if fAmtW <= 0 && fAmtF <= 0
+			continue
+		endif
+		if iRad == 1 && iPow == 0
+			continue
+		endif
+		; all of it has to fit
+		let fNet := fAmtW - fSalt
+		if fNet > fRoomW || fAmtF > fRoomF
+			continue
+		endif
+		if fNet < 0 && (0 - fNet) > fHaveW
+			continue
+		endif
+		let fWt := GetWeight rItem
+		let fScore := fWt / (fAmtW + fAmtF)
+		if iRad < iBestRad || (iRad == iBestRad && fScore > fBest)
+			let fBest := fScore
+			let iBestRad := iRad
+			let rBest := rItem
+			let fBestW := fNet
+			let fBestF := fAmtF
+			let fBestAll := fAmtW + fAmtF
+			let iBestBtl := iBtl
+		endif
+	loop
+	if eval IsFormValid rBest
+		player.AuxVarSetFlt "*_fpTakeW" fBestW
+		player.AuxVarSetFlt "*_fpTakeF" fBestF
+		player.AuxVarSetFlt "*_fpTakeAll" fBestAll
+		player.AuxVarSetFlt "*_fpTakeRad" iBestRad
+		player.AuxVarSetFlt "*_fpTakeBtl" iBestBtl
+		SetFunctionValue rBest
+	endif
+end

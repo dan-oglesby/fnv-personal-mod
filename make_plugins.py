@@ -381,8 +381,9 @@ def with_sound_fixes(fname, data):
     return bytes(header) + group("SOUN", recs) + data[24 + hsize:]
 
 
-# Fission Power (in FissionPower.esp, object ID 0x801): Nutrient Paste, the suit's food
-# (2026-11-17). Copied from FalloutNV.esm's Cram (0x08C552) at build time: its model, icon, sound
+# Fission Power (in FissionPower.esp, object ID 0x801): Nutrient Paste, the suit's food from
+# 2026-11-17 until its food and water reservoirs replaced it (2026-11-19). Nothing makes it now; it
+# stays so paste already in a game stays valid, and the suit takes it in like any food. Copied from FalloutNV.esm's Cram (0x08C552) at build time: its model, icon, sound
 # and Hardcore condition, with a new name, no radiation, 40 hunger a serving, a quarter pound and
 # worth 3 caps. Effects kept: Cram's small heal (0x14E) and RestoreStarvationLevel (0x162BCC).
 PASTE = {"FissionPower.esp": (0x801, 0x8C552, "FPNutrientPaste", "Nutrient Paste", 40, 0.25, 3)}
