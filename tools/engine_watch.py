@@ -640,7 +640,8 @@ class Tail:
         return [p.rstrip(b"\r").decode("latin1") for p in parts if p.strip()]
 
 
-CRASHLOGGER_BANNER = re.compile(r"Crash Logger:|If this file is empty|NOT ALWAYS the crash reason|please send the whole log")
+CRASHLOGGER_BANNER = re.compile(r"Crash Logger:|If this file is empty|NOT ALWAYS the crash reason|please send the whole log"
+                                r"|^\s*0x[0-9A-Fa-f]{8} - 0x[0-9A-Fa-f]{8} \|")   # the banner, and the module list
 
 
 def classify(src, line):
