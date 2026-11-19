@@ -12,9 +12,11 @@
 int iPlug
 int iIdx
 int iId
+int iGra
 ref rList
 ref rItem
 array_var aIds
+array_var aPlug
 
 begin Function {}
 	let iPlug := GetModIndex "SmartLoot.esp"
@@ -54,13 +56,20 @@ begin Function {}
 	; Fission Power's fuel besides batteries (2026-11-17): energy weapon ammo, marked "*_slFuel" for
 	; Judge.txt (taken up to "_slCells" while you own power armor). FalloutNV.esm IDs: Energy Cell
 	; 132978 and its Bulk, Over Charge, Max Charge kinds 1409811, 1409759, 1409760; Microfusion Cell
-	; 17541, 1409810, 1409803, 1409804; Electron Charge Pack 439614, 1409809, 1409805, 1409806
+	; 17541, 1409810, 1409803, 1409804; Electron Charge Pack 439614, 1409809, 1409805, 1409806;
+	; Mesmetron Power Cell 436237, Alien Power Cell 168804. And (2026-11-19) Gun Runners' Arsenal's
+	; Optimized cells, GunRunnersArsenal.esm 2162-2164 (aPlug 1). The same list as Fission Power's Cells.txt.
 	if eval IsModLoaded "FissionPower.esp"
-		let aIds := Ar_List 132978, 1409811, 1409759, 1409760, 17541, 1409810, 1409803, 1409804, 439614, 1409809, 1409805, 1409806
+		let aIds := Ar_List 1409811, 1409810, 1409809, 132978, 17541, 1409759, 1409760, 2162, 439614, 2163, 1409803, 1409804, 2164, 1409805, 1409806, 436237, 168804
+		let aPlug := Ar_List 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0
+		let iGra := GetModIndex "GunRunnersArsenal.esm"
 		let iIdx := 0
 		while iIdx < Ar_Size aIds
 			let iId := aIds[iIdx]
 			let rItem := BuildRef 0 iId
+			if eval aPlug[iIdx] == 1
+				let rItem := BuildRef iGra iId
+			endif
 			if eval IsFormValid rItem
 				AuxVarSetFlt "*_slFuel" 1 0 rItem
 			endif
