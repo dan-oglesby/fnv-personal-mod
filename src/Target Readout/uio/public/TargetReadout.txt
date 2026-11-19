@@ -1,2 +1,4 @@
 TargetReadout\TargetReadout.xml:hudmainmenu
 true
+TargetReadout\TargetReadoutVats.xml:vatsmenu
+true

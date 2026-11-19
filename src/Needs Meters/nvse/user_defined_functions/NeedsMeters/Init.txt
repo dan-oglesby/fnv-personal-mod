@@ -8,4 +8,8 @@ begin Function {}
 		player.AuxVarSetFlt "_nmClock" 1	; 0 = no clock, 1 = 12-hour (default), 2 = 24-hour
 		player.AuxVarSetFlt "_nmTemp" 1		; 1 = temperature line while Mojave Heat runs, 0 = hide it
 	endif
+	if eval (player.AuxVarGetFlt "_nmSet") < 2
+		player.AuxVarSetFlt "_nmSet" 2
+		player.AuxVarSetFlt "_nmWeight" 1	; 2026-11-18: 1 = carried / capacity line (default), 0 = hide it
+	endif
 end

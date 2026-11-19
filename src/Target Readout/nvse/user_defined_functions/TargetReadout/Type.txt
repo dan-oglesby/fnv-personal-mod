@@ -12,8 +12,16 @@ int iClk
 string_var sFull
 string_var sPart
 ref rSnd
+ref rMir
 
 begin Function {}
+	; in VATS the HUD is hidden: the readout's twin on the VATS screen gets its values (Mirror.txt)
+	if eval MenuMode 1056
+		let rMir := CompileScript "TargetReadout/Mirror.txt"
+		if eval IsFormValid rMir
+			call rMir
+		endif
+	endif
 	let iN := player.AuxVarGetFlt "*_trN"
 	let iLen := player.AuxVarGetFlt "*_trLen"
 	if iN >= iLen
@@ -34,6 +42,7 @@ begin Function {}
 		let sPart := sPart + "_"
 	endif
 	SetUIStringEx "HUDMainMenu/_TRText" "%z" sPart
+	player.AuxVarSetStr "*_trShow" sPart
 	if eval (player.AuxVarGetFlt "_trSound") != 0 && iN < iLen
 		let iClk := player.AuxVarGetFlt "*_trClk"
 		let iClk += 1

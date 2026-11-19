@@ -1,0 +1,42 @@
+; Fission Power: the toss of an ejected battery (Eject.txt). Waits for its model to load (a new
+; reference's 3D comes a few frames later; up to a second), then sets its velocity with JIP LN's
+; SetLinearVelocity and a tumble with SetAngularVelocity. The velocity is in Havok units, which in
+; New Vegas are 7 game units, 10 cm: metres per second times 10. Gameplay only (flag 0).
+ref rRef
+int iTry
+ref rToss
+float fAng
+float fEast
+float fNorth
+float fFwd
+float fLeft
+float fUp
+float fVx
+float fVy
+float fVz
+
+begin Function {rRef, iTry}
+	if eval (IsFormValid rRef) == 0
+		return
+	endif
+	if eval (rRef.HasLoaded3D) == 0
+		if iTry < 20
+			let iTry += 1
+			let rToss := CompileScript "FissionPower/Toss.txt"
+			CallAfterSeconds 0.05 rToss 0 rRef iTry
+		endif
+		return
+	endif
+	let fFwd := player.AuxVarGetFlt "_fpEjF"
+	let fLeft := player.AuxVarGetFlt "_fpEjL"
+	let fUp := player.AuxVarGetFlt "_fpEjU"
+	let fAng := player.GetAngle Z
+	let fEast := dSin fAng
+	let fNorth := dCos fAng
+	; forward is (sin, cos), your left is (-cos, sin)
+	let fVx := (fFwd * fEast - fLeft * fNorth) * 10
+	let fVy := (fFwd * fNorth + fLeft * fEast) * 10
+	let fVz := fUp * 10
+	rRef.SetLinearVelocity "" fVx fVy fVz
+	rRef.SetAngularVelocity "" X 6
+end

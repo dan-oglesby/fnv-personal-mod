@@ -1,0 +1,43 @@
+; Target Readout: the readout in VATS (2026-11-18). The game hides the HUD while VATS targeting is
+; open, so the readout drawn on it was never seen there: only a flash as VATS closed, when the HUD
+; came back for a moment before the next tick hid the readout. A second copy of the layout,
+; TargetReadoutVats.xml, is injected into the VATS screen by UI Organizer, and this copies the HUD
+; copy's values to it. Type.txt calls it every frame or so while the VATS menu (1056) is open.
+float fVal
+string_var sShown
+
+begin Function {}
+	if eval (IsComponentLoaded "VATSMenu/TargetReadout") == 0
+		if eval (player.AuxVarGetFlt "*_trNoVats") == 0
+			player.AuxVarSetFlt "*_trNoVats" 1
+			print "Target Readout: the VATS copy of the readout is missing (UI Organizer, Data/uio/public/TargetReadout.txt)"
+		endif
+		return
+	endif
+	let fVal := GetUIFloat "HUDMainMenu/_TRVis"
+	SetUIFloat "VATSMenu/_TRVis" fVal
+	let fVal := GetUIFloat "HUDMainMenu/_TRAlpha"
+	SetUIFloat "VATSMenu/_TRAlpha" fVal
+	let fVal := GetUIFloat "HUDMainMenu/_TRRedOn"
+	SetUIFloat "VATSMenu/_TRRedOn" fVal
+	let fVal := GetUIFloat "HUDMainMenu/_TRHudOn"
+	SetUIFloat "VATSMenu/_TRHudOn" fVal
+	let fVal := GetUIFloat "HUDMainMenu/_TRAltOn"
+	SetUIFloat "VATSMenu/_TRAltOn" fVal
+	let fVal := GetUIFloat "HUDMainMenu/_TRX"
+	SetUIFloat "VATSMenu/_TRX" fVal
+	let fVal := GetUIFloat "HUDMainMenu/_TRY"
+	SetUIFloat "VATSMenu/_TRY" fVal
+	let fVal := GetUIFloat "HUDMainMenu/_TRSX"
+	SetUIFloat "VATSMenu/_TRSX" fVal
+	let fVal := GetUIFloat "HUDMainMenu/_TRSY"
+	SetUIFloat "VATSMenu/_TRSY" fVal
+	let fVal := GetUIFloat "HUDMainMenu/_TRDX"
+	SetUIFloat "VATSMenu/_TRDX" fVal
+	let fVal := GetUIFloat "HUDMainMenu/_TRYK"
+	SetUIFloat "VATSMenu/_TRYK" fVal
+	let fVal := GetUIFloat "HUDMainMenu/_TRGap"
+	SetUIFloat "VATSMenu/_TRGap" fVal
+	let sShown := player.AuxVarGetStr "*_trShow"
+	SetUIStringEx "VATSMenu/_TRText" "%z" sShown
+end

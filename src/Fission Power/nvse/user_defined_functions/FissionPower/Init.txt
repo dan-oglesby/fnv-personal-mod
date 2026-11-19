@@ -1,12 +1,21 @@
 ; Fission Power: default settings, set once per save (JIP auxiliary variables on the player).
 ; Change them from the console, e.g. player.AuxVarSetFlt "_fpLife" 20000
 begin Function {}
-	if eval (player.AuxVarGetFlt "_fpInit") >= 9
+	if eval (player.AuxVarGetFlt "_fpInit") >= 10
+		return
+	endif
+	; version 10 (2026-11-18): a spent battery is tossed over your left shoulder (Eject.txt), at these
+	; speeds in metres per second: forward, to your left, up. _fpEjOff 1 drops it at your feet instead.
+	player.AuxVarSetFlt "_fpEjF" 1.2
+	player.AuxVarSetFlt "_fpEjL" 2
+	player.AuxVarSetFlt "_fpEjU" 2.5
+	if eval (player.AuxVarGetFlt "_fpInit") == 9
+		player.AuxVarSetFlt "_fpInit" 10
 		return
 	endif
 	player.AuxVarSetFlt "_fpCellOne" 1	; version 9: energy cells one at a time, each ejected when spent
 	if eval (player.AuxVarGetFlt "_fpInit") == 8
-		player.AuxVarSetFlt "_fpInit" 9
+		player.AuxVarSetFlt "_fpInit" 10
 		return
 	endif
 	; version 8 (2026-11-17): the suit's water reservoir (SuitWater.txt) and the weight of its
@@ -16,13 +25,13 @@ begin Function {}
 	player.AuxVarSetFlt "_fpFilter" 2
 	player.AuxVarSetFlt "_fpProc" 5
 	if eval (player.AuxVarGetFlt "_fpInit") == 7
-		player.AuxVarSetFlt "_fpInit" 9
+		player.AuxVarSetFlt "_fpInit" 10
 		return
 	endif
 	; version 7 (2026-11-17): energy weapon ammo powers the suit after fission batteries (Cells.txt)
 	player.AuxVarSetFlt "_fpAmmo" 1
 	if eval (player.AuxVarGetFlt "_fpInit") == 6
-		player.AuxVarSetFlt "_fpInit" 9
+		player.AuxVarSetFlt "_fpInit" 10
 		return
 	endif
 	; version 6 (2026-11-17): the suit's food system (Suit.txt): a 400-hunger paste reservoir,
@@ -31,17 +40,17 @@ begin Function {}
 	player.AuxVarSetFlt "_fpMulch" 1
 	player.AuxVarSetFlt "_fpFeed" 1
 	if eval (player.AuxVarGetFlt "_fpInit") == 5
-		player.AuxVarSetFlt "_fpInit" 9
+		player.AuxVarSetFlt "_fpInit" 10
 		return
 	endif
 	player.AuxVarSetFlt "_fpFT" 1	; added in settings version 5: fast travel drains the battery
 	if eval (player.AuxVarGetFlt "_fpInit") == 4
-		player.AuxVarSetFlt "_fpInit" 9
+		player.AuxVarSetFlt "_fpInit" 10
 		return
 	endif
 	if eval (player.AuxVarGetFlt "_fpInit") == 3
 		player.AuxVarSetFlt "_fpSnd" 3		; added in settings version 4
-		player.AuxVarSetFlt "_fpInit" 9
+		player.AuxVarSetFlt "_fpInit" 10
 		return
 	endif
 	if eval (player.AuxVarGetFlt "_fpInit") == 1
@@ -50,10 +59,10 @@ begin Function {}
 	if eval (player.AuxVarGetFlt "_fpInit") >= 1
 		player.AuxVarSetFlt "_fpIdle" 1		; added in settings version 3
 		player.AuxVarSetFlt "_fpSnd" 3		; added in settings version 4
-		player.AuxVarSetFlt "_fpInit" 9
+		player.AuxVarSetFlt "_fpInit" 10
 		return
 	endif
-	player.AuxVarSetFlt "_fpInit" 9
+	player.AuxVarSetFlt "_fpInit" 10
 	player.AuxVarSetFlt "_fpSnd" 3		; eject sound: battle rifle reload part 3 (the spring snap)
 	player.AuxVarSetFlt "_fpLife" 10000	; steps one battery powers a suit for (a step = 52.5 units, 0.75 m)
 	player.AuxVarSetFlt "_fpLeft" 10000	; your first suit comes with a charged battery in it

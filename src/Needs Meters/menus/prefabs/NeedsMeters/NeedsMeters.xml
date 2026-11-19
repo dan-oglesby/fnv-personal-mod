@@ -15,9 +15,13 @@
 <_NMSleepS> 0 </_NMSleepS>
 <_NMRadsS> 0 </_NMRadsS>
 <_NMPowerS> 0 </_NMPowerS>
-<!-- Info lines: the clock and (with Mojave Heat) the temperature; _NMHot 1 while heat adds thirst: -->
+<!-- Info lines: the clock, carried weight / capacity (_NMHeavy 1 while over it) and (with Mojave -->
+<!-- Heat) the temperature; _NMHot 1 while heat adds thirst: -->
 <_NMClock> 0 </_NMClock>
 <_NMClockOn> 0 </_NMClockOn>
+<_NMWeightS> 0 </_NMWeightS>
+<_NMWeightOn> 0 </_NMWeightOn>
+<_NMHeavy> 0 </_NMHeavy>
 <_NMTempS> 0 </_NMTempS>
 <_NMTempOn> 0 </_NMTempOn>
 <_NMHot> 0 </_NMHot>
@@ -72,7 +76,7 @@
 		<y>
 			<copy src="me()" trait="_lblh"/>
 			<add src="io()" trait="_NMGap"/>
-			<mul> -2 </mul>
+			<mul> -3 </mul>
 		</y>
 		<width><copy src="parent()" trait="width"/></width>
 		<height><copy src="me()" trait="_lblh"/></height>
@@ -98,6 +102,44 @@
 			<string><copy src="io()" trait="_NMTempS"/></string>
 			<visible>
 				<copy src="io()" trait="_NMHot"/>
+				<gte> 1 </gte>
+			</visible>
+		</text>
+	</rect>
+	<!-- NMWeight -->
+	<rect name="NMWeight">
+		<locus> &true; </locus>
+		<x> 0 </x>
+		<_lblh><copy src="child(v)" trait="height"/><max src="child(vw)" trait="height"/></_lblh>
+		<y>
+			<copy src="me()" trait="_lblh"/>
+			<add src="io()" trait="_NMGap"/>
+			<mul> -2 </mul>
+		</y>
+		<width><copy src="parent()" trait="width"/></width>
+		<height><copy src="me()" trait="_lblh"/></height>
+		<visible><copy src="io()" trait="_NMWeightOn"/></visible>
+		<text name="v">
+			<x><copy src="parent()" trait="width"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &right; </justify>
+			<systemcolor> &hudmain; </systemcolor>
+			<string><copy src="io()" trait="_NMWeightS"/></string>
+			<visible>
+				<copy src="io()" trait="_NMHeavy"/>
+				<lt> 1 </lt>
+			</visible>
+		</text>
+		<text name="vw">
+			<x><copy src="parent()" trait="width"/></x>
+			<y> 0 </y>
+			<font> 7 </font>
+			<justify> &right; </justify>
+			<systemcolor> &hudalt; </systemcolor>
+			<string><copy src="io()" trait="_NMWeightS"/></string>
+			<visible>
+				<copy src="io()" trait="_NMHeavy"/>
 				<gte> 1 </gte>
 			</visible>
 		</text>

@@ -1,0 +1,40 @@
+; Fission Power: ejects a spent battery (rItem) over your left shoulder, so you see the suit throw it
+; out, like a spent shell from a rifle (2026-11-18). It appears at shoulder height a little to your
+; left; once its model is in, Toss.txt sends it forward, out to the left and up, tumbling, and it
+; lands a step or two away. Returns the battery's reference.
+; Settings, in metres per second:
+;   _fpEjF  forward (default 1.2)
+;   _fpEjL  to your left (default 2)
+;   _fpEjU  up (default 2.5)
+;   _fpEjOff 1  no toss: dropped at your feet, as before
+ref rItem
+ref rRef
+ref rToss
+float fAng
+float fEast
+float fNorth
+float fDx
+float fDy
+
+begin Function {rItem}
+	let rRef := player.PlaceAtMe rItem 1
+	SetFunctionValue rRef
+	if eval (IsFormValid rRef) == 0
+		return
+	endif
+	if eval (player.AuxVarGetFlt "_fpEjOff") == 1
+		return
+	endif
+	; heading: 0 is north (+Y), clockwise. Forward is (sin, cos), your left is (-cos, sin)
+	let fAng := player.GetAngle Z
+	let fEast := dSin fAng
+	let fNorth := dCos fAng
+	; at the left shoulder: 22 units (31 cm) to the left, 6 forward, 112 up
+	let fDx := -22 * fNorth + 6 * fEast
+	let fDy := 22 * fEast + 6 * fNorth
+	rRef.MoveTo player fDx fDy 112
+	let rToss := CompileScript "FissionPower/Toss.txt"
+	if eval IsFormValid rToss
+		CallAfterSeconds 0.05 rToss 0 rRef 0
+	endif
+end

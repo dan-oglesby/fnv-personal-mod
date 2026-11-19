@@ -5,7 +5,8 @@
 ;   currency of every kind, NCR dogtags, skill magazines and bobby pins (SLAlwaysTake): all, quest
 ;     flag or not.
 ;   keys and notes: all.
-;   no weight but some value (caps, money, stimpaks, magazines...): all.
+;   aid with no weight (chems, stimpaks...): all, even if worth nothing.
+;   no weight but some value (caps, money, magazines...): all.
 ;   ammo: only types a carried weapon fires, up to the cap per calibre.
 ;   weapons: a copy of your worn-down equipped weapon (repair setting), or one whose DPS beats your
 ;     best of the same skill (or your best overall if you carry none of that skill) by the margin.
@@ -56,6 +57,14 @@ begin Function {rItem, iHave}
 	if iType == 46 || iType == 49
 		SetFunctionValue iHave
 		return
+	endif
+	; aid that weighs nothing (chems, stimpaks, most medicine): all of it, whatever it's worth
+	; (2026-11-18; before, one worth 0 caps was left)
+	if iType == 47
+		if eval (GetWeight rItem) <= 0
+			SetFunctionValue iHave
+			return
+		endif
 	endif
 	let fWt := GetWeight rItem
 	let fVal := GetValue rItem

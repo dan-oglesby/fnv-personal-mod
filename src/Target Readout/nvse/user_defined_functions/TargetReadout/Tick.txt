@@ -11,7 +11,8 @@
 ; With no target the last readout is held at full strength for 0.5 s, fades over the next 0.5 s and
 ; is then hidden ("*_trMiss" counts the ticks without one; 99 = nothing held).
 ; Also hidden while the readout is switched off ("_trOn" 0) and during VATS playback (JIP
-; IsInKillCam). Hide.txt hides it when the VATS menu opens.
+; IsInKillCam). In VATS the HUD is hidden, so Mirror.txt (called by Type.txt) copies the readout
+; to its twin on the VATS screen (TargetReadoutVats.xml).
 ; A new target's readout is typed out by Type.txt (2026-11-17): its text goes to "*_trFull" and the
 ; count shown to 0. The same target keeps being updated in place (condition, status), without
 ; retyping. With "_trType" 0, or if Type.txt failed to compile ("*_trTyp" 0), it shows at once.
@@ -124,6 +125,7 @@ begin Function {}
 			player.AuxVarSetFlt "*_trN" 0
 			player.AuxVarSetFlt "*_trLen" iLen
 			SetUIStringEx "HUDMainMenu/_TRText" "_"
+			player.AuxVarSetStr "*_trShow" "_"
 		elseif eval iShown < (player.AuxVarGetFlt "*_trLen") && (player.AuxVarGetFlt "*_trTyp") == 1 && (player.AuxVarGetFlt "_trType") != 0
 			; still typing this target: it carries on with the updated text
 			player.AuxVarSetFlt "*_trLen" iLen
@@ -133,6 +135,7 @@ begin Function {}
 			player.AuxVarSetFlt "*_trN" iLen
 			player.AuxVarSetFlt "*_trLen" iLen
 			SetUIStringEx "HUDMainMenu/_TRText" "%z" sText
+			player.AuxVarSetStr "*_trShow" sText
 		endif
 		; where: beside the target in VATS (Proj.txt, JohnnyGuitar's WorldToScreen), else above and to
 		; the right of the reticle; the XML scales these shares by the screen's size

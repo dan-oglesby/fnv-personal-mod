@@ -6,8 +6,9 @@
 ; hours standing still, against about half an hour running. Fast travel drains by the distance
 ; covered (x1.25, roads wind; setting "_fpFT"). Doors don't count: a change of cell (or worldspace,
 ; outside), or a jump of more than 1,000 units that isn't within one outdoor worldspace, is skipped.
-; When the battery runs out the spent one is ejected (dropped at your feet as a Depleted Fission
-; Battery, with the battle rifle's clip-spring sound) and a fresh one from your inventory goes in. With none left, the suit is dead weight
+; When the battery runs out the spent one is ejected (tossed over your left shoulder as a Depleted
+; Fission Battery, Eject.txt, with the battle rifle's clip-spring sound) and a fresh one from your
+; inventory goes in. With none left, the suit is dead weight
 ; (Penalty.txt) until you pick one up. Needs Meters shows the charge (PWR) and your spares.
 int iPlug
 int iSpare
@@ -28,6 +29,7 @@ ref rSpent
 ref rFn
 ref rSnd
 ref rCell
+ref rEject
 float fNeed
 float fGot
 int iCells
@@ -99,9 +101,15 @@ begin Function {}
 		let iUsed := 0
 		let iPlug := GetModIndex "FissionPower.esp"
 		let rSpent := BuildRef iPlug 2048	; Depleted Fission Battery (FPDepletedBattery 0x000800)
+		; tossed over your left shoulder (Eject.txt); dropped at your feet if it failed to compile
+		let rEject := CompileScript "FissionPower/Eject.txt"
 		while fLeft <= 0 && iSpare > 0
 			player.RemoveItem rBatt 1 1
-			player.PlaceAtMe rSpent 1
+			if eval IsFormValid rEject
+				call rEject rSpent
+			else
+				player.PlaceAtMe rSpent 1
+			endif
 			let fLeft += fLife
 			let iSpare -= 1
 			let iUsed += 1
