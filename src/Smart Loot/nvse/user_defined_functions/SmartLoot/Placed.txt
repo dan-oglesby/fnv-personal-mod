@@ -1,0 +1,15 @@
+; Smart Loot: 1 if rRef is a placed reference, 0 if it is a base record (2026-11-18). IWS creates
+; creatures with PlaceAtMe and their temporary IDs get reused, so an ID taken from a scan, a process
+; list or the crosshair once resolved to a creature's base record, and calling reference functions
+; on it logged errors. ShowOff NVSE's IsBaseForm tells the two apart. (xNVSE's GetType can't: for a
+; reference it returns its base record's type. A check built on it, for a few hours that day, turned
+; everything away, and nothing was looted.) Without ShowOff this file fails to compile and the
+; callers simply skip the check.
+ref rRef
+
+begin Function {rRef}
+	SetFunctionValue 1
+	if eval IsBaseForm rRef
+		SetFunctionValue 0
+	endif
+end

@@ -33,6 +33,7 @@ array_var aLoose
 array_var aBoxes
 array_var aPers
 ref rRef
+ref rPlaced
 ref rBase
 ref rFn
 ref rJudge
@@ -105,6 +106,8 @@ begin Function {}
 	player.AuxVarSetFlt "*_slLastF" fX
 
 	let fRad := player.AuxVarGetFlt "_slRad"
+	; a placed reference, not a base record (Placed.txt; skipped if it failed to compile)
+	let rPlaced := CompileScript "SmartLoot/Placed.txt"
 	if eval IsPluginInstalled "Scan Null Fix"
 		; only what could be looted: containers, actors (200) and inventory items (201)
 		let aRefs := player.GetRefs 27 1 0 fRad
@@ -149,9 +152,10 @@ begin Function {}
 			if eval (IsFormValid rRef) == 0 || rRef == player
 				continue
 			endif
-			let iType := GetType rRef
-			if iType < 58 || iType > 60
-				continue	; not a placed reference (see the main loop below)
+			if eval IsFormValid rPlaced
+				if eval (call rPlaced rRef) == 0
+					continue
+				endif
 			endif
 			if eval rRef.GetDead && (player.GetDistance rRef) <= fRad
 				Ar_Append aRefs rRef
@@ -164,9 +168,14 @@ begin Function {}
 	let rRef := GetCrosshairRef
 	let iType := 0
 	if eval IsFormValid rRef
-		let iType := GetType rRef
+		let iType := 1
+		if eval IsFormValid rPlaced
+			if eval (call rPlaced rRef) == 0
+				let iType := 0
+			endif
+		endif
 	endif
-	if iType >= 58 && iType <= 60
+	if iType == 1
 		let iType := GetType (rRef.GetBaseObject)
 		if iType >= 42 && iType <= 45
 			if eval rRef.GetDead && (player.GetDistance rRef) <= fRad
@@ -182,12 +191,11 @@ begin Function {}
 		if eval (IsFormValid rRef) == 0 || rRef == player
 			continue
 		endif
-		; a placed reference only (form types 0x3A-0x3C: object, character, creature). IWS creates
-		; creatures with PlaceAtMe; their temporary IDs are reused, and on 2026-11-18 one resolved to
-		; a creature's base record, so calling reference functions on it logged errors every pass.
-		let iType := GetType rRef
-		if iType < 58 || iType > 60
-			continue
+		; a placed reference only (Placed.txt)
+		if eval IsFormValid rPlaced
+			if eval (call rPlaced rRef) == 0
+				continue
+			endif
 		endif
 		let rBase := rRef.GetBaseObject
 		if eval (IsFormValid rBase) == 0 || rRef.GetDisabled

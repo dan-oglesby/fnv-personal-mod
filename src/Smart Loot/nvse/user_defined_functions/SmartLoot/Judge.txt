@@ -2,7 +2,8 @@
 ; are there. Rules, in order:
 ;   quest items: left unless the setting says otherwise. Unplayable items (creature parts,
 ;     NPC-only gear): always left.
-;   currency of every kind and NCR dogtags (SLAlwaysTake): all, quest flag or not.
+;   currency of every kind, NCR dogtags, skill magazines and bobby pins (SLAlwaysTake): all, quest
+;     flag or not.
 ;   keys and notes: all.
 ;   no weight but some value (caps, money, stimpaks, magazines...): all.
 ;   ammo: only types a carried weapon fires, up to the cap per calibre.
@@ -40,7 +41,7 @@ begin Function {rItem, iHave}
 	if eval (IsPlayable rItem) == 0
 		return
 	endif
-	; always taken: every currency and NCR dogtags (SLAlwaysTake, filled by AlwaysTake.txt). Checked
+	; always taken: currency, NCR dogtags, magazines, bobby pins (SLAlwaysTake, see AlwaysTake.txt). Checked
 	; before the quest-item rule because the game flags dogtags as quest items.
 	let iPlug := GetModIndex "SmartLoot.esp"
 	let rList := BuildRef iPlug 2052

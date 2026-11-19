@@ -370,7 +370,7 @@ pickup sound, unless that sound is already playing.
 
 | Rule | Default | Choices |
 |---|---|---|
-| Every currency (caps, NCR dollars, Legion coins, pre-war money, caravan money, casino chips, Sierra Madre chips) and NCR dogtags, quest flag or not | always | |
+| Every currency (caps, NCR dollars, Legion coins, pre-war money, caravan money, casino chips, Sierra Madre chips), NCR dogtags, skill magazines and bobby pins, quest flag or not | always | |
 | Keys and notes | always | |
 | No weight but some value (caps, money, stimpaks, magazines) | always | |
 | Ammo that a weapon you carry can fire (including its special ammo) | up to 300 per calibre | 100, 200, 300, 500, no cap |

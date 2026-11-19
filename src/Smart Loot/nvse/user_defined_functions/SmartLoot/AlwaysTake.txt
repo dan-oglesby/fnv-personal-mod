@@ -1,13 +1,14 @@
 ; Smart Loot: fills SLAlwaysTake (SmartLoot.esp 0x804), the items always taken whatever the other
-; rules say: every currency, and NCR dogtags (which the game flags as quest items). Run on every
-; load by ln_smart_loot.txt. FalloutNV.esm form IDs, in decimal:
+; rules say: every currency, NCR dogtags (which the game flags as quest items), skill magazines and
+; bobby pins. Run on every load by ln_smart_loot.txt. FalloutNV.esm form IDs, in decimal:
 ;   caps 0x00000F; NCR $5, $20, $100 0x13A4D6-8; Legion Denarius 0x137B9D, Aureus 0x13A4D9,
 ;   Denarius (mangled) 0x173236; pre-war money 0x034067; the caravan-money versions of the notes and
 ;   coins 0x176AC4-9; casino chips: Gomorrah 0x139FE0, The Tops 0x144C3B, Ultra-Luxe 0x144C3C,
 ;   Vikki and Vance 0x144C3D, Atomic Wrangler 0x144C3E; NCR Dogtag 0x123054, Irradiated NCR Dogtag
 ;   0x13FE77; skill magazines (2026-11-16): Salesman Weekly 0x0EC4A4, Future Weapons Today to
 ;   Programmer's Digest 0x0EC4A6-0x0EC4B1, True Police Stories 0x135689. Plus Dead Money's Sierra
-;   Madre Chip (DeadMoney.esm 0x011236) if Dead Money is loaded.
+;   Madre Chip (DeadMoney.esm 0x011236) if Dead Money is loaded. Bobby Pin 0x00000A (editor ID Lockpick;
+;   2026-11-18): weightless and worth nothing, so the value rule never took them.
 int iPlug
 int iIdx
 int iId
@@ -19,7 +20,7 @@ begin Function {}
 	let iPlug := GetModIndex "SmartLoot.esp"
 	let rList := BuildRef iPlug 2052
 	ListClear rList
-	let aIds := Ar_List 15, 1287382, 1287383, 1287384, 1276829, 1287385, 1520182, 213095, 1534660, 1534661, 1534662, 1534663, 1534664, 1534665
+	let aIds := Ar_List 15, 10, 1287382, 1287383, 1287384, 1276829, 1287385, 1520182, 213095, 1534660, 1534661, 1534662, 1534663, 1534664, 1534665
 	let iIdx := 0
 	while iIdx < Ar_Size aIds
 		let iId := aIds[iIdx]
