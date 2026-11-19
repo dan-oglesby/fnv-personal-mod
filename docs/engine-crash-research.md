@@ -81,4 +81,44 @@ Status: research; nothing here is shipped yet.
 - It gives up after 50 ms and runs the lookup unlocked, as before, so the worst case is today's behaviour, never a deadlock.
 - It patches only if all 50 bytes it relies on match. They were checked against the running game with the full plugin set, so no other plugin patches that site.
 - It logs to TextureMapLock.log.
-- Status: built; needs in-game testing. Success looks like no 0xA61A74 crashes over several sessions; the Engine Watch history makes that easy to see.
+- Status (version 1): built and deployed 2026-11-18. Success looks like no 0xA61A74 crashes over several sessions; the Engine Watch history makes that easy to see.
+
+## 2026-11-18 evening: the lock wasn't enough; others had found this crash
+
+Two more 0xA61A74 crashes came at 19:07 (Freeside East Gate, 29 minutes in) and 19:18 (Wilderness,
+11 minutes in), both through Texture Map Lock's wrapper (TextureMapLock+0x1108 on the stack). The
+log showed no lock timeouts, so the lookup crashed while holding the lock.
+- **Registers:** the stack held the bucket index the lookup computed, 0xFE for key 0x182D59CC and
+  0x274 for 0x182D329C. Both match `(key >> 4) % 1001`. esi was the record being compared,
+  0x0D2AA790 and 0x0D3BFA40, and neither was readable. So a chain entry still pointed at a record
+  that had been freed. There was no race with a writer.
+- **Known before us:**
+  - NVAC (New Vegas Anti Crash, 2014-16, now considered obsolete) caught the access violation at
+    00A61A74 and carried on.
+  - Psycho Engine Fixes (github.com/acidpointer/psycho; `analysis/heap_analysis.md`, chapter "Texture
+    Cache Hash Table", and `analysis/ghidra/output/crash/crash_00A61A74_bstask.txt`) worked out the
+    structure. The texture cache never removes single entries, they outlive the textures they point
+    to, and the game empties the cache only on worldspace changes. Their fix keeps a "dead set" of
+    destroyed textures.
+  - Their disassembly also confirms what the guard below relies on. 0x43C4F0 passes its `this` (the
+    bucket array) to 0xA61A60 (`mov ecx,[ebp-8]` at 0x43C514). An entry is {record, next}, and the
+    walk compares the key at record+4.
+- **NVTF ruled out:** its `iReplaceTextureCreationLocks` (mode 1 here) only wraps the Direct3D
+  texture critical sections at 0xE6DC4C, 0xE90B46 and 0xE90C91 (source:
+  carxt/New-Vegas-Tick-Fix, `nvtf/internal/ThreadingTweaks.cpp`). It doesn't touch the cache's
+  lock.
+
+**Texture Map Lock version 2** keeps the lock and adds NVAC's guard, plus a repair:
+- An access violation inside the walk (0xA61A60-0xA61AC7 only) is caught.
+- Still holding the lock that every writer takes, it unlinks the faulting bucket's entries whose
+  record can't be read, using guarded reads. The insert that follows a miss walks the same chain.
+- It retries once. Failing that, it reports "not cached" and the texture loads from disk.
+- Each catch is logged to TextureMapLock.log.
+- No plugin in this setup installs a first-chance (vectored) exception handler. So the guard sees
+  the fault before anything else, and Crash Logger, which uses the unhandled-exception filter, only
+  ever sees real crashes.
+- Not covered: a freed record whose memory has already been reused doesn't fault. The worldspace
+  reset (0xA615C0) writes to every record, so a stale one is a hazard there too.
+- A stand-alone test of the fault path couldn't run: Bitdefender removed the test program, which
+  writes code to fixed addresses and faults on purpose. The guard will show itself in the game's
+  log.
