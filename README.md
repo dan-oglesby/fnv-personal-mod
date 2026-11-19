@@ -6,6 +6,9 @@ collection in Vortex: xNVSE, JIP LN NVSE and friends). Quality of life, not chea
 The stability setup these are built on (mod list with Nexus links, settings, things to avoid) is in
 [STABILITY.md](STABILITY.md).
 
+Open bugs, crashes still being investigated, and known issues are kept as
+[GitHub issues](https://github.com/dan-oglesby/fnv-personal-mod/issues): one per problem, closed when it is fixed and confirmed in play.
+
 Each folder in `src/` mirrors the game's `Data` folder. `python build.py` zips each one into
 `dist/` and stages a copy in Vortex's New Vegas staging folder (`%APPDATA%\Vortex\falloutnv\mods\<Mod Name>`),
 so it shows up in Vortex's Mods list ready to enable and deploy (`--no-stage` for zips only).

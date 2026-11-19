@@ -87,10 +87,11 @@ made in the same room.
 
   A stack sample tells these apart, and the recorder now takes one (docs/engine-watch.md, "Where the
   main thread is"). The next time it happens, the incident and the timeline will name the function
-  the main thread is waiting in.
+  the main thread is waiting in. Tracked in [issue 4](https://github.com/dan-oglesby/fnv-personal-mod/issues/4).
 
 ## Still to look at
-- VFSVaporizationVolumeSCRIPT's failed StartCombat (6,350 errors in one session). The Fission Power
-  suit script's flood is fixed (2026-11-18: a return inside a loop).
+- VFSVaporizationVolumeSCRIPT's failed StartCombat (6,350 errors in one session;
+  [issue 6](https://github.com/dan-oglesby/fnv-personal-mod/issues/6)). The Fission Power suit script's flood is fixed (2026-11-18: a return inside a
+  loop).
 - The Hidden Valley bunker slowdown above: read the main-thread stacks once it happens again.
 - The display settings: 1176×664 with 4× anti-aliasing, and DXVK with an empty dxvk.conf.

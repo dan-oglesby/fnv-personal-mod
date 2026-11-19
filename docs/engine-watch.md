@@ -82,12 +82,13 @@ in the probe throws, probing switches off for the rest of the session and the re
   command -27904". In the same session Camp.txt errored with command 29285, which is 0x7265,
   ASCII "er", and a Tick script with command 26. None of these is a registered opcode. The engine
   is reading the compiled bytes at the wrong offset: the middle of a string, or a parameter.
-  - This looks like a jump or statement length that lands mid-statement. Many other scripts with
-    the same shapes (loops inside plain `if` blocks) run cleanly, so the shape alone isn't the cause.
   - When it happens the run stops, so everything after that point in the script is skipped every
     second.
-  - The next step is a read-only bytecode dump of the live script: `tools/live_script.py`, still
-    to be written, the counterpart of `live_disasm.py`.
+  - **The cause (found 2026-11-18):** a `return` inside a loop. xNVSE keeps one loop stack per
+    thread for all scripts, and `return` never pops it. Nutri.txt returned from inside its loop, so
+    the caller's next `loop` jumped to Nutri's loop offset, but in the caller's own bytecode. All
+    eight such returns became a flag and `break` (c7fc8cd), and check_scripts.py now rejects a
+    return inside a loop.
 - The Target Readout's "failed to compile" notices were a mixed deploy. In that session the game
   had the old Hide.txt and lacked Armor/Proj/Type/VatsPick. The current deploy matches the repo
   file for file.
