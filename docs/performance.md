@@ -61,7 +61,36 @@ Users", which takes effect at the next sign-in. Each session's report.md then sh
 
 The plan is one session before these changes (the current deploy) and one after, compared.
 
+## A slowdown in the Hidden Valley bunker (2026-11-18)
+
+From 17:34:33 to the reload at 17:37:58, in Hidden Valley Bunker L1, the game ran at a steady
+12 fps (every frame 80.5 to 82 ms). It went straight back to 60 after loading the save it had just
+made in the same room.
+- **Not the GPU:** PresentMon put the GPU's work at about 25 ms of each 81 ms frame, against
+  6.6 ms before. That rise is what a GPU dropping its clocks when it's mostly idle looks like.
+- **Not work on the CPU:** the main thread used 4 to 12% of a core, about the same CPU time per
+  frame as at 60 fps, and no other thread was busy. Each frame was about 65 ms of waiting.
+- **Ruled out:**
+  - disk: reads at the usual background rate, no writes, almost no page faults;
+  - memory: 790 MB private and 1.96 GB of address space still free;
+  - script errors: the error log didn't grow;
+  - the physics log didn't grow either;
+  - Texture Map Lock: its log has no lock timeouts all session;
+  - DXVK: nothing logged.
+- **Before it:** from 17:33:28, one 65 to 82 ms frame every 3 seconds for half a minute. 65 ms is
+  one 16.7 ms frame plus about 50 ms. Then smooth for 30 s, then the steady slow state.
+- **Candidates:**
+  - NVTF's lock changes: `bReplaceDeadlockCSWithWaitAndSleep` and `bTweakMiscCriticalSections` both
+    make a thread sleep or spin while a lock is held elsewhere;
+  - a wait on another engine thread, such as the audio thread;
+  - a frame limiter.
+
+  A stack sample tells these apart, and the recorder now takes one (docs/engine-watch.md, "Where the
+  main thread is"). The next time it happens, the incident and the timeline will name the function
+  the main thread is waiting in.
+
 ## Still to look at
-- The error floods: the Fission Power suit script's errors (about 5,000 in a long session, each a
-  disk write from the main thread) and VFSVaporizationVolumeSCRIPT's failed StartCombat (6,350).
+- VFSVaporizationVolumeSCRIPT's failed StartCombat (6,350 errors in one session). The Fission Power
+  suit script's flood is fixed (2026-11-18: a return inside a loop).
+- The Hidden Valley bunker slowdown above: read the main-thread stacks once it happens again.
 - The display settings: 1176×664 with 4× anti-aliasing, and DXVK with an empty dxvk.conf.

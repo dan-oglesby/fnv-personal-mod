@@ -14,6 +14,10 @@ describes the last instant. Watching from outside the game, this keeps what they
     threads, CPU time, and whether Windows considers its window hung;
   - where the player is, read from the game's memory (read-only: PROCESS_VM_READ, no injection,
     nothing written): the current cell and position, so a crash has a place and a path to it;
+  - where the game's main thread is while frames are slow or the window hangs (5 times a second),
+    and every 5 s otherwise for comparison: its instruction pointer and the return addresses on
+    its stack, named by module (MainStack below); a slow stretch with the main thread idle is a
+    wait, and this says on what;
   - how it ended: the process exit code (access violation, heap corruption, stack overrun, killed,
     normal) even when no crash logger fired, plus any crash log, classified by crash_report.py.
 When the game exits it writes report.md and report.json into the session's folder (the same folder
@@ -28,6 +32,7 @@ the session before. It works on old sessions too, with counts instead of times.
 Nothing here changes the game, its files or its logs. Only the session folder is written.
 """
 import argparse
+import bisect
 import collections
 import csv
 import ctypes
@@ -40,6 +45,7 @@ import re
 import struct
 import sys
 import subprocess
+import threading
 import time
 import traceback
 from pathlib import Path
@@ -314,6 +320,10 @@ class ThreadWatch:
             k32.GetThreadTimes(h, ctypes.byref(c), ctypes.byref(e), ctypes.byref(kt), ctypes.byref(ut))
             self.th[tid] = [h, self.label(h), filetime(c), None]
 
+    def main_tid(self):
+        """The main thread: the oldest."""
+        return min(self.th, key=lambda t: self.th[t][2]) if self.th else None
+
     def sample(self):
         """{"main_cpu": % of one core, "threads": "label 97%, ..."} since the last call."""
         now = time.perf_counter()
@@ -334,6 +344,226 @@ class ThreadWatch:
         top = sorted(busy, reverse=True)[:3]
         out["threads"] = ", ".join("%s %d%%" % ("main" if t == main else lbl, pct(c)) for c, t, lbl in top if pct(c) >= 5)
         return out
+
+
+# ---------------------------------------------------------------- where the main thread waits ------
+THREAD_GET_CONTEXT = 0x0008
+CONTEXT_CONTROL_X86 = 0x00010001            # WOW64_CONTEXT_CONTROL / x86 CONTEXT_CONTROL: Ebp, Eip, Esp
+CTX_SIZE, CTX_EBP, CTX_EIP, CTX_ESP = 716, 180, 184, 196   # the x86 CONTEXT (WOW64_CONTEXT) layout
+GETCTX = k32.Wow64GetThreadContext if ctypes.sizeof(ctypes.c_void_p) == 8 else k32.GetThreadContext
+GETCTX.argtypes = [wt.HANDLE, ctypes.c_void_p]
+GETCTX.restype = wt.BOOL
+
+
+class MainStack(threading.Thread):
+    """Where the game's main thread is: its instruction pointer and the return addresses on its
+    stack, sampled 5 times a second while frames are slow or the window hangs (fast(), from the
+    recorder's loop), and every 5 s otherwise, as the baseline to compare with.
+
+    Why: on 2026-11-18 the game ran at 12 fps for three and a half minutes with the main thread at
+    under 10% of a core, the GPU mostly idle, no disk activity and no script errors, until a reload.
+    Each 81 ms frame was about 65 ms of waiting, and nothing recorded could say for what. A stack
+    sample can: Sleep (a frame limiter), a wait on an event (another thread), a lock.
+
+    Read-only: GetThreadContext copies the thread's registers (Windows takes them between two of
+    its instructions; the thread is neither stopped nor changed) and ReadProcessMemory reads its
+    stack. Return addresses are found by scanning the stack for values that point just past a call
+    instruction in a loaded module, so an old one left on the stack can show up too: the first
+    frames are the reliable ones. Names: system DLLs by their nearest export
+    (ntdll!NtWaitForSingleObject+0xC), the game by absolute address, since it has no ASLR
+    (FalloutNV@0x00A61A74, as in docs/engine-crash-research.md), other DLLs by offset (nvtf+0x1A2B)."""
+    FAST_S, SLOW_S, MODS_S = 0.2, 5.0, 60.0
+    DEPTH = 10                   # frames kept per sample
+    STACK_BYTES = 16384          # how much of the stack is scanned
+    SYSTEM = {"ntdll", "kernelbase", "kernel32", "user32", "win32u"}
+
+    def __init__(self, proc, note):
+        super().__init__(daemon=True, name="MainStack")
+        self.proc, self.note = proc, note
+        self.lock = threading.Lock()
+        self.done = threading.Event()
+        self.tid = self.h = None
+        self.bases, self.ends, self.names = [], [], []
+        self.next_mods = 0.0
+        self.exports = {}            # module base -> (sorted RVAs, names)
+        self.calls = {}              # address -> True when the bytes before it are a call
+        self.fast_until = 0.0
+        self.ring = collections.deque()          # (time, stack) taken while fast
+        self.stretch = None                      # [start, end, Counter] of the current slow stretch
+        self.finished = []                       # stretches that ended, for the timeline
+        self.baseline = collections.Counter()
+        self.failures = 0
+        self.keep_s = RING_S + 300 + POST_S   # slow samples kept for incidents (one runs at most 5 min)
+
+    def set_main(self, tid):
+        if not tid or tid == self.tid:
+            return
+        h = k32.OpenThread(THREAD_GET_CONTEXT | THREAD_QUERY_LIMITED, False, tid)
+        with self.lock:
+            if self.h:
+                k32.CloseHandle(self.h)
+            self.h, self.tid = h, (tid if h else None)
+        if not h:
+            self.note("main stack: could not open the main thread (error %d); no stack samples" % ctypes.get_last_error())
+
+    def fast(self, until):
+        self.fast_until = max(self.fast_until, until)
+
+    def refresh_modules(self):
+        mods = sorted(self.proc.modules())
+        if mods:
+            self.bases = [m[0] for m in mods]
+            self.ends = [m[1] for m in mods]
+            self.names = [m[2] for m in mods]
+
+    def module(self, a):
+        i = bisect.bisect_right(self.bases, a) - 1
+        return (self.bases[i], self.names[i]) if i >= 0 and a < self.ends[i] else (None, None)
+
+    def export_table(self, base):
+        """(sorted RVAs, names) of a module's exports, read once from its export directory."""
+        if base in self.exports:
+            return self.exports[base]
+        table = ([], [])
+        try:
+            lfanew = self.proc.u32(base + 0x3C)
+            d = self.proc.read(base + lfanew + 0x78, 8) if lfanew else None   # PE32: DataDirectory[0]
+            rva, size = struct.unpack("<II", d) if d else (0, 0)
+            blob = self.proc.read(base + rva, size) if rva and 40 <= size < 1 << 21 else None
+            if blob:
+                nfun, nnames, afun, anames, aords = struct.unpack_from("<IIIII", blob, 20)
+
+                def at(r, n):                       # n bytes at module RVA r, if inside the blob
+                    o = r - rva
+                    return blob[o:o + n] if 0 <= o and o + n <= len(blob) else None
+                funs, names, ords = at(afun, 4 * nfun), at(anames, 4 * nnames), at(aords, 2 * nnames)
+                if funs and names and ords:
+                    fun = struct.unpack("<%dI" % nfun, funs)
+                    pairs = []
+                    for i in range(nnames):
+                        o = struct.unpack_from("<I", names, 4 * i)[0] - rva
+                        idx = struct.unpack_from("<H", ords, 2 * i)[0]
+                        if 0 <= o < len(blob) and idx < nfun and not rva <= fun[idx] < rva + size:  # no forwarders
+                            pairs.append((fun[idx], blob[o:blob.find(b"\0", o)].decode("ascii", "replace")))
+                    pairs.sort()
+                    table = ([p[0] for p in pairs], [p[1] for p in pairs])
+        except Exception:
+            pass
+        self.exports[base] = table
+        return table
+
+    def name(self, a):
+        base, mod = self.module(a)
+        if base is None:
+            return "0x%08X" % a
+        if mod.lower() == "falloutnv":
+            return "FalloutNV@0x%08X" % a
+        if mod.lower() in self.SYSTEM:
+            rvas, names = self.export_table(base)
+            i = bisect.bisect_right(rvas, a - base) - 1
+            if i >= 0:
+                return "%s!%s+0x%X" % (mod, names[i], a - base - rvas[i])
+        return "%s+0x%X" % (mod, a - base)
+
+    def is_return(self, a):
+        """True when the bytes just before address a are a call instruction."""
+        hit = self.calls.get(a)
+        if hit is None:
+            b = self.proc.read(a - 7, 7)              # b[7 - k] is the byte at a - k
+            hit = bool(b) and (
+                b[2] == 0xE8                                                  # call rel32
+                or (b[1] == 0xFF and (b[2] == 0x15 or (0x90 <= b[2] <= 0x97 and b[2] != 0x94)))  # [abs32], [r+d32]
+                or (b[0] == 0xFF and b[1] == 0x94)                            # [sib+d32]
+                or (b[3] == 0xFF and b[4] == 0x54)                            # [sib+d8]
+                or (b[4] == 0xFF and (b[5] == 0x14 or (0x50 <= b[5] <= 0x57 and b[5] != 0x54)))   # [sib], [r+d8]
+                or (b[5] == 0xFF and (0xD0 <= b[6] <= 0xD7 or b[6] in (0x10, 0x11, 0x12, 0x13, 0x16, 0x17))))  # reg, [r]
+            if len(self.calls) > 50000:
+                self.calls.clear()
+            self.calls[a] = hit
+        return hit
+
+    def take(self):
+        """One sample: "frame < caller < caller's caller ...", or None."""
+        with self.lock:
+            h = self.h
+        if not h:
+            return None
+        ctx = (ctypes.c_ubyte * CTX_SIZE)()
+        struct.pack_into("<I", ctx, 0, CONTEXT_CONTROL_X86)
+        if not GETCTX(h, ctypes.byref(ctx)):
+            self.failures += 1
+            if self.failures == 1:
+                self.note("main stack: GetThreadContext failed (error %d)" % ctypes.get_last_error())
+            return None
+        eip = struct.unpack_from("<I", ctx, CTX_EIP)[0]
+        esp = struct.unpack_from("<I", ctx, CTX_ESP)[0]
+        stack, addr, end = b"", esp, esp + self.STACK_BYTES
+        while addr < end:                                 # page by page, to the end of the stack
+            n = min(0x1000 - (addr & 0xFFF), end - addr)
+            chunk = self.proc.read(addr, n)
+            if not chunk:
+                break
+            stack += chunk
+            addr += n
+        frames = [eip]
+        for (v,) in struct.iter_unpack("<I", stack[: len(stack) & ~3]):
+            if v > 0x10000 and self.module(v)[0] is not None and self.is_return(v):
+                frames.append(v)
+                if len(frames) >= self.DEPTH:
+                    break
+        return " < ".join(self.name(a) for a in frames)
+
+    def run(self):
+        next_slow = 0.0
+        while not self.done.wait(self.FAST_S):
+            now = time.time()
+            fast = now < self.fast_until
+            if not fast and self.stretch:                 # a slow stretch ended
+                with self.lock:
+                    self.finished.append(self.stretch)
+                    self.stretch = None
+            if not fast and now < next_slow:
+                continue
+            next_slow = now + self.SLOW_S
+            try:
+                if now >= self.next_mods:
+                    self.next_mods = now + self.MODS_S
+                    self.refresh_modules()
+                key = self.take()
+            except Exception:
+                key = None
+                self.failures += 1
+                if self.failures <= 3:
+                    self.note("main stack: " + traceback.format_exc())
+            if not key:
+                continue
+            with self.lock:
+                if fast:
+                    self.ring.append((now, key))
+                    while self.ring and self.ring[0][0] < now - self.keep_s:
+                        self.ring.popleft()
+                    if self.stretch is None:
+                        self.stretch = [now, now, collections.Counter()]
+                    self.stretch[1] = now
+                    self.stretch[2][key] += 1
+                else:
+                    self.baseline[key] += 1
+
+    def summary(self, t0, t1, top=8):
+        """The stacks sampled while fast between t0 and t1: {"samples": n, "top": [[count, stack]]}."""
+        with self.lock:
+            c = collections.Counter(k for ts, k in self.ring if t0 <= ts <= t1)
+        return {"samples": sum(c.values()), "top": [[n, k] for k, n in c.most_common(top)]} if c else None
+
+    def pop_finished(self):
+        with self.lock:
+            out, self.finished = self.finished, []
+        return out
+
+    def baseline_summary(self, top=10):
+        with self.lock:
+            c = collections.Counter(self.baseline)
+        return {"samples": sum(c.values()), "top": [[n, k] for k, n in c.most_common(top)]} if c else None
 
 
 # The game's own structures (FalloutNV.exe 1.4.0.525, which has no ASLR: these addresses are fixed;
@@ -410,6 +640,9 @@ class Tail:
         return [p.rstrip(b"\r").decode("latin1") for p in parts if p.strip()]
 
 
+CRASHLOGGER_BANNER = re.compile(r"Crash Logger:|If this file is empty|NOT ALWAYS the crash reason|please send the whole log")
+
+
 def classify(src, line):
     """(kind, detail) for a log line: the timeline keeps everything, the report reads the kinds."""
     s = line.strip()
@@ -430,6 +663,8 @@ def classify(src, line):
             return "script error", s
         return "console", s
     if src in ("CrashLogger.log",) or src.startswith("Crash Logs"):
+        if CRASHLOGGER_BANNER.search(s):       # written at every launch; only what follows is a crash
+            return "log", s
         return "crash", s
     return "log", s
 
@@ -670,6 +905,8 @@ def live(pid=None, wait=True, summary_wait=120):
             "cpu_s", "proc_cpu", "main_cpu", "busy_threads", "read_mb_s", "reads_s", "write_mb_s", "faults_s",
             "hung", "havok_lines", "errlog_kb", "cell", "cell_id", "x", "y", "z"]
     tw = ThreadWatch(proc)
+    ms = MainStack(proc, note)
+    ms.start()
     saves_dir = SESSIONS.parent / "Saves"
     last_save_mb = None
     month_log = SESSIONS / ("engine_watch_%s.jsonl" % dt.date.today().strftime("%Y-%m"))
@@ -740,7 +977,8 @@ def live(pid=None, wait=True, summary_wait=120):
                "to": dt.datetime.fromtimestamp(now).strftime("%H:%M:%S"), "causes": incident["causes"],
                "frames": [[round(f[0] - t0, 3), round(f[1], 2), round(f[2], 2), round(f[3], 2)] for f in feed.raw(t0, now)],
                "samples": [s for ts, s in sample_ring if ts >= t0],
-               "events": [e for ts, e in events if ts >= t0]}
+               "events": [e for ts, e in events if ts >= t0],
+               "main_stacks": ms.summary(t0, now)}
         with gzip.open(out / "incidents.jsonl.gz", "at", encoding="utf-8") as f:   # one gzip member each
             f.write(json.dumps(rec) + "\n")
         incidents_written += 1
@@ -822,6 +1060,8 @@ def live(pid=None, wait=True, summary_wait=120):
                         r["max"] = max(r["max"], round(worst, 1))
                         r["o25"] += o25
                         r["o50"] += o50
+                    if o50 >= 5:                             # a slow second: where is the main thread?
+                        ms.fast(now + 15)
                     if o50:
                         emit({"t": dt.datetime.fromtimestamp(sec).strftime("%H:%M:%S"), "src": "frames",
                               "kind": "hitch", "msg": "%d frame(s) over %d ms, worst %.0f ms" % (o50, HITCH_MS, worst), "n": o50})
@@ -830,8 +1070,10 @@ def live(pid=None, wait=True, summary_wait=120):
                     minute["max"] = max(minute.get("max", 0), worst)
                     minute["o50"] = minute.get("o50", 0) + o50
                 focused_now = not ({int(now), int(now) - 1, int(now) - 2} & unfocused)
-                if focused_now and feed.burst(now) and (incident is None or "hitch burst" not in incident["causes"]):
-                    trigger("hitch burst", now)
+                if focused_now and feed.burst(now):
+                    ms.fast(now + 15)
+                    if incident is None or "hitch burst" not in incident["causes"]:
+                        trigger("hitch burst", now)
             if now >= next_sample:
                 next_sample = now + SAMPLE_S[mode]
                 row = {"t": stamp, "mode": mode, "fg": int(int(now) not in unfocused), **proc.counters()}
@@ -839,6 +1081,7 @@ def live(pid=None, wait=True, summary_wait=120):
                     next_va = now + VA_S[mode]
                     va = proc.address_space()
                     tw.refresh()
+                    ms.set_main(tw.main_tid())
                     row["threads"] = len(tw.th)
                 row.update(va)
                 row.update({("busy_threads" if k == "threads" else k): v for k, v in tw.sample().items()})
@@ -852,6 +1095,8 @@ def live(pid=None, wait=True, summary_wait=120):
                 prev = {"now": now, **{k: row[k] for k in ("_read", "_reads", "_write", "_faults", "cpu_s")}}
                 h = proc.hung()
                 row["hung"] = int(bool(h))
+                if h:
+                    ms.fast(now + 15)
                 if h and hung_since is None:
                     hung_since = now
                     emit({"t": stamp, "src": "watch", "kind": "hang", "msg": "window stopped responding", "n": 1})
@@ -907,6 +1152,13 @@ def live(pid=None, wait=True, summary_wait=120):
                                        "cell": minute.get("cell") or minute.get("cell_id")})
                 minute = {"n": 0}
             minute["m"] = int(now // 60)
+            for start, end, c in ms.pop_finished():   # a slow stretch's main thread, in a line
+                n = sum(c.values())
+                k, top = c.most_common(1)[0]
+                emit({"t": dt.datetime.fromtimestamp(end).strftime("%H:%M:%S"), "src": "watch", "kind": "main thread",
+                      "n": n, "msg": "slow %d s from %s, %d samples; %d%% in: %s" % (
+                          end - start, dt.datetime.fromtimestamp(start).strftime("%H:%M:%S"), n, 100 * top // n,
+                          " < ".join(k.split(" < ")[:6]))})
             if incident and now >= incident["close"]:
                 write_incident(now)
             # the frame feed's watchdog: the game has the focus but no frame came for 30 s
@@ -938,6 +1190,7 @@ def live(pid=None, wait=True, summary_wait=120):
         time.sleep(0.5)
     exit_seen = time.time()
     code = proc.exit_code()
+    ms.done.set()
     feed.stop()
     ended = dt.datetime.now()
     trigger("exit", exit_seen, always=True)   # the black box: the last minutes before the exit
@@ -966,6 +1219,7 @@ def live(pid=None, wait=True, summary_wait=120):
                  "frame_stats": histogram_stats(feed.hist),
                  "frame_hist": {str(k): v for k, v in sorted(feed.hist.items())},
                  "unfocused_s": len(unfocused),
+                 "main_stack_baseline": ms.baseline_summary(),
                  "hitch_times": [[dt.datetime.fromtimestamp(t).strftime("%H:%M:%S.%f")[:12], round(ms, 1),
                                   int(int(t) not in unfocused)] for t, ms in feed.hitches]})
     marker.write_text(json.dumps(meta, indent=1))
@@ -1053,6 +1307,7 @@ def classify_incident(rec):
     rows = [x for x in rec.get("samples", []) if near(x.get("t", ""))]
     reads = max((x.get("read_mb_s") or 0 for x in rows), default=0)
     main = max((x.get("main_cpu") or 0 for x in rows), default=0)
+    slow = sum(fr[1] > HITCH_MS for fr in rec.get("frames", []))
     out = []
     if kinds & {"loading", "loaded", "new game"}:
         out.append("loading")
@@ -1064,6 +1319,8 @@ def classify_incident(rec):
         out.append("disk streaming (%.0f MB/s)" % reads)
     if main >= 90 and not out:
         out.append("main thread at full load (scripts, AI or physics)")
+    if slow >= 100 and rows and main < 30 and not out:     # many slow frames, the main thread mostly idle
+        out.append("main thread waiting, not working (under %d%% of a core)" % (main + 1))
     for c in rec.get("causes", []):
         if c in ("error flood", "hang", "crash log") and c not in out:
             out.append(c)
@@ -1107,16 +1364,18 @@ def recorded_frames(session, samples):
                 over = sum(fr[1] > HITCH_MS for fr in rec.get("frames", []))
                 likely = classify_incident(rec)
                 landmarks = [e["kind"] + " " + e["msg"][:60] for e in rec.get("events", [])
-                             if e.get("kind") in ("loading", "loaded", "saved", "cell", "hang", "crash")][:4]
+                             if e.get("kind") in ("loading", "loaded", "saved", "cell", "hang", "crash")
+                             and not (e["kind"] == "crash" and CRASHLOGGER_BANNER.search(e.get("msg", "")))][:4]
                 incidents.append({"trigger": rec["trigger"], "from": rec["from"], "to": rec["to"],
                                   "causes": rec["causes"], "likely": likely, "worst_ms": round(worst, 1), "hitches": over,
-                                  "where": near_place(samples, rec["trigger"]), "around": landmarks})
+                                  "where": near_place(samples, rec["trigger"]), "around": landmarks,
+                                  "main_stacks": rec.get("main_stacks")})
     return {"frames": total, "median_ms": med, "fps_median": round(1000 / med, 1) if med else None,
             "p99_ms": st.get("p99_ms"), "hitch_limit_ms": HITCH_MS, "hitches": len(hits),
             "hitches_per_min": round(len(hits) / played_min(meta, total, med), 2) if total else 0,
             "whole_second_share": round(len(near) / len(gaps), 2) if gaps else None,
             "worst": [{"t": h[0], "ms": h[1], "where": near_place(samples, h[0])} for h in sorted(hits, key=lambda h: -h[1])[:15]],
-            "incidents": incidents}
+            "incidents": incidents, "main_baseline": meta.get("main_stack_baseline")}
 
 
 def frames(session, samples):
@@ -1306,8 +1565,10 @@ def report(session):
 
     # the timeline's landmarks and last two minutes
     if timeline:
-        keep = {"loading", "loaded", "saved", "new game", "cell", "hang", "hang end", "crash", "exit", "mod health", "nvse error"}
-        r["landmarks"] = [ev for ev in timeline if ev["kind"] in keep][-60:]
+        keep = {"loading", "loaded", "saved", "new game", "cell", "hang", "hang end", "crash", "exit", "mod health",
+                "nvse error", "main thread"}
+        r["landmarks"] = [ev for ev in timeline if ev["kind"] in keep and not
+                          (ev["kind"] == "crash" and CRASHLOGGER_BANNER.search(ev.get("msg", "")))][-60:]
         end = timeline[-1]["t"]
         endt = dt.datetime.strptime(end, "%H:%M:%S")
         r["last_two_minutes"] = [ev for ev in timeline if not ev.get("untimed") and
@@ -1421,6 +1682,13 @@ def render(r):
                     i["trigger"], i["from"], i["to"], ", ".join(i["causes"]), ", ".join(i.get("likely") or ["?"]),
                     i["worst_ms"], i["hitches"],
                     "; at " + i["where"] if i["where"] else "", "; around: " + "; ".join(i["around"]) if i["around"] else ""))
+                st = i.get("main_stacks") or {}
+                for n, k in (st.get("top") or [])[:3]:
+                    L.append("  - main thread, %d of %d samples: `%s`" % (n, st["samples"], k))
+        mb = fr.get("main_baseline") or {}
+        if mb.get("top"):
+            L += ["", "### Main thread in ordinary play (a sample every 5 s, %d in all)" % mb["samples"], ""]
+            L += ["- %d%%: `%s`" % (100 * n // mb["samples"], k) for n, k in mb["top"][:5]]
     if r.get("load_times") or r.get("save_sizes"):
         L += ["", "## Loads and saves", ""]
         L += ["- loaded at %s in %d s: %s" % (x["t"], x["seconds"], x["save"]) for x in r.get("load_times", [])]

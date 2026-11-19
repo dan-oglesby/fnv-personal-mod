@@ -153,7 +153,23 @@ repo. It is signed by Intel and was downloaded with the user's approval.
   play, the worst hitches with time and cell, and the share of gaps between hitches that are
   whole seconds (high means a timed script; see docs/performance.md).
 - Each incident gets a likely cause from the raw minutes around its trigger: loading, saving,
-  cell change, disk streaming, main thread at full load, error flood, hang.
+  cell change, disk streaming, main thread at full load, main thread waiting, error flood, hang.
+
+**Where the main thread is (2026-11-18).** A slow stretch with the main thread idle is a wait, and
+the samples above can't say for what. So the recorder samples the main thread's stack: 5 times a
+second while frames are slow (a second with 5 frames over 50 ms, or a hitch burst) or the window
+hangs, and every 5 s otherwise, as the baseline for ordinary play.
+- How: GetThreadContext for the instruction pointer and stack pointer, then ReadProcessMemory of
+  16 KB of stack, scanned for values that point just past a call instruction in a loaded module.
+  It is read-only: the thread is neither stopped nor changed. About 2.6 ms per sample.
+- Names: system DLLs by their nearest export (`ntdll!ZwDelayExecution+0xC` is Sleep), the game by
+  absolute address (`FalloutNV@0x00A61A74`), other DLLs by offset (`nvtf+0x1A2B`). A scan can pick
+  up an old return address left on the stack, so the first frames are the reliable ones.
+- Where it goes: each incident carries `main_stacks` (the commonest stacks in its window, with
+  counts). The timeline gets a "main thread" line when a slow stretch ends, with how often the top
+  stack was seen. report.md shows the top stacks under each incident and the ordinary-play baseline.
+- Tested on a 32-bit process that sleeps between pings. Every sample read
+  `ntdll!ZwDelayExecution < RtlDelayExecution < KERNELBASE!SleepEx < KERNELBASE!Sleep < ping+0x316C`.
 
 **Tests:**
 - The tiers, the batching, the incidents and their cooldown, and the report were run end to end:
