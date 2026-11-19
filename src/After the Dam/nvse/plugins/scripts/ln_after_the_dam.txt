@@ -27,6 +27,11 @@ if eval (IsFormValid rChk) == 0
 	let iBad += 1
 	print "After the Dam: AfterDam/Resume.txt failed to compile, so the part that uses it is off (details: nvse.log)"
 endif
+let rChk := CompileScript "AfterDam/FastTravel.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+	print "After the Dam: AfterDam/FastTravel.txt failed to compile, so fast travel stays off after the ending (details: nvse.log)"
+endif
 ; the escort's orders: each of its functions has to compile, or none of it is registered
 let int iEscBad := 0
 let rChk := CompileScript "AfterDam/EscortAct.txt"

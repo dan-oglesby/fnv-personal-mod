@@ -32,8 +32,11 @@ begin Function {}
 	RemoveImageSpaceModifier rRef
 	SetInCharGen 0
 	EnablePlayerControls
-	EnableFastTravel 1
-	player.AuxVarSetFlt "_adFT" 1
+	let rQ := CompileScript "AfterDam/FastTravel.txt"
+	if eval IsFormValid rQ
+		call rQ
+	endif
+	let rQ := 0
 	let rQ := BuildRef 0 1315240	; DisguiseFactionPulseQuest
 	StartQuest rQ
 	let aIds := Ar_List 617422, 1104107, 942341, 930473, 1300528, 1269529, 1104095, 1520337, 1520336, 1520335, 1397979

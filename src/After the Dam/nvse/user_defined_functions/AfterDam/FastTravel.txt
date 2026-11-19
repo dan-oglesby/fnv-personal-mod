@@ -1,0 +1,27 @@
+; After the Dam: fast travel back after the ending (2026-11-19). The battle's quests keep running after
+; the slides, and their scripts switch fast travel off again every few seconds while the battle
+; controller's iBattleState is above 0 (VHDHouseBattleSCRIPT, VHDIndependentBattleSCRIPT,
+; VHDLegionBattleScript, vHDBattleControllerScript: "EnableFastTravel 0 0 1"). So a single
+; EnableFastTravel 1 was undone at once. Here those quests are stopped (the battle is long over; nothing
+; else needs them), then fast travel is turned on. "_adFT" 2 marks it done.
+ref rQ
+array_var aIds
+array_var aEntry
+int iN
+
+begin Function {}
+	; VHDHouseBattle, VHDIndependentBattle, VHDLegionBattle, vHDBattleController
+	let aIds := Ar_List 1393204, 1393203, 1276601, 1257589
+	foreach aEntry <- aIds
+		let iN := aEntry["value"]
+		let rQ := BuildRef 0 iN
+		if eval IsFormValid rQ
+			if eval GetQuestRunning rQ
+				StopQuest rQ
+			endif
+		endif
+	loop
+	let aIds := Ar_Null
+	EnableFastTravel 1
+	player.AuxVarSetFlt "_adFT" 2
+end
