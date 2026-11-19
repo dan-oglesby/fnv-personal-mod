@@ -13,6 +13,12 @@
 ;    and food: an item's healing and short buffs don't carry over. Quest items, anything addictive,
 ;    and items that also ease sleep or radiation or run a script (a Sunset Sarsaparilla's bottle cap)
 ;    stay in your pack. Off: player.AuxVarSetFlt "_fpTake" 0.
+; 1b. Drawing water (2026-11-19), every second you stand in water or swim: the suit fills its water
+;    reservoir from the water around you, faster the deeper you are (5 points a second at the
+;    ankles, 20 fully under; JIP's IsInWater and GetWaterImmersionPerc). Clean water is free.
+;    Irradiated water (the game calls it dangerous, or radiation reaches you while you're in it) is
+;    filtered at "_fpFilter" battery steps a point, only as far as the battery holds (never below its
+;    last step), so with no power none is drawn. Off: player.AuxVarSetFlt "_fpDraw" 0.
 ; 2. Feeding you, every second: when thirst or hunger has built up a point or more, the suit gives
 ;    you exactly that much from its reservoir, so both stay at 0 while it holds any. It lowers the
 ;    need's base value, which is what the game's own thirst and hunger raise (see Mojave Heat's
@@ -34,6 +40,8 @@ float fBase
 float fGive
 float fCost
 float fLeft
+float fDeep
+int iDirty
 ref rItem
 ref rFn
 ref rBottle
@@ -103,6 +111,42 @@ begin Function {}
 				if eval (player.AuxVarGetFlt "_fpTakeSeen") == 0
 					player.AuxVarSetFlt "_fpTakeSeen" 1
 					MessageBoxEx "Power armor%rThe suit takes the food and water you carry into its reservoirs and feeds you from them, keeping thirst and hunger at 0. An item that gives both fills both, and nothing goes in that doesn't fit whole. Needs Meters shows what each reservoir holds after the H2O and FOD numbers."
+				endif
+			endif
+		endif
+
+		; 1b. drawing water from the water you're standing or swimming in
+		if eval fWat < fWMax && (player.AuxVarGetFlt "_fpDraw") != 0
+			if eval player.IsInWater
+				let fDeep := player.GetWaterImmersionPerc
+				let fGive := 5 + 15 * fDeep
+				if fGive > fWMax - fWat
+					let fGive := fWMax - fWat
+				endif
+				let iDirty := 0
+				if eval (player.IsInDangerousWater) || (player.GetRadiationLevel) > 0
+					let iDirty := 1
+				endif
+				if iDirty == 1
+					let fCost := player.AuxVarGetFlt "_fpFilter"
+					let fLeft := player.AuxVarGetFlt "_fpLeft"
+					if fLeft <= 1
+						let fGive := 0
+					elseif fCost > 0
+						if fGive * fCost > fLeft - 1
+							let fGive := (fLeft - 1) / fCost
+						endif
+						let fLeft -= fGive * fCost
+						player.AuxVarSetFlt "_fpLeft" fLeft
+					endif
+				endif
+				if fGive > 0
+					let fWat += fGive
+					player.AuxVarSetFlt "_fpWater" fWat
+					if eval (player.AuxVarGetFlt "_fpDrawSeen") == 0
+						player.AuxVarSetFlt "_fpDrawSeen" 1
+						MessageEx "The suit is filling its water tank from the water around you (irradiated water costs power to filter)."
+					endif
 				endif
 			endif
 		endif

@@ -27,6 +27,9 @@
 ;   player.AuxVarSetFlt "_fpFilter" 4       battery steps per point to filter irradiated food or water (default 2)
 ;   player.AuxVarSetFlt "_fpTake" 0         the suit takes nothing in (default 1)
 ;   player.AuxVarSetFlt "_fpFeed" 0         the suit doesn't feed you (default 1)
+; Standing in water or swimming fills the water tank from the water itself (2026-11-19), faster the
+; deeper you are; irradiated water is filtered at "_fpFilter" a point, so it needs power.
+;   player.AuxVarSetFlt "_fpDraw" 0         the suit doesn't draw water (default 1)
 ; With no fission batteries left, energy weapon ammo powers the suit (2026-11-17, Cells.txt): each
 ; cell worth its vanilla value against a battery's 75 caps (an energy cell about 267 steps), least
 ; energy-dense first, two magazines of your weapon's loaded ammo kept back, spent cells returned
