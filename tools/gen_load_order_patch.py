@@ -26,6 +26,14 @@ run scripts with different variable numbers, each of those scripts gets the vari
 added as unused floats ("float lvlPadN"), in the winning version of the script, with its compiled
 code untouched (code refers to variables only by number, so an unused one changes nothing). The
 source text gets the same declarations, so a recompile in the GECK numbers them the same way.
+
+Third job (2026-11-18), only while Wasteland Bank is installed (WastelandBank.esp in the load order):
+every mailbox is a bank counter. Opening one runs Wasteland Bank's OnActivate handler, which opens
+the counter's menu, so the mailbox's own opening has to stay shut: each mailbox container
+(MAILBOXES below, FalloutNV.esm) gets the empty OnActivate script vHDLegateCampExitDoorScript
+(0x148137), the one WastelandBank.esp gives the Mojave Express dropbox. The bank's "look inside"
+opens it with Activate and the script skipped. Only records the base game, a DLC or YUP win, and
+that have no script of their own, are touched; anything else is left as the load order has it.
 """
 import struct
 import sys
@@ -197,6 +205,62 @@ def script_var_fixes(order, plugins):
     return out
 
 
+# The mailbox containers (FalloutNV.esm object IDs): MailDropbox01New, MailboxClean, MailboxDestroyed,
+# MailboxDestroyedUnarmed, MailboxDestroyedGuns, VLootMailDropboxGen01-10, VLootMailboxDestroyedGen01-05,
+# VLootMailboxCleanGen01-05. Wasteland Bank's MailBases.txt lists the same ones.
+MAILBOXES = ([0x019F3C, 0x017F2D, 0x017F2E, 0x070BA6, 0x070BA7] + list(range(0x1677E9, 0x1677F3))
+             + list(range(0x167A96, 0x167AA0)))
+EMPTY_ACTIVATE = 0x148137   # vHDLegateCampExitDoorScript: an OnActivate block that does nothing
+
+
+def bank_mailboxes(order, plugins):
+    """[(record bytes, b"CONT", edid, source)] for the mailboxes, each with the empty script."""
+    if "WastelandBank.esp" not in order:
+        return []
+    numbered = {"falloutnv.esm", YUP.lower()} | {m.lower() for m in plugins[YUP]["masters"]}
+    win = {}
+    for n in order:
+        p = plugins[n]
+        for tag, fid, flags, off, size in p["recs"]:
+            if tag != b"CONT":
+                continue
+            idx = fid >> 24
+            owner = p["masters"][idx] if idx < len(p["masters"]) else n
+            if owner.lower() == "falloutnv.esm" and (fid & 0xFFFFFF) in MAILBOXES:
+                win[fid & 0xFFFFFF] = (n, fid, flags, off, size)
+    out = []
+    for oid in MAILBOXES:
+        if oid not in win:
+            continue
+        n, fid, flags, off, size = win[oid]
+        if n.lower() not in numbered:          # its numbering may not match ours: leave it be
+            print("  mailbox %06X: won by %s, left as it is" % (oid, n))
+            continue
+        d = data_of(plugins[n], off, size, flags)
+        if d is None:
+            continue
+        subs = subs_of(d)
+        if any(t == b"SCRI" for t, _ in subs):  # a mod gave it a script: leave it be
+            print("  mailbox %06X: has a script already (%s), left as it is" % (oid, n))
+            continue
+        body, done = b"", False
+        for t, v in subs:
+            if not done and t in (b"CNTO", b"COED", b"DATA"):
+                body += sub(b"SCRI", struct.pack("<I", EMPTY_ACTIVATE))
+                done = True
+            body += sub(t, v)
+        ed = next((v for t, v in subs if t == b"EDID"), b"").rstrip(b"\0").decode("latin1")
+        # uncompressed now, so the compressed flag is cleared
+        rec = b"CONT" + struct.pack("<III", len(body), flags & ~0x40000, fid) + p_hdr_tail(plugins[n], off) + body
+        out.append((rec, b"CONT", ed, n))
+    return out
+
+
+def p_hdr_tail(p, off):
+    """A record header's last 8 bytes (version control info and form version), as the source has them."""
+    return p["bytes"][off + 16: off + 24]
+
+
 def remap(rec, src, masters, plugins):
     """The record's form IDs (header and SCRO) moved from the source plugin's numbering to ours."""
     names = list(plugins[src]["masters"]) + [src]
@@ -231,6 +295,7 @@ def main():
     plugins = {n: audit.read_plugin(audit.DATA / n) for n in order}
     found = find(order, plugins)
     scripts = script_var_fixes(order, plugins)
+    scripts += bank_mailboxes(order, plugins)
     if not found and not scripts:
         if OUT.exists():
             OUT.unlink()
@@ -255,7 +320,7 @@ def main():
     body = b"".join(b"GRUP" + struct.pack("<I", 24 + len(g)) + tag + struct.pack("<iHHHH", 0, 0, 0, 0, 0) + g
                     for tag, g in groups.items())
     hdr = sub(b"HEDR", struct.pack("<fiI", 1.34, len(found), 0x800)) + sub(b"CNAM", b"fnv-personal-mod\0")
-    hdr += sub(b"SNAM", b"Forwards fixes undone by vanilla copies (generated locally)\0")
+    hdr += sub(b"SNAM", b"Forwards fixes undone by vanilla copies; script variables for leveled spawns; mailboxes as bank counters (generated locally)\0")
     for m in masters:
         hdr += sub(b"MAST", m.encode("latin1") + b"\0") + sub(b"DATA", bytes(8))
     data = b"TES4" + struct.pack("<IIIIHH", len(hdr), 0, 0, 0, 15, 0) + hdr + body   # form version 15, as make_plugins

@@ -45,12 +45,12 @@ begin Function {iBtn}
 			player.AuxVarSetFlt "_wxDripAll" 1
 		endif
 	elseif iBtn == 3
-		let rNext := CompileScript "WastelandBank/SqHere.txt"
+		let rNext := CompileScript "WastelandBank/PostNear.txt"
 		let iHere := call rNext
 		if eval (player.AuxVarGetFlt "_wxAutoMode") == 0
 			MessageEx "Choose an auto-invest mode first."
 		elseif iHere == 0
-			MessageEx "Trades go through the bank's couriers: call a squad from the bank card."
+			MessageEx "Trades are placed at a bank counter: any mailbox or Mojave Express dropbox."
 		else
 			let rNext := CompileScript "WastelandBank/ExAutoInvest.txt"
 			call rNext

@@ -1,0 +1,32 @@
+; Wasteland Bank: the bank counter (2026-11-18). Every mailbox and every Mojave Express dropbox is
+; one; they replace the courier squads, so nothing has to be called or waited for. Opened by opening
+; a mailbox (MailAct.txt) or a dropbox (MEAct.txt), or from the bank card's main menu next to one
+; (PostNear.txt). Each opening first does the counter's errands (PostVisit.txt: cash on hand, cash-outs
+; and deliveries due, auto-deposit and convert, vault top-ups and orders), then shows:
+;   money: deposit, withdraw, convert, bank notes, investments, loans, ordering a larger sum
+;     (Courier.txt);
+;   goods: the vault, ammo and supplies, selling, the catalogue, repairs (MEMenu.txt);
+;   at a mailbox, a look inside it (it's still a mailbox, with whatever is in it).
+float fBal
+float fLoan
+float fCash
+int iCarry
+ref rCaps
+ref rCb
+ref rFn
+
+begin Function {}
+	let rFn := CompileScript "WastelandBank/PostVisit.txt"
+	call rFn
+	let rCaps := BuildRef 0 15	; Caps001
+	let iCarry := player.GetItemCount rCaps
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let fLoan := player.AuxVarGetFlt "_wbLoan"
+	let fCash := player.AuxVarGetFlt "_wbSqCash"
+	let rCb := CompileScript "WastelandBank/PostBtn.txt"
+	if eval (player.AuxVarGetFlt "*_wbPostKind") == 1
+		MessageBoxExAlt rCb "^Wasteland Bank counter (mailbox)^Balance: %.0f caps.  Carrying: %.0f caps.%rLoan owed: %.0f caps.%rCash at the counter today: %.0f caps.|Money: deposit, withdraw, convert, investments, loans|Goods: vault, ammo and supplies, selling, catalogue, repairs|Look inside the mailbox|Close" fBal iCarry fLoan fCash
+	else
+		MessageBoxExAlt rCb "^Wasteland Bank counter (Mojave Express)^Balance: %.0f caps.  Carrying: %.0f caps.%rLoan owed: %.0f caps.%rCash at the counter today: %.0f caps.|Money: deposit, withdraw, convert, investments, loans|Goods: vault, ammo and supplies, selling, catalogue, repairs|Close" fBal iCarry fLoan fCash
+	endif
+end

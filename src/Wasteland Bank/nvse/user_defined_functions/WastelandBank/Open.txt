@@ -1,16 +1,15 @@
-; Wasteland Bank: the main menu. Every figure is read live when the menu opens. Cash, the vault
-; and loans go through a courier squad (2026-11-16): the first button calls one, says one is on its
-; way, or opens their services when they're here (SqHere.txt).
+; Wasteland Bank: the main menu. Every figure is read live when the menu opens. Cash, goods and
+; investments are handled at the bank counters (2026-11-18): any mailbox or Mojave Express dropbox
+; (Post.txt). Next to one, the first button opens it; elsewhere it says where to go.
 float fBal
 float fEarned
 float fLoan
 int iCarry
 ref rCaps
 ref rCb
-ref rHere
-int iHere
-int iState
-string_var sSq
+ref rNear
+int iNear
+string_var sPost
 
 begin Function {}
 	let rCaps := BuildRef 0 15	; Caps001
@@ -18,18 +17,13 @@ begin Function {}
 	let fBal := player.AuxVarGetFlt "_wbBal"
 	let fEarned := player.AuxVarGetFlt "_wbEarned"
 	let fLoan := player.AuxVarGetFlt "_wbLoan"
-	let rHere := CompileScript "WastelandBank/SqHere.txt"
-	let iHere := call rHere
-	let iState := player.AuxVarGetFlt "_wbSqState"
-	if iHere == 1
-		let sSq := "Courier services"
-	elseif iState == 1
-		let sSq := "Courier squad on its way"
-	elseif iState == 2
-		let sSq := "Courier squad waiting (go to them)"
+	let rNear := CompileScript "WastelandBank/PostNear.txt"
+	let iNear := call rNear
+	if iNear == 1
+		let sPost := "Bank counter"
 	else
-		let sSq := "Call a courier squad"
+		let sPost := "Bank counter (at a mailbox or Mojave Express dropbox)"
 	endif
 	let rCb := CompileScript "WastelandBank/MainBtn.txt"
-	MessageBoxExAlt rCb "^Wasteland Bank^Balance: %.0f caps (interest earned: %.0f)%rLoan owed: %.0f caps%rCarrying: %.0f caps|%z|Mojave Express|Wasteland Exchange (stocks)|Settings|Close" fBal fEarned fLoan iCarry sSq
+	MessageBoxExAlt rCb "^Wasteland Bank^Balance: %.0f caps (interest earned: %.0f)%rLoan owed: %.0f caps%rCarrying: %.0f caps|%z|Wasteland Exchange (stocks)|Settings|Close" fBal fEarned fLoan iCarry sPost
 end

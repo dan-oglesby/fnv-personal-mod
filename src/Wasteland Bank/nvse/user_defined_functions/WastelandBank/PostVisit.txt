@@ -1,0 +1,80 @@
+; Wasteland Bank: what a bank counter does when you open it (2026-11-18): what an arriving courier
+; squad used to do, without the wait.
+; - Cash on hand: the counter can pay out the ordinary float for your tier each day (Rate.txt 3:
+;   2,500 / 5,000 / 10,000 caps), or a larger sum ordered a day ahead (OrderCash.txt) once it's
+;   due, never more than your balance: "_wbSqCash", what Withdraw.txt lets you take. Withdrawals
+;   spend it; it fills again the next day ("_wbPostDay").
+; - Any cash-out order that's due (Deliver.txt), and a courier delivery or this week's market report
+;   (SqGive.txt).
+; - Auto-convert and auto-deposit, if they're on, with the usual fee.
+; - Vault top-ups and Mojave Express orders that are ready (MEPick.txt, 1 = at a counter).
+int iDay
+int iAmt
+int iCarry
+float fFloat
+float fBal
+float fFee
+float fNow
+ref rFn
+ref rFee
+ref rRateFn
+ref rCaps
+
+begin Function {}
+	let fNow := GameDaysPassed
+	let iDay := Floor fNow
+	let iDay += 1	; day 0 is stored as 1, so a save that never had this (0) counts as a new day
+	let rRateFn := CompileScript "WastelandBank/Rate.txt"
+	if eval (player.AuxVarGetFlt "_wbPostDay") != iDay
+		player.AuxVarSetFlt "_wbPostDay" iDay
+		let fFloat := call rRateFn 3
+		player.AuxVarSetFlt "_wbSqCash" fFloat
+	endif
+	; a larger sum ordered a day ahead, once it's due ("_wbSqState" 4, OrderCashBtn.txt)
+	if eval (player.AuxVarGetFlt "_wbSqState") == 4 && fNow >= (player.AuxVarGetFlt "_wbSqAt")
+		let fFloat := player.AuxVarGetFlt "_wbSqFloat"
+		if eval fFloat > (player.AuxVarGetFlt "_wbSqCash")
+			player.AuxVarSetFlt "_wbSqCash" fFloat
+			MessageEx "Wasteland Bank: the larger sum you ordered is here, at any counter today."
+		endif
+		player.AuxVarSetFlt "_wbSqState" 0
+		player.AuxVarSetFlt "_wbSqFloat" 0
+	endif
+	let fBal := player.AuxVarGetFlt "_wbBal"
+	let fBal := Floor fBal
+	if eval (player.AuxVarGetFlt "_wbSqCash") > fBal
+		player.AuxVarSetFlt "_wbSqCash" fBal
+	endif
+	let rFn := CompileScript "WastelandBank/Deliver.txt"
+	call rFn
+	let rFn := CompileScript "WastelandBank/SqGive.txt"
+	call rFn
+	let rFee := CompileScript "WastelandBank/Fee.txt"
+	if eval (player.AuxVarGetFlt "_wbAutoConv") == 1
+		let rFn := CompileScript "WastelandBank/ConvertNow.txt"
+		let iAmt := call rFn 1
+		if iAmt > 0
+			let fFee := call rRateFn 0
+			let fFee := iAmt * fFee / 100
+			call rFee fFee
+		endif
+	endif
+	if eval (player.AuxVarGetFlt "_wbAutoDep") == 1
+		let rCaps := BuildRef 0 15	; Caps001
+		let iCarry := player.GetItemCount rCaps
+		let fFee := player.AuxVarGetFlt "_wbKeep"
+		let iAmt := iCarry - fFee
+		if iAmt > 0
+			player.RemoveItem rCaps iAmt 1
+			let fBal := player.AuxVarGetFlt "_wbBal"
+			let fBal += iAmt
+			player.AuxVarSetFlt "_wbBal" fBal
+			let fFee := call rRateFn 0
+			let fFee := iAmt * fFee / 100
+			call rFee fFee
+			MessageEx "Wasteland Bank: %.0f caps deposited (auto-deposit)." iAmt
+		endif
+	endif
+	let rFn := CompileScript "WastelandBank/MEPick.txt"
+	call rFn 1
+end

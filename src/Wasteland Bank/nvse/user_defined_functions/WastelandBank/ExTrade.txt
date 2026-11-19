@@ -2,7 +2,7 @@
 ; of your shares (0.5 = half, 1 = all), 3 = short fAmt caps' worth, 4 = cover the whole short.
 ; Buying and covering pay the ask (price + 1.5%); selling and shorting get the bid (price - 1.5%).
 ; Shares are fractional. Your own trades don't move the price. Trades go through a courier squad
-; (2026-11-16): with none here (SqHere.txt), nothing is traded. Prices can be read any time.
+; (2026-11-16; at a bank counter since 2026-11-18, PostNear.txt): away from one, nothing is traded. Prices can be read any time.
 ; WBNK (16) has 1,000 shares in all: you can't buy past that, or short it. Buying and selling NCR
 ; assets (Hub-listed stocks, War Bonds) and the sovereign debt fund moves the currencies a little
 ; (Flow.txt). Gains and losses on sales count toward this month's profits ("_wbProfM", Tax.txt).
@@ -35,10 +35,10 @@ ref rFlow
 float fPost
 
 begin Function {iT, iAct, fAmt}
-	let rHere := CompileScript "WastelandBank/SqHere.txt"
+	let rHere := CompileScript "WastelandBank/PostNear.txt"
 	let iHere := call rHere
 	if iHere == 0
-		MessageEx "Trades go through the bank's couriers: call a squad from the bank card."
+		MessageEx "Trades are placed at a bank counter: any mailbox or Mojave Express dropbox."
 		return
 	endif
 	; wealth stages (Stage.txt): buying opens at Investor (2), shorting at Speculator (3)

@@ -1,5 +1,5 @@
-; Wasteland Bank: courier menu buttons (0 Deposit, 1 Withdraw, 2 Convert, 3 Bank notes, 4 Investments
-; (Invest.txt), 5 Loans, 6 Send them off, 7 Back to the main menu). Goods moved to the Mojave
+; Wasteland Bank: the counter's money buttons (0 Deposit, 1 Withdraw, 2 Convert, 3 Bank notes, 4
+; Investments (Invest.txt), 5 Loans, 6 Order a larger sum (OrderCash.txt), 7 Back to the counter). Goods moved to the Mojave
 ; Express dropboxes (MEMenu.txt, 2026-11-17). Converting currency is charged the cash fee on the
 ; caps it makes.
 int iBtn
@@ -38,10 +38,10 @@ begin Function {iBtn}
 		let rNext := CompileScript "WastelandBank/Loan.txt"
 		call rNext
 	elseif iBtn == 6
-		let rNext := CompileScript "WastelandBank/SqLeave.txt"
-		call rNext 0
+		let rNext := CompileScript "WastelandBank/OrderCash.txt"
+		call rNext
 	elseif iBtn == 7
-		let rNext := CompileScript "WastelandBank/Open.txt"
+		let rNext := CompileScript "WastelandBank/Post.txt"
 		call rNext
 	endif
 end

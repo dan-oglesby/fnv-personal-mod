@@ -1,7 +1,7 @@
 ; Wasteland Bank: xNVSE OnActivate handler for the five Mojave Express dropboxes (registered on
 ; every load by ln_wasteland_bank.txt, filtered to each dropbox as either argument) (2026-11-17).
-; Opening a dropbox opens the bank's Mojave Express menu (MEMenu.txt): the vault, ammo and supplies,
-; selling and the catalogue. The dropbox's own vanilla script is replaced by an empty one
+; Opening a dropbox opens the bank counter (Post.txt, 2026-11-18): money and goods, as at any
+; mailbox. The dropbox's own vanilla script is replaced by an empty one
 ; (WastelandBank.esp's override of vMojaveExpressBox), so the old shipping messages don't show.
 ref rFirst
 ref rSecond
@@ -11,6 +11,7 @@ begin Function {rFirst, rSecond}
 	if eval rFirst != player && rSecond != player
 		return
 	endif
-	let rNext := CompileScript "WastelandBank/MEMenu.txt"
+	player.AuxVarSetFlt "*_wbPostKind" 0
+	let rNext := CompileScript "WastelandBank/Post.txt"
 	call rNext
 end

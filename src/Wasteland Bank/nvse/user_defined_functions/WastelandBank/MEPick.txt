@@ -4,7 +4,8 @@
 ;   weapons with none, N of each aid item (BankAmmo.txt 8; moved here from the couriers 2026-11-17);
 ; - the first time ever, a note that your bank card opens the dropbox's services (MEMenu.txt).
 ; And any Mojave Express order that's ready ("_wbShipAt" passed) is handed over (WBInTransitRef
-; 0x80E). iForce is no longer used (orders came with squads before 2026-11-17).
+; 0x80E). iForce 1 (2026-11-18): at a bank counter that isn't a dropbox, a mailbox (PostVisit.txt),
+; which counts as a visit too.
 int iForce
 int iPlug
 int iNear
@@ -16,6 +17,9 @@ ref rFn
 begin Function {iForce}
 	let rFn := CompileScript "WastelandBank/MENear.txt"
 	let iNear := call rFn
+	if iForce == 1
+		let iNear := 0
+	endif
 	if iNear < 0
 		player.AuxVarSetFlt "*_wbMEVisit" 0
 		return

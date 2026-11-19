@@ -1,0 +1,31 @@
+; Wasteland Bank: xNVSE OnActivate handler for the game's mailboxes (2026-11-18), registered on every
+; load by ln_wasteland_bank.txt for each mailbox base form (MailBases.txt; a base form as the filter
+; matches every reference of it) as either argument. Opening a mailbox opens the bank counter
+; (Post.txt). The mailboxes' own opening is switched off by LoadOrderPatch.esp, which gives each of
+; them an empty OnActivate script while Wasteland Bank is installed (tools/gen_load_order_patch.py);
+; "Look inside" opens one the ordinary way (PostBtn.txt), and that activation is let through here.
+ref rFirst
+ref rSecond
+ref rBox
+ref rNext
+
+begin Function {rFirst, rSecond}
+	if eval rFirst == player
+		let rBox := rSecond
+	elseif eval rSecond == player
+		let rBox := rFirst
+	else
+		return
+	endif
+	if eval (IsFormValid rBox) == 0
+		return
+	endif
+	if eval (rBox.AuxVarGetFlt "*_wbLook") == 1
+		rBox.AuxVarSetFlt "*_wbLook" 0
+		return
+	endif
+	player.AuxVarSetRef "*_wbPostRef" rBox
+	player.AuxVarSetFlt "*_wbPostKind" 1
+	let rNext := CompileScript "WastelandBank/Post.txt"
+	call rNext
+end

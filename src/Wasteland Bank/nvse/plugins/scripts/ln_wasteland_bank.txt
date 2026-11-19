@@ -1,6 +1,7 @@
 ; Wasteland Bank (2026-11-11): a rewrite of "Bank Card" (BankCard.esp, Nexus 39741, 2011)
-; without its bugs. Since 2026-11-16 money has weight and cash moves through courier squads you
-; call with the card (fees: 2 percent of cash moved, 1 cap a pound for the vault); see
+; without its bugs. Since 2026-11-16 money has weight and cash moves only at a bank counter (fees: 2
+; percent of cash moved, 1 cap a pound for the vault): since 2026-11-18 that's any mailbox or Mojave
+; Express dropbox (Post.txt; until then, courier squads you called with the card); see
 ; docs/wasteland-bank-couriers.md. Deposit and withdraw caps with daily interest, take a loan with weekly
 ; interest, convert NCR, Legion and pre-war money (and caravan money) to caps, and optional
 ; auto-deposit and auto-convert.
@@ -475,6 +476,14 @@ let rChk := CompileScript "WastelandBank/MaExclBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/MailAct.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/MailBases.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/MainBtn.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
@@ -515,11 +524,35 @@ let rChk := CompileScript "WastelandBank/OpsWeek.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
+let rChk := CompileScript "WastelandBank/OrderCash.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/OrderCashBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
 let rChk := CompileScript "WastelandBank/OwnerFees.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
 let rChk := CompileScript "WastelandBank/OwnerFeesBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/Post.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/PostBtn.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/PostNear.txt"
+if eval (IsFormValid rChk) == 0
+	let iBad += 1
+endif
+let rChk := CompileScript "WastelandBank/PostVisit.txt"
 if eval (IsFormValid rChk) == 0
 	let iBad += 1
 endif
@@ -733,6 +766,23 @@ if iBad >= 0	; always (2026-11-17): each part below is registered only if its ow
 	else
 		print "Wasteland Bank: WastelandBank.esp is not enabled, so there is no bank card to open the bank with"
 	endif
+	; bank counters at the mailboxes (2026-11-18): opening one opens the counter (MailAct.txt). One
+	; handler per mailbox base form (MailBases.txt): a base form as the filter matches every mailbox
+	; of it, whichever argument it is. Removed first, so a reload doesn't add a second.
+	let ref rMailAct := CompileScript "WastelandBank/MailAct.txt"
+	let ref rMailFn := CompileScript "WastelandBank/MailBases.txt"
+	if eval (IsFormValid rMailAct) && (IsFormValid rMailFn)
+		let array_var aWbMail := call rMailFn
+		let array_var aWbEntry := Ar_Null
+		foreach aWbEntry <- aWbMail
+			let ref rWbBox := aWbEntry["value"]
+			RemoveEventHandler "OnActivate" rMailAct "first"::rWbBox
+			RemoveEventHandler "OnActivate" rMailAct "second"::rWbBox
+			SetEventHandler "OnActivate" rMailAct "first"::rWbBox
+			SetEventHandler "OnActivate" rMailAct "second"::rWbBox
+		loop
+		let aWbMail := Ar_Null
+	endif
 	; Optional hotkey as well (K = DirectInput 37): remove the ; from the next two lines.
 	;let ref rKey := CompileScript "WastelandBank/OnKey.txt"
 	;SetOnKeyDownEventHandler rKey 1 37
@@ -744,7 +794,8 @@ if iBad >= 0	; always (2026-11-17): each part below is registered only if its ow
 	if eval (IsFormValid rTick) && (IsFormValid rTrue) && (IsFormValid rStart)
 		CallAfterSeconds 0.675 rStart 1 rTick rTrue 10 20	; timer slot 0.675 s (tools/timer_slots.py)
 	endif
-	; courier squad: arrival, first meeting, leaving (once a second, same flags)
+	; Mojave Express visits and orders, and retiring any courier squad from before 2026-11-18 (once a
+	; second, same flags)
 	let ref rSq := CompileScript "WastelandBank/SqTick.txt"
 	let ref rStart2 := CompileScript "WastelandBank/Start.txt"
 	if eval (IsFormValid rSq) && (IsFormValid rTrue) && (IsFormValid rStart2)

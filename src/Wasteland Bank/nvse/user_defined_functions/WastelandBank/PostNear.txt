@@ -1,0 +1,60 @@
+; Wasteland Bank: are you at a bank counter? 1 at a Mojave Express dropbox (within about 6 m,
+; MENear.txt) or a mailbox (within about 4 m), else 0 (2026-11-18). Sets "*_wbPostKind" (0 dropbox,
+; 1 mailbox) and, for a mailbox, "*_wbPostRef". The mailbox last opened is checked first; otherwise
+; the containers within reach are searched for one (only when a menu asks, never on a timer).
+int iNear
+int iFound
+ref rFn
+ref rBox
+ref rBase
+array_var aBases
+array_var aRefs
+array_var aEntry
+
+begin Function {}
+	SetFunctionValue 0
+	let rFn := CompileScript "WastelandBank/MENear.txt"
+	let iNear := call rFn
+	if iNear >= 0
+		player.AuxVarSetFlt "*_wbPostKind" 0
+		SetFunctionValue 1
+		return
+	endif
+	let rBox := player.AuxVarGetRef "*_wbPostRef"
+	if eval IsFormValid rBox
+		if eval (player.GetDistance rBox) <= 300
+			player.AuxVarSetFlt "*_wbPostKind" 1
+			SetFunctionValue 1
+			return
+		endif
+	endif
+	let rFn := CompileScript "WastelandBank/MailBases.txt"
+	let aBases := call rFn
+	; containers only with Scan Null Fix (xNVSE's typed scans crash on a reference with no base form
+	; without it), else every reference in reach
+	if eval IsPluginInstalled "Scan Null Fix"
+		let aRefs := player.GetRefs 27 1 0 300
+	else
+		let aRefs := player.GetRefs 0 1 0 300
+	endif
+	let iFound := 0
+	if eval aRefs != Ar_Null
+		foreach aEntry <- aRefs
+			let rBox := aEntry["value"]
+			if eval IsFormValid rBox
+				let rBase := rBox.GetBaseObject
+				if eval (Ar_Find rBase aBases) >= 0
+					let iFound := 1
+					break	; not return: a return inside a loop leaves it on xNVSE's loop stack
+				endif
+			endif
+		loop
+	endif
+	if iFound == 1
+		player.AuxVarSetRef "*_wbPostRef" rBox
+		player.AuxVarSetFlt "*_wbPostKind" 1
+		SetFunctionValue 1
+	endif
+	let aRefs := Ar_Null
+	let aBases := Ar_Null
+end

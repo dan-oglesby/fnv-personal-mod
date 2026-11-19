@@ -1,10 +1,11 @@
-; Wasteland Bank: the courier squad's services (when they're here: SqHere.txt). Cash moves for a
-; fee ("_wbFeePct" percent of what they move, default 2); the vault is charged by the weight
-; carried each way ("_wbVaultRate" caps per pound, default 1).
+; Wasteland Bank: the money side of a bank counter (any mailbox or Mojave Express dropbox, Post.txt;
+; until 2026-11-18 the courier squad's services). Cash moves for a fee ("_wbFeePct" percent of what
+; moves, default 2); the cash on hand is the counter's daily float ("_wbSqCash", PostVisit.txt).
 float fBal
 float fLoan
 float fPct
 float fRate
+float fCash
 int iCarry
 ref rCaps
 ref rCb
@@ -19,6 +20,7 @@ begin Function {}
 	let fPct := call rRateFn 0
 	let rRateFn := CompileScript "WastelandBank/Rate.txt"
 	let fRate := call rRateFn 1
+	let fCash := player.AuxVarGetFlt "_wbSqCash"
 	let rCb := CompileScript "WastelandBank/CourierBtn.txt"
-	MessageBoxExAlt rCb "^Bank Couriers^Balance: %.0f caps.  Carrying: %.0f caps.%rLoan owed: %.0f caps.%rFee: %.1f percent of the cash they move. Goods (the vault, ammo, selling, orders) go through the Mojave Express dropboxes.|Deposit caps|Withdraw caps|Convert currency and casino chips|Wasteland Bank notes|Investments|Loans|Send them off|Back" fBal iCarry fLoan fPct
+	MessageBoxExAlt rCb "^Bank counter: money^Balance: %.0f caps.  Carrying: %.0f caps.%rLoan owed: %.0f caps.%rFee: %.1f percent of the cash moved. Cash at the counter today: %.0f caps.|Deposit caps|Withdraw caps|Convert currency and casino chips|Wasteland Bank notes|Investments|Loans|Order a larger sum (ready in a day)|Back" fBal iCarry fLoan fPct fCash
 end

@@ -1,8 +1,8 @@
-; Wasteland Bank: what a courier squad hands you when they reach you (SqTick.txt, every second you're
-; within about 4 m of them; 2026-11-17):
+; Wasteland Bank: what a bank counter hands you when you open it (PostVisit.txt; until 2026-11-18 a
+; courier squad, when they reached you):
 ; - a courier delivery that's due ("_wbDelivAt" passed; WBDeliveryRef 0x816, CatClose.txt);
 ; - this week's Mojave Market Report, if you haven't had it (Report.txt; a week is 7 game days,
-;   "_wbRepWk"). A week you don't meet a squad has no report.
+;   "_wbRepWk"). A week you don't visit a counter has no report.
 int iPlug
 int iWk
 ref rDel
@@ -14,7 +14,7 @@ begin Function {}
 	if eval IsFormValid rDel
 		if eval (rDel.GetNumItems) > 0 && GameDaysPassed >= (player.AuxVarGetFlt "_wbDelivAt")
 			rDel.RemoveAllItems player 1
-			MessageEx "The couriers hand over your delivery."
+			MessageEx "Your delivery is waiting at the counter: handed over."
 		endif
 	endif
 	let iWk := Floor (GameDaysPassed / 7)

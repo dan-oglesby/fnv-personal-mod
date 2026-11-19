@@ -1,29 +1,24 @@
-; Wasteland Bank: main menu buttons (0 couriers: call a squad, or their services when they're
-; here; 1 Mojave Express (at a dropbox: MEMenu.txt), 2 Wasteland Exchange, 3 Settings, 4 Close).
+; Wasteland Bank: main menu buttons (0 the bank counter, if you're at one (PostNear.txt): a mailbox or
+; Mojave Express dropbox; 1 Wasteland Exchange, 2 Settings, 3 Close). 2026-11-18: no more courier
+; squads to call.
 int iBtn
-int iHere
+int iNear
 ref rNext
 
 begin Function {iBtn}
 	if iBtn == 0
-		let rNext := CompileScript "WastelandBank/SqHere.txt"
-		let iHere := call rNext
-		if iHere == 1
-			let rNext := CompileScript "WastelandBank/Courier.txt"
-		elseif eval (player.AuxVarGetFlt "_wbSqState") == 2
-			MessageEx "The courier squad is waiting where they arrived: go to them."
-			return
+		let rNext := CompileScript "WastelandBank/PostNear.txt"
+		let iNear := call rNext
+		if iNear == 1
+			let rNext := CompileScript "WastelandBank/Post.txt"
+			call rNext
 		else
-			let rNext := CompileScript "WastelandBank/SqCall.txt"
+			MessageBoxEx "Wasteland Bank%rThe bank's counters are the mailboxes, and the Mojave Express dropboxes in Goodsprings, Primm, Novac, Freeside and on the Vegas Boulevard. Open any of them (or use your bank card next to one) to deposit, withdraw, invest, borrow, or reach the vault and the catalogue."
 		endif
-		call rNext
 	elseif iBtn == 1
-		let rNext := CompileScript "WastelandBank/MEMenu.txt"
-		call rNext
-	elseif iBtn == 2
 		let rNext := CompileScript "WastelandBank/ExMenu.txt"
 		call rNext
-	elseif iBtn == 3
+	elseif iBtn == 2
 		let rNext := CompileScript "WastelandBank/Settings.txt"
 		call rNext
 	endif

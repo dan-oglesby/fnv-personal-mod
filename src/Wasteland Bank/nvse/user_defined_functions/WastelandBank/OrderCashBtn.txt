@@ -1,0 +1,27 @@
+; Wasteland Bank: order buttons (OrderCash.txt): 0-2 bring 5,000 / 10,000 / 25,000 caps, 3 the whole
+; balance, 4 cancel. "_wbSqFloat" is the sum (taken from the balance when collected, never more than
+; it holds), "_wbSqAt" when it's ready, "_wbSqState" 4 while it's ordered (PostVisit.txt;
+; 1-3 were the courier squad's states before 2026-11-18).
+int iBtn
+float fFloat
+float fAt
+
+begin Function {iBtn}
+	if iBtn > 3
+		return
+	endif
+	if iBtn == 0
+		let fFloat := 5000
+	elseif iBtn == 1
+		let fFloat := 10000
+	elseif iBtn == 2
+		let fFloat := 25000
+	else
+		let fFloat := 1000000000
+	endif
+	let fAt := GameDaysPassed + 1
+	player.AuxVarSetFlt "_wbSqAt" fAt
+	player.AuxVarSetFlt "_wbSqFloat" fFloat
+	player.AuxVarSetFlt "_wbSqState" 4
+	MessageEx "Ordered. It's at every bank counter (mailboxes and Mojave Express dropboxes) from this time tomorrow."
+end

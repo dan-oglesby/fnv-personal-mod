@@ -99,7 +99,7 @@ begin Function {iBtn}
 		let fAt := GameDaysPassed
 		let fAt += 1
 		player.AuxVarSetFlt "_wbOutAt" fAt
-		MessageEx "Cash-out ordered: %.0f NCR dollars, delivered by a courier squad called a day from now or later." fOut
+		MessageEx "Cash-out ordered: %.0f NCR dollars, at any bank counter (a mailbox or Mojave Express dropbox) from a day from now." fOut
 	endif
 	call rNext
 end

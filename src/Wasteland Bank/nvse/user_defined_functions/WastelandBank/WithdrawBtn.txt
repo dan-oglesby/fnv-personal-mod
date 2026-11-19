@@ -1,6 +1,6 @@
 ; Wasteland Bank: withdraw buttons (0 100, 1 500, 2 1000, 3 all, 4 back). Never more than the
 ; whole caps in the balance, less the courier fee ("_wbFeePct" percent, charged after through
-; Fee.txt), and never more than the squad carries ("_wbSqCash"); interest fractions stay in the bank.
+; Fee.txt), and never more than the counter holds today ("_wbSqCash", PostVisit.txt); interest fractions stay in the bank.
 int iBtn
 int iAmt
 int iWhole
@@ -37,7 +37,7 @@ begin Function {iBtn}
 	if iAmt > fFee
 		let iAmt := fFee
 		if iAmt < 1
-			MessageEx "The couriers have no more cash with them. Order a larger sum when you call."
+			MessageEx "The counter has paid out its cash for today. Order a larger sum from the money menu: it's at every counter a day later."
 		endif
 	endif
 	if iAmt > 0

@@ -1,0 +1,35 @@
+; Wasteland Bank: the game's mailboxes, every one a bank counter since 2026-11-18 (with the five
+; Mojave Express dropboxes). Returns an array of their base forms (FalloutNV.esm containers):
+;   street drop boxes: MailDropbox01New 0x019F3C, VLootMailDropboxGen01-10 0x1677E9-0x1677F2;
+;   mailboxes: MailboxClean 0x017F2D, MailboxDestroyed 0x017F2E, MailboxDestroyedUnarmed 0x070BA6,
+;   MailboxDestroyedGuns 0x070BA7, VLootMailboxDestroyedGen01-05 0x167A96-0x167A9A,
+;   VLootMailboxCleanGen01-05 0x167A9B-0x167A9F.
+; Left out: the trap mailbox (an activator) and the two that hold quest letters.
+; Used by ln_wasteland_bank.txt (an OnActivate handler for each) and PostNear.txt. The IDs below are
+; in decimal, converted by script, not by hand.
+array_var aIds
+array_var aOut
+array_var aEntry
+ref rBox
+int iId
+
+begin Function {}
+	let aOut := Ar_Construct "array"
+	let aIds := Ar_List 106300, 98093, 98094, 461734, 461735, 1472489, 1472490, 1472491, 1472492, 1472493, 1472494, 1472495, 1472496
+	foreach aEntry <- aIds
+		let iId := aEntry["value"]
+		let rBox := BuildRef 0 iId
+		if eval IsFormValid rBox
+			Ar_Append aOut rBox
+		endif
+	loop
+	let aIds := Ar_List 1472497, 1472498, 1473174, 1473175, 1473176, 1473177, 1473178, 1473179, 1473180, 1473181, 1473182, 1473183
+	foreach aEntry <- aIds
+		let iId := aEntry["value"]
+		let rBox := BuildRef 0 iId
+		if eval IsFormValid rBox
+			Ar_Append aOut rBox
+		endif
+	loop
+	SetFunctionValue aOut
+end

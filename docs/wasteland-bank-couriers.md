@@ -1,5 +1,27 @@
 # Wasteland Bank: courier squads, the vault and government debt (plan, 2026-11-16)
 
+> **2026-11-18: the squads are gone.** Every mailbox and every Mojave Express dropbox is a **bank
+> counter**. Open one, or use the bank card next to one, and you get what a squad gave you, with no
+> call and no wait:
+> - money: deposit, withdraw, convert, bank notes, investments, loans;
+> - goods: the vault, ammo and supplies, selling, the catalogue, repairs;
+> - at a mailbox, a look inside it.
+>
+> How it works:
+> - **Mailbox opening.** LoadOrderPatch.esp gives each mailbox container an empty OnActivate
+>   script, so its own opening is shut (tools/gen_load_order_patch.py, while WastelandBank.esp is in
+>   the load order). MailAct.txt, an OnActivate handler filtered by the mailbox base forms, opens the
+>   counter (Post.txt). "Look inside" opens the mailbox with Activate, skipping the script.
+> - **On each opening** (PostVisit.txt): the arrival errands of a squad. That's cash-outs and
+>   deliveries due, auto-convert and auto-deposit, vault top-ups and ready orders.
+> - **Cash on hand:** each day the counter holds the float for your tier (2,500 / 5,000 / 10,000
+>   caps). A larger sum is ordered a day ahead from the money menu (OrderCash.txt).
+> - **Collected at a counter now:** cash-out orders, catalogue orders and the weekly market report.
+> - **Old saves:** a squad still out in a save from before the change goes home on the next load
+>   (SqTick.txt). One called with a larger sum becomes an order for it.
+>
+> The rest of this document is the original plan, with "squad" meaning what a counter does now.
+
 **The idea underneath:** the currency you hold is an implicit bet on how the war ends. Caps ride
 on House or an independent Vegas, NCR dollars on the NCR, denarii on the Legion, and the news that
 moves the war moves the rates.

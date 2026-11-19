@@ -1,4 +1,4 @@
-; Wasteland Bank: when a courier squad arrives (SqTick.txt), it brings any cash-out that is due
+; Wasteland Bank: at a bank counter (PostVisit.txt; until 2026-11-18 a courier squad), any cash-out that is due
 ; ("_wbOutAt" passed):
 ; - "_wbOutNcrD" NCR dollars as $100, $20 and $5 notes (FalloutNV.esm 1287384, 1287383, 1287382);
 ; - "_wbOutLegD" denarii as aurei (25 denarii each, 1287385) and denarii (1276829).
@@ -21,7 +21,7 @@ begin Function {}
 	endif
 	let fNow := GameDaysPassed
 	if eval fNow < (player.AuxVarGetFlt "_wbOutAt")
-		MessageEx "Your cash-out isn't ready yet: it comes with a squad called after a day."
+		MessageEx "Your cash-out isn't ready yet: it reaches the counters a day after you order it."
 		return
 	endif
 	let rFn := CompileScript "WastelandBank/ExCash.txt"
@@ -54,7 +54,7 @@ begin Function {}
 			call rFn fRest
 		endif
 		player.AuxVarSetFlt "_wbOutNcrD" 0
-		MessageEx "The couriers brought your cash-out: %.0f NCR dollars in notes." fD
+		MessageEx "Your cash-out is here: %.0f NCR dollars in notes." fD
 	endif
 	if fL > 0
 		let iD := Floor fL
@@ -76,6 +76,6 @@ begin Function {}
 			call rFn fRest
 		endif
 		player.AuxVarSetFlt "_wbOutLegD" 0
-		MessageEx "The couriers brought your cash-out: %.0f denarii in Legion coin." fL
+		MessageEx "Your cash-out is here: %.0f denarii in Legion coin." fL
 	endif
 end

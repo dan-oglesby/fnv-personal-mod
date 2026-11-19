@@ -1,5 +1,5 @@
 ; Wasteland Bank: Mojave Express buttons (0 vault, 1 ammo and supplies, 2 sell, 3 catalogue,
-; 4 repairs (Fix.txt), 5 close).
+; 4 repairs (Fix.txt), 5 back to the counter (Post.txt).
 int iBtn
 ref rNext
 
@@ -15,7 +15,7 @@ begin Function {iBtn}
 	elseif iBtn == 4
 		let rNext := CompileScript "WastelandBank/Fix.txt"
 	else
-		return
+		let rNext := CompileScript "WastelandBank/Post.txt"
 	endif
 	call rNext
 end

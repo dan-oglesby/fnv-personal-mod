@@ -1,28 +1,28 @@
-; Wasteland Bank: the Mojave Express services, at any of the game's five dropboxes. Away from them,
-; courier delivery (2026-11-17): order from the catalogue and a courier squad carries it out to you,
-; for a commission ("_wbDelivCut", 25 percent of the goods' value; MEAwayBtn.txt, CatClose.txt). (Goodsprings,
-; Primm, Novac, Freeside, the Vegas Boulevard station: MENear.txt) (2026-11-17). Goods live here
-; now; money and investments stay with the courier squads. Opened by opening a dropbox (MEAct.txt)
-; or from the bank card's main menu.
+; Wasteland Bank: the goods side of a bank counter: any mailbox or Mojave Express dropbox (PostNear.txt;
+; 2026-11-18, before then only the five dropboxes: Goodsprings, Primm, Novac, Freeside, the Vegas
+; Boulevard station). Opened from the counter (Post.txt). Away from a counter it says where to go;
+; courier delivery away from a counter went with the squads (MEAwayBtn.txt is no longer offered).
 ;   the vault (Vault.txt), ammo and supplies (Ammo.txt), selling (Sell.txt), the catalogue
 ;   (Catalogue.txt). Vault traffic is charged by weight, loose ammo is reboxed for 5 percent.
 int iNear
+int iPost
 float fRate
 string_var sAt
 ref rFn
 ref rCb
 
 begin Function {}
+	let rFn := CompileScript "WastelandBank/PostNear.txt"
+	let iPost := call rFn
+	if iPost == 0
+		MessageBoxEx "Wasteland Bank%rYour goods (the vault, ammo and supplies, selling, the catalogue) are handled at any bank counter: open a mailbox or a Mojave Express dropbox."
+		return
+	endif
 	let rFn := CompileScript "WastelandBank/MENear.txt"
 	let iNear := call rFn
 	if iNear < 0
-		let fRate := player.AuxVarGetFlt "_wbDelivCut"
-		let rCb := CompileScript "WastelandBank/MEAwayBtn.txt"
-		let sAt := sv_Construct "Your goods are handled at the Mojave Express dropboxes: Goodsprings, Primm, Novac, Freeside, and the Vegas Boulevard station. Open any dropbox (or your bank card next to one) for the vault, ammo and supplies, selling and the catalogue."
-		MessageBoxExAlt rCb "^Mojave Express^%z%r%rAway from a dropbox, a courier squad can carry an order out to you, for a commission of %.0f percent of the goods' value.|Order for courier delivery|Close" sAt fRate
-		return
-	endif
-	if iNear == 0
+		let sAt := "the mailbox"
+	elseif iNear == 0
 		let sAt := "Goodsprings"
 	elseif iNear == 1
 		let sAt := "Primm"
@@ -36,5 +36,5 @@ begin Function {}
 	let rFn := CompileScript "WastelandBank/Rate.txt"
 	let fRate := call rFn 1
 	let rCb := CompileScript "WastelandBank/MEMenuBtn.txt"
-	MessageBoxExAlt rCb "^Mojave Express, %z^Carrying to and from the bank costs %.2f caps a pound each way.|Vault storage|Ammo and supplies|Sell things|Order from the catalogue|Repairs|Close" sAt fRate
+	MessageBoxExAlt rCb "^Bank counter: goods (%z)^Carrying to and from the bank costs %.2f caps a pound each way.|Vault storage|Ammo and supplies|Sell things|Order from the catalogue|Repairs|Back" sAt fRate
 end

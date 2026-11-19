@@ -1,0 +1,25 @@
+; Wasteland Bank: bank counter buttons (Post.txt): 0 money (Courier.txt), 1 goods (MEMenu.txt), 2 look
+; inside the mailbox (at a mailbox; at a dropbox, 2 is Close). Looking inside opens the mailbox the
+; ordinary way: Activate with the OnActivate block skipped (its script is the empty one
+; LoadOrderPatch.esp gives it), and "*_wbLook" tells MailAct.txt to let that activation through.
+int iBtn
+ref rNext
+ref rBox
+
+begin Function {iBtn}
+	if iBtn == 0
+		let rNext := CompileScript "WastelandBank/Courier.txt"
+		call rNext
+	elseif iBtn == 1
+		let rNext := CompileScript "WastelandBank/MEMenu.txt"
+		call rNext
+	elseif iBtn == 2
+		if eval (player.AuxVarGetFlt "*_wbPostKind") == 1
+			let rBox := player.AuxVarGetRef "*_wbPostRef"
+			if eval IsFormValid rBox
+				rBox.AuxVarSetFlt "*_wbLook" 1
+				rBox.Activate player 0
+			endif
+		endif
+	endif
+end
