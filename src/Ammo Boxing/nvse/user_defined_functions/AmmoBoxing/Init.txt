@@ -9,4 +9,8 @@ begin Function {}
 		player.AuxVarSetFlt "_abOther" 1	; magazines kept loose for each other weapon you carry
 		player.AuxVarSetFlt "_abMsg" 1		; messages: 0 none, 1 when boxes are opened, 2 also each box filled
 	endif
+	if eval (player.AuxVarGetFlt "_abInit") < 2
+		player.AuxVarSetFlt "_abInit" 2
+		player.AuxVarSetFlt "_abOn" 0		; 2026-11-19: off for now; boxes you carry open back into rounds (Unpack.txt)
+	endif
 end

@@ -15,6 +15,18 @@ ref rFn
 
 begin Function {}
 	if eval (player.AuxVarGetFlt "_abOn") == 0
+		; off (2026-11-19, for now): every 5 seconds, any boxes you still carry are opened back into
+		; rounds (Unpack.txt), and nothing new is boxed
+		let iT := player.AuxVarGetFlt "*_abT"
+		let iT += 1
+		if iT >= 10
+			let iT := 0
+			let rFn := CompileScript "AmmoBoxing/Unpack.txt"
+			if eval IsFormValid rFn
+				call rFn
+			endif
+		endif
+		player.AuxVarSetFlt "*_abT" iT
 		return
 	endif
 	if player.GetDead

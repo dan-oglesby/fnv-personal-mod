@@ -4,11 +4,17 @@
 ; pound per 40 points (processed; 2026-11-19, the food reservoir replaced the Nutrient Paste one at
 ; the paste's weight).
 ; Set on the suit's base item (xNVSE SetWeight); the original weight is remembered and put back when
-; you take it off (iOn 0), and the game resets base weights on every load anyway.
+; you take it off (iOn 0). 2026-11-19: a SetWeight lasts until the game restarts, not until the next
+; load, so after loading a save in the same session the form still had our extra pounds, and reading
+; it back as the suit's own weight made it heavier with every load. Now the suit's own weight
+; ("_fpW0") and the weight last set ("_fpWSet") are kept on the form, saved: the form's weight is
+; taken as its own only when it isn't the one we set.
 ref rSuit
 int iOn
 float fW0
 float fWgt
+float fCur
+float fSet
 ref rLast
 
 begin Function {rSuit, iOn}
@@ -16,9 +22,10 @@ begin Function {rSuit, iOn}
 	let rLast := player.AuxVarGetRef "*_fpWSuit"
 	if eval IsFormValid rLast
 		if eval iOn == 0 || rLast != rSuit
-			let fW0 := AuxVarGetFlt "*_fpW0" 0 rLast
+			let fW0 := AuxVarGetFlt "_fpW0" 0 rLast
 			if fW0 > 0
 				SetWeight fW0 rLast
+				AuxVarSetFlt "_fpWSet" fW0 0 rLast
 			endif
 			player.AuxVarErase "*_fpWSuit"
 		endif
@@ -29,14 +36,17 @@ begin Function {rSuit, iOn}
 	if eval (IsFormValid rSuit) == 0
 		return
 	endif
-	let fW0 := AuxVarGetFlt "*_fpW0" 0 rSuit
-	if fW0 <= 0
-		let fW0 := GetWeight rSuit
-		AuxVarSetFlt "*_fpW0" fW0 0 rSuit
+	let fCur := GetWeight rSuit
+	let fW0 := AuxVarGetFlt "_fpW0" 0 rSuit
+	let fSet := AuxVarGetFlt "_fpWSet" 0 rSuit
+	if fW0 <= 0 || fCur < fSet - 0.01 || fCur > fSet + 0.01
+		let fW0 := fCur
+		AuxVarSetFlt "_fpW0" fW0 0 rSuit
 	endif
 	let fWgt := fW0 + (player.AuxVarGetFlt "_fpProc")
 	let fWgt += (player.AuxVarGetFlt "_fpFood") / 40 * 0.25
 	let fWgt += (player.AuxVarGetFlt "_fpWater") / 50
 	SetWeight fWgt rSuit
+	AuxVarSetFlt "_fpWSet" fWgt 0 rSuit
 	player.AuxVarSetRef "*_fpWSuit" rSuit
 end

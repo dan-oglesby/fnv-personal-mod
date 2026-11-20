@@ -1,0 +1,38 @@
+; Ammo Boxing: opens every ammo box you carry back into loose rounds (2026-11-19), while boxing is off
+; ("_abOn" 0, Tick.txt). The kinds are listed first and opened after, since opening changes the
+; inventory being walked.
+int iNum
+int iIdx
+ref rItem
+ref rAm
+ref rFn
+array_var aAm
+array_var aEntry
+
+begin Function {}
+	let aAm := Ar_Construct "array"
+	let iNum := player.GetNumItems
+	let iIdx := 0
+	while iIdx < iNum
+		let rItem := player.GetInventoryObject iIdx
+		let iIdx += 1
+		if eval IsFormValid rItem
+			if eval (GetType rItem) == 31
+				let rAm := AuxVarGetRef "*_abAmmo" 0 rItem
+				if eval IsFormValid rAm
+					Ar_Append aAm rAm
+				endif
+			endif
+		endif
+	loop
+	if eval (Ar_Size aAm) > 0
+		let rFn := CompileScript "AmmoBoxing/Open.txt"
+		if eval IsFormValid rFn
+			foreach aEntry <- aAm
+				let rAm := aEntry["value"]
+				call rFn rAm 1000000
+			loop
+		endif
+	endif
+	let aAm := Ar_Null
+end
