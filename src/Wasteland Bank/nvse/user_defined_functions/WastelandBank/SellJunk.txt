@@ -1,8 +1,12 @@
 ; Wasteland Bank: all your junk, for the couriers to sell. Junk = miscellaneous items worth at
 ; least a cap that aren't quest items (snow globes and Sunset Sarsaparilla star caps are), money,
-; casino chips or fission batteries. iDo 0 only counts: returns what merchants would pay and puts
+; casino chips or fission batteries. And (2026-11-24) nothing you'd want to keep: before, every
+; miscellaneous item worth a cap counted, so bobby pins (worth 1 cap), Ammo Boxing's boxes and
+; crafting parts all went with the junk. Now these stay: bobby pins and everything on Smart Loot's
+; always-take list, an Ammo Boxing box, Bottle That Water's empty bottles, and anything a recipe
+; uses (JIP GetFormRecipes: crafting parts, drained cells, empty bottles a recipe refills). iDo 0 only counts: returns what merchants would pay and puts
 ; the number of items in "*_wbJunkN". iDo 1 hands them over (SellOne.txt, SellDone.txt).
-; FalloutNV.esm IDs kept (decimal): caps 15, pre-war money 213095, Fission Battery 211910, NCR notes
+; FalloutNV.esm IDs kept (decimal): Bobby Pin 10, caps 15, pre-war money 213095, Fission Battery 211910, NCR notes
 ; 1287382-1287384, denarius 1276829, mangled denarius 1520182, aureus 1287385, caravan money
 ; 1534660-1534665, casino chips 1286112 and 1330235-1330238.
 int iDo
@@ -15,6 +19,9 @@ float fGross
 float fV
 ref rItem
 ref rOne
+ref rKeep
+ref rAm
+array_var aRcp
 array_var aSkip
 array_var aIds
 array_var aEntry
@@ -25,7 +32,7 @@ array_var aVol
 begin Function {iDo}
 	SetFunctionValue 0
 	let aSkip := Ar_Construct "array"
-	let aIds := Ar_List 15, 213095, 211910, 1287382, 1287383, 1287384, 1276829, 1520182, 1287385, 1534660, 1534661, 1534662, 1534663, 1534664, 1534665, 1286112, 1330235, 1330236, 1330237, 1330238
+	let aIds := Ar_List 10, 15, 213095, 211910, 1287382, 1287383, 1287384, 1276829, 1520182, 1287385, 1534660, 1534661, 1534662, 1534663, 1534664, 1534665, 1286112, 1330235, 1330236, 1330237, 1330238
 	foreach aEntry <- aIds
 		let iId := aEntry["value"]
 		let rItem := BuildRef 0 iId
@@ -36,6 +43,18 @@ begin Function {iDo}
 		let rItem := BuildRef iId 2057	; WBNote10
 		Ar_Append aSkip rItem
 		let rItem := BuildRef iId 2058	; WBNote100
+		Ar_Append aSkip rItem
+	endif
+	; Smart Loot's always-take list (SLAlwaysTake, SmartLoot.esp 0x804) and Bottle That Water's empty
+	; bottle (LFoxWaterBottleEmpty 0xADE) are kept too
+	let rKeep := 0
+	if eval IsModLoaded "SmartLoot.esp"
+		let iId := GetModIndex "SmartLoot.esp"
+		let rKeep := BuildRef iId 2052
+	endif
+	if eval IsModLoaded "LFox Bottle That Water.esp"
+		let iId := GetModIndex "LFox Bottle That Water.esp"
+		let rItem := BuildRef iId 2782
 		Ar_Append aSkip rItem
 	endif
 	; listed first, handed over after (removing while walking the inventory would shift it)
@@ -61,6 +80,19 @@ begin Function {iDo}
 			continue
 		endif
 		if eval (Ar_Find rItem aSkip) >= 0
+			continue
+		endif
+		if eval IsFormValid rKeep
+			if eval (ListGetFormIndex rKeep rItem) >= 0
+				continue
+			endif
+		endif
+		let rAm := AuxVarGetRef "*_abAmmo" 0 rItem
+		if eval IsFormValid rAm
+			continue
+		endif
+		let aRcp := GetFormRecipes rItem
+		if eval (Ar_Size aRcp) > 0
 			continue
 		endif
 		let iCnt := player.GetItemCount rItem
